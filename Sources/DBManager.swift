@@ -2,7 +2,7 @@ import Foundation
 import FMDB
 
 public enum DBError: Error {
-  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed
+  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed
 }
 
 public enum QueryError: Error {
@@ -33,6 +33,14 @@ public class DBManager: NSObject {
     get {
       return dbs.last?.queue
     }
+  }
+  
+  public class func push(_ dbPath: String?, dbDefFilePaths: Array<String>?) throws {
+    guard dbs.count > 0 else {
+      throw DBError.pushFailed
+    }
+    
+    try open(dbPath, dbDefFilePaths: dbDefFilePaths)
   }
 
   public class func open(_ dbPath: String?, dbDefFilePaths: Array<String>?) throws {
@@ -117,8 +125,23 @@ public class DBManager: NSObject {
 
     dbs.append(DBMeta(queue: queue, path: dbPath))
   }
+  
+  public class func pop(deleteDB: Bool) throws {
+    guard dbs.count > 1 else {
+      print("Can't pop a database if there isn't more than one db open.")
+      throw DBError.popFailed
+    }
+    
+    close(deleteDB: deleteDB)
+  }
+  
+  public class func close() {
+    while dbs.count > 0 {
+      close(deleteDB: dbs.count > 1)
+    }
+  }
 
-  public class func close(deleteDB: Bool = false) {
+  private class func close(deleteDB: Bool = false) {
     if let dbMeta = dbs.popLast() {
       dbMeta.queue.close()
       if let path = dbMeta.path, deleteDB {
@@ -139,8 +162,9 @@ public class DBManager: NSObject {
     return nil
   }
 
-  public class func getDBDefFiles(bundle: Bundle = Bundle.main) -> Array<String>? {
-    var paths = bundle.paths(forResourcesOfType: "sql", inDirectory: nil)
+  public class func getDBDefFiles(bundle: Bundle?) -> Array<String>? {
+    let pathBundle = bundle ?? Bundle.main
+    var paths = pathBundle.paths(forResourcesOfType: "sql", inDirectory: nil)
     paths.sort()
     return paths
   }

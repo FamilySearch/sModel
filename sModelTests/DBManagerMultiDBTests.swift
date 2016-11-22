@@ -19,6 +19,28 @@ class DBManagerMultiDBTests: XCTestCase {
 
     try! DBManager.open(nil, dbDefFilePaths: paths)
   }
+  
+  private func pushDB() {
+    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
+    paths.sort()
+
+    try! DBManager.push(nil, dbDefFilePaths: paths)
+  }
+  
+  func testCascadeClose() {
+    pushDB()
+    pushDB()
+    DBManager.close()
+  }
+  
+  func testPop_onlyRoot() {
+    do {
+      try DBManager.pop(deleteDB: false)
+    } catch {
+      return
+    }
+    XCTFail("Should have thrown an exception")
+  }
 
   func testDatabaseStack() {
     insertThing("tid1", name: "thing 1")
@@ -27,7 +49,7 @@ class DBManagerMultiDBTests: XCTestCase {
       return
     }
 
-    openDB()
+    pushDB()
 
     guard Thing.firstInstanceWhere("tid = ?", params: "tid1") == nil else {
       XCTFail("Thing should not have value in new db")
@@ -40,7 +62,7 @@ class DBManagerMultiDBTests: XCTestCase {
       return
     }
 
-    DBManager.close()
+    try! DBManager.pop(deleteDB: false)
 
     guard Thing.firstInstanceWhere("tid = ?", params: "tid1") != nil else {
       XCTFail("Thing should have had a value")
