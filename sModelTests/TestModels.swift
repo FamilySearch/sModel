@@ -1,5 +1,5 @@
 import Foundation
-@testable import sModel
+import sModel
 
 class Thing: BaseModel {
   var tid = ""

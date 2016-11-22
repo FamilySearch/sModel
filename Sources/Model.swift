@@ -13,12 +13,18 @@ public struct ColumnMeta {
   let name: String
   let type: ColumnType
   let primaryKey: Bool
+  
+  public init(name: String, type: ColumnType, primaryKey: Bool) {
+    self.name = name
+    self.type = type
+    self.primaryKey = primaryKey
+  }
 }
 
 
-public class BaseModel: NSObject {
-  var isDeleted = false
-  var existsInDatabase = false
+open class BaseModel: NSObject {
+  public var isDeleted = false
+  public var existsInDatabase = false
 
   required override public init() {
     super.init()
@@ -28,7 +34,7 @@ public class BaseModel: NSObject {
     return UUID().uuidString
   }
 
-  func didDelete() { } //No op by default
+  open func didDelete() { } //No op by default
 }
 
 
