@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.author             = { "Stephen Lynn" => "slynn@familysearch.org" }
 
   s.ios.deployment_target		= "9.0"
-  s.source       = { :git => "https://github.com/FamilySearch/sModel.git", :tag => "#{s.version.to_s}" }
+  s.source       = { :git => "https://github.com/FamilySearch/sModel.git", :tag => "v#{s.version.to_s}" }
   s.source_files  = "Sources/*.swift"
   s.requires_arc  = true
   s.module_name  = "sModel"
