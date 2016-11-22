@@ -26,6 +26,16 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(things)
     XCTAssertEqual(things.count, 0)
   }
+  
+  func testInstancesWhere_arrayOfParams() {
+    insertABunchOfThings(10)
+    
+    let things = Thing.instancesWhere("tid = ? AND name = ?", params: ["tid1", "thing 1"])
+    
+    XCTAssertNotNil(things)
+    XCTAssertEqual(things.count, 1)
+    XCTAssertEqual(things[0].tid, "tid1")
+  }
 
   func testDoubleProperties() {
     let thing = insertThing("tid1", name: "thing1")

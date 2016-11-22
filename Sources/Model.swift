@@ -80,7 +80,12 @@ extension ModelDef {
 
   private static func fetchInstances(query: String, paramArray: Array<Any>) -> Array<ModelType> {
     var instances = [ModelType]()
-    let statement = StatementParts(sql: query, values: paramArray, type: .query)
+    //Checking for an array in first element allows Obj-c code to pass an array of parameters since the variadic parameters don't map correctly from Obj-c to swift
+    var params = paramArray
+    if let firstElement = paramArray.first as? Array<Any> {
+      params = firstElement
+    }
+    let statement = StatementParts(sql: query, values: params, type: .query)
 
     do {
       try DBManager.executeStatement(statement) { (result) in
