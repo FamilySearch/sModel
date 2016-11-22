@@ -55,8 +55,8 @@
 		BD3E92621DDCCB8F0089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BD3E92671DDCCB900089EBEA /* sModelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sModelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD3E926E1DDCCB900089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BD3E92781DDCCBA20089EBEA /* DBManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManager.swift; sourceTree = "<group>"; };
-		BD3E92791DDCCBA20089EBEA /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		BD3E92781DDCCBA20089EBEA /* DBManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DBManager.swift; path = ../Sources/DBManager.swift; sourceTree = "<group>"; };
+		BD3E92791DDCCBA20089EBEA /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Model.swift; path = ../Sources/Model.swift; sourceTree = "<group>"; };
 		BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
 		BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiThreadTests.swift; sourceTree = "<group>"; };
 		BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchemaTests.swift; sourceTree = "<group>"; };
@@ -523,6 +523,7 @@
 				BD3E92741DDCCB900089EBEA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		BD3E92751DDCCB900089EBEA /* Build configuration list for PBXNativeTarget "sModelTests" */ = {
 			isa = XCConfigurationList;
@@ -531,6 +532,7 @@
 				BD3E92771DDCCB900089EBEA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
