@@ -5,7 +5,7 @@ public enum DBError: Error {
   case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed
 }
 
-enum QueryError: Error {
+public enum QueryError: Error {
   case failed(errorCode: Int)
 }
 
@@ -25,7 +25,7 @@ fileprivate struct DBMeta {
 }
 
 @objc
-class DBManager: NSObject {
+public class DBManager: NSObject {
   private static var dbs: Array<DBMeta> = []
   private static var isRetry: Bool = false
 

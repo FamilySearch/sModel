@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */; };
 		BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */; };
 		BD3E926F1DDCCB900089EBEA /* sModel.h in Headers */ = {isa = PBXBuildFile; fileRef = BD3E92611DDCCB8F0089EBEA /* sModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BD3E927A1DDCCBA20089EBEA /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92781DDCCBA20089EBEA /* DBManager.swift */; };
@@ -50,6 +51,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = sModelPublicInterfaceTests.swift; sourceTree = "<group>"; };
 		BD3E925E1DDCCB8F0089EBEA /* sModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD3E92611DDCCB8F0089EBEA /* sModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel.h; sourceTree = "<group>"; };
 		BD3E92621DDCCB8F0089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 				BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */,
 				BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */,
 				BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */,
+				BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";
@@ -309,6 +312,7 @@
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
 				BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,
+				BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */,
 				BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */,
 				BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */,
 				BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */,

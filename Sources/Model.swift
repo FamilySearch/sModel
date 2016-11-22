@@ -24,7 +24,7 @@ public class BaseModel: NSObject {
     super.init()
   }
 
-  class func generateUUID() -> String {
+  public class func generateUUID() -> String {
     return UUID().uuidString
   }
 

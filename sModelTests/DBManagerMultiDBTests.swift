@@ -14,7 +14,7 @@ class DBManagerMultiDBTests: XCTestCase {
   }
 
   private func openDB() {
-    var paths = Bundle(for: type(of: self)).paths(forResourcesOfType: "sql", inDirectory: nil)
+    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
     paths.sort()
 
     try! DBManager.open(nil, dbDefFilePaths: paths)
