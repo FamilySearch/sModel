@@ -15,8 +15,8 @@
 		BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */; };
 		BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */; };
 		BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */; };
-		BD3E92861DDCCBCC0089EBEA /* test1.sql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92841DDCCBCC0089EBEA /* test1.sql */; };
-		BD3E92871DDCCBCC0089EBEA /* test2.sql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92851DDCCBCC0089EBEA /* test2.sql */; };
+		BD3E92861DDCCBCC0089EBEA /* 0001.sql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92841DDCCBCC0089EBEA /* 0001.sql */; };
+		BD3E92871DDCCBCC0089EBEA /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92851DDCCBCC0089EBEA /* 0002.sql */; };
 		BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92881DDCCBD20089EBEA /* TestModels.swift */; };
 		BD3E928C1DDCD4240089EBEA /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
 		BD3E928E1DDCD7F30089EBEA /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
@@ -62,8 +62,8 @@
 		BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
 		BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiThreadTests.swift; sourceTree = "<group>"; };
 		BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchemaTests.swift; sourceTree = "<group>"; };
-		BD3E92841DDCCBCC0089EBEA /* test1.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test1.sql; sourceTree = "<group>"; };
-		BD3E92851DDCCBCC0089EBEA /* test2.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test2.sql; sourceTree = "<group>"; };
+		BD3E92841DDCCBCC0089EBEA /* 0001.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0001.sql; sourceTree = "<group>"; };
+		BD3E92851DDCCBCC0089EBEA /* 0002.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0002.sql; sourceTree = "<group>"; };
 		BD3E92881DDCCBD20089EBEA /* TestModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestModels.swift; sourceTree = "<group>"; };
 		BD3E928B1DDCD4240089EBEA /* FMDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FMDB.framework; path = Carthage/Build/iOS/FMDB.framework; sourceTree = "<group>"; };
 		BD3E92941DDCF0EE0089EBEA /* DBManagerSetupTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerSetupTests.swift; sourceTree = "<group>"; };
@@ -143,8 +143,8 @@
 		BD3E92821DDCCBB90089EBEA /* defs */ = {
 			isa = PBXGroup;
 			children = (
-				BD3E92841DDCCBCC0089EBEA /* test1.sql */,
-				BD3E92851DDCCBCC0089EBEA /* test2.sql */,
+				BD3E92841DDCCBCC0089EBEA /* 0001.sql */,
+				BD3E92851DDCCBCC0089EBEA /* 0002.sql */,
 				BD3E92961DDCF3C20089EBEA /* testBad1.badSql */,
 			);
 			name = defs;
@@ -269,8 +269,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD3E92861DDCCBCC0089EBEA /* test1.sql in Resources */,
-				BD3E92871DDCCBCC0089EBEA /* test2.sql in Resources */,
+				BD3E92861DDCCBCC0089EBEA /* 0001.sql in Resources */,
+				BD3E92871DDCCBCC0089EBEA /* 0002.sql in Resources */,
 				BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
