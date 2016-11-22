@@ -1,0 +1,7 @@
+CREATE TABLE "Thing" (
+  "tid" TEXT PRIMARY KEY
+);
+
+CREATE TABLE "Thing" (
+  "tid" TEXT PRIMARY KEY
+);
