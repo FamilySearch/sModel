@@ -190,7 +190,8 @@ extension ModelDef {
           valueHolders.append("?")
         }
 
-        return StatementParts(sql: "INSERT INTO \(sqlTableName) (\(names.joined(separator: ","))) VALUES (\(valueHolders.joined(separator: ",")))", values: values, type: .update)
+        let insertPrefix = DBManager.shouldReplaceDuplicates ? "INSERT OR REPLACE" : "INSERT"
+        return StatementParts(sql: "\(insertPrefix) INTO \(sqlTableName) (\(names.joined(separator: ","))) VALUES (\(valueHolders.joined(separator: ",")))", values: values, type: .update)
     }
   }
 

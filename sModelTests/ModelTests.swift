@@ -111,6 +111,26 @@ class ModelTests: XCTestCase {
     let dbProp: String = dbAnimal!.props["prop2"] as! String
     XCTAssertEqual(dbProp, origProp)
   }
+  
+  func testCreateSaveStatement() {
+    let thing = Thing()
+    thing.tid = "tid1"
+    thing.name = "thing 1"
+    
+    let statement = thing.createSaveStatement()
+    XCTAssertEqual(statement.sql, "INSERT INTO Thing (tid,name,other,otherDouble) VALUES (?,?,?,?)")
+  }
+  
+  func testCreateSaveStatement_replaceDuplicates() {
+    DBManager.shouldReplaceDuplicates = true
+    let thing = Thing()
+    thing.tid = "tid1"
+    thing.name = "thing 1"
+    
+    let statement = thing.createSaveStatement()
+    XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (tid,name,other,otherDouble) VALUES (?,?,?,?)")
+    DBManager.shouldReplaceDuplicates = false
+  }
 
   //MARK: Edge cases
 

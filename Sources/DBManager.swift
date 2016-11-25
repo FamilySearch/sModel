@@ -32,6 +32,7 @@ fileprivate struct DBMeta {
 
 @objc
 public class DBManager: NSObject {
+  public static var shouldReplaceDuplicates = false
   private static var dbs: Array<DBMeta> = []
   private static var isRetry: Bool = false
 
