@@ -17,6 +17,12 @@ public struct StatementParts {
   let sql: String
   let values: Array<Any>
   let type: StatementType
+  
+  public init(sql: String, values: Array<Any>, type: StatementType) {
+    self.sql = sql
+    self.values = values
+    self.type = type
+  }
 }
 
 fileprivate struct DBMeta {
