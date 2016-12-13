@@ -17,7 +17,7 @@ class SchemaTests: XCTestCase {
 
     try! DBManager.open(nil, dbDefFilePaths: paths)
 
-    let queue = DBManager.getDBQueue()
+    let queue = try! DBManager.getDBQueue()
 
     queue.inDatabase { (db) in
       guard let db = db else {
