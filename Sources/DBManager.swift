@@ -176,15 +176,16 @@ public class DBManager: NSObject {
     return paths
   }
 
-  public class func getDBQueue() -> FMDatabaseQueue {
+  public class func getDBQueue() throws -> FMDatabaseQueue {
     guard let queue = currentQueue else {
-      fatalError("DB Queue was not initialized so we can't return it")
+      print("DB Queue was not initialized so we can't return it")
+      throw DBError.missingDBQueue
     }
     return queue
   }
 
   public class func truncateAllTables(excludes: Array<String> = []) {
-    let queue = getDBQueue()
+    guard let queue = try? getDBQueue() else { return }
 
     queue.inDatabase { (db) in
       let result = db?.getSchema()
@@ -238,7 +239,7 @@ public class DBManager: NSObject {
   }
 
   public class func executeStatements(_ statements: Array<StatementParts>, resultsHandler: @escaping (_ results: Array<FMResultSet?>) -> ()) throws -> Void {
-    let queue = getDBQueue()
+    let queue = try getDBQueue()
     var transactionError: Error?
 
     queue.inTransaction { (db, rollback) in
