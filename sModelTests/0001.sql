@@ -1,7 +1,10 @@
 CREATE TABLE "Thing" (
-  "tid" TEXT PRIMARY KEY,
+  "localId" TEXT PRIMARY KEY,
+  "tid" TEXT,
   "name" TEXT
 );
+
+CREATE UNIQUE INDEX "main"."INDEX_tid" ON Thing ("tid");
 
 CREATE TABLE "Animal" (
   "aid" TEXT PRIMARY KEY,

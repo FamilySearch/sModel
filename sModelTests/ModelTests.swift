@@ -118,7 +118,7 @@ class ModelTests: XCTestCase {
     thing.name = "thing 1"
     
     let statement = thing.createSaveStatement()
-    XCTAssertEqual(statement.sql, "INSERT INTO Thing (tid,name,other,otherDouble) VALUES (?,?,?,?)")
+    XCTAssertEqual(statement.sql, "INSERT INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
   }
   
   func testCreateSaveStatement_replaceDuplicates() {
@@ -128,24 +128,46 @@ class ModelTests: XCTestCase {
     thing.name = "thing 1"
     
     let statement = thing.createSaveStatement()
-    XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (tid,name,other,otherDouble) VALUES (?,?,?,?)")
+    XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
     DBManager.shouldReplaceDuplicates = false
   }
 
   //MARK: Edge cases
 
   func testInsertDuplicateObject_overwriteWithLatestFromDB() {
-    insertThing("tid1", name: "thing 1")
+    let originalThing = insertThing("tid1", name: "thing 1")
 
     let newThing = Thing()
     newThing.tid = "tid1"
     newThing.name = "otherThing 1"
+    
+    XCTAssertNotEqual(originalThing.localId, newThing.localId)
+    
     newThing.save()
 
-    let thingCount = Thing.numberOfInstancesWhere("tid = ?", params: "tid1")
-
+    XCTAssertEqual(originalThing.localId, newThing.localId)
     XCTAssertEqual(newThing.name, "thing 1")
+    
+    let thingCount = Thing.numberOfInstancesWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingCount, 1)
+  }
+  
+  func testInsertDuplicateObject_usePrimaryAsUniqueKey() {
+    let originalAnimal = Animal()
+    originalAnimal.aid = "aid1"
+    originalAnimal.name = "animal 1"
+    originalAnimal.save()
+    
+    let newAnimal = Animal()
+    newAnimal.aid = "aid1"
+    newAnimal.name = "otherAnimal 1"
+    newAnimal.save()
+    
+    XCTAssertEqual(originalAnimal.name, newAnimal.name)
+    XCTAssertEqual(newAnimal.name, "animal 1")
+    
+    let count = Animal.numberOfInstancesWhere("aid = ?", params: "aid1")
+    XCTAssertEqual(count, 1)
   }
 
   func testGetNonExistentInstance_returnNil() {
@@ -203,14 +225,14 @@ class ModelTests: XCTestCase {
       insertThing("tid\(i)", name: "thing \(i)")
     }
   }
-
+  
   @discardableResult
   private func insertThing(_ tid: String, name: String) -> Thing {
     let newThing = Thing()
     newThing.tid = tid
     newThing.name = name
     newThing.save()
-
+    
     return newThing
   }
 }
