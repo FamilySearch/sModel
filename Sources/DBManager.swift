@@ -7,6 +7,8 @@ public enum DBError: Error {
 
 public enum QueryError: Error {
   case failed(errorCode: Int)
+  case missingKey
+  case keyIsNull(fieldName: String)
 }
 
 public enum StatementType {

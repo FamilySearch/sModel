@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */; };
+		BD297D671E200392003D2D29 /* BatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD297D661E200392003D2D29 /* BatchTests.swift */; };
 		BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */; };
 		BD3E926F1DDCCB900089EBEA /* sModel.h in Headers */ = {isa = PBXBuildFile; fileRef = BD3E92611DDCCB8F0089EBEA /* sModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BD3E927A1DDCCBA20089EBEA /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92781DDCCBA20089EBEA /* DBManager.swift */; };
@@ -52,6 +53,7 @@
 
 /* Begin PBXFileReference section */
 		BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = sModelPublicInterfaceTests.swift; sourceTree = "<group>"; };
+		BD297D661E200392003D2D29 /* BatchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchTests.swift; sourceTree = "<group>"; };
 		BD3E925E1DDCCB8F0089EBEA /* sModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD3E92611DDCCB8F0089EBEA /* sModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel.h; sourceTree = "<group>"; };
 		BD3E92621DDCCB8F0089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 		BD3E926B1DDCCB900089EBEA /* sModelTests */ = {
 			isa = PBXGroup;
 			children = (
+				BD297D661E200392003D2D29 /* BatchTests.swift */,
 				BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */,
 				BD3E92941DDCF0EE0089EBEA /* DBManagerSetupTests.swift */,
 				BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */,
@@ -310,6 +313,7 @@
 			files = (
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
+				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
 				BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,
 				BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */,

@@ -46,8 +46,8 @@ class Thing: BaseModel {
 
   static let sqlTableName = "Thing"
   static let columns = [
-    ColumnMeta(name: "tid", type: .text, primaryKey: true),
-    ColumnMeta(name: "name", type: .text, primaryKey: false)
+    ColumnMeta(name: "tid", type: .text, constraint: .primary),
+    ColumnMeta(name: "name", type: .text)
   ]
 }
 

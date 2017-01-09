@@ -8,17 +8,34 @@ public enum ColumnType {
   case text, real, int, bool, date, array, dictionary
 }
 
+public struct ColumnConstraint: OptionSet {
+  public let rawValue: Int
+  
+  public init(rawValue: Int) {
+    self.rawValue = rawValue
+  }
+  
+  public static let primary = ColumnConstraint(rawValue: 1)
+  public static let unique = ColumnConstraint(rawValue: 2)
+  public static let none = ColumnConstraint(rawValue: 4)
+}
 
 public struct ColumnMeta {
   let name: String
   let type: ColumnType
-  let primaryKey: Bool
+  let constraint: ColumnConstraint
   
-  public init(name: String, type: ColumnType, primaryKey: Bool) {
+  public init(name: String, type: ColumnType, constraint: ColumnConstraint = .none) {
     self.name = name
     self.type = type
-    self.primaryKey = primaryKey
+    self.constraint = constraint
   }
+}
+
+public struct KeyData {
+  let whereClause: String
+  let values: Array<Any>
+  let columns: Array<ColumnMeta>
 }
 
 
@@ -156,28 +173,36 @@ extension ModelDef {
 
     switch existsInDatabase {
       case true: //Update
-        let primaryKeyMeta = getPrimaryKeyColumn()
-        guard let primaryKeyValue = self.value(forKey: primaryKeyMeta.name) else {
-          preconditionFailure("Primary key field '\(primaryKeyMeta.name)' must contain a value: \(sqlTableName)")
-        }
-
-        var setClauses = [String]()
-
-        for meta in columns {
-          if !meta.primaryKey {
-            let val = getValueToWriteToDB(meta)
-            if let val = val as? NSObject , val == NSNull() {
-              setClauses.append("\(meta.name) = NULL")
-
-            } else {
-              values.append(val)
-              setClauses.append("\(meta.name) = ?")
+        do {
+          let primaryKeyData = try getKeyData(constraint: .primary)
+          
+          var setClauses = [String]()
+          
+          for meta in type(of: self).columns {
+            if !meta.constraint.contains(.primary) {
+              let val = getValueToWriteToDB(meta)
+              if let val = val as? NSObject , val == NSNull() {
+                setClauses.append("\(meta.name) = NULL")
+                
+              } else {
+                values.append(val)
+                setClauses.append("\(meta.name) = ?")
+              }
             }
           }
+          
+          values.append(contentsOf: primaryKeyData.values)
+          return StatementParts(sql: "UPDATE \(sqlTableName) SET \(setClauses.joined(separator: ",")) WHERE \(primaryKeyData.whereClause)", values: values, type: .update)
+          
+        } catch QueryError.keyIsNull(let name) {
+          preconditionFailure("Primary key field '\(name)' must contain a value: \(sqlTableName)")
+          
+        } catch QueryError.missingKey {
+          preconditionFailure("Primary key field must be defined for table: \(sqlTableName)")
+          
+        } catch {
+          preconditionFailure("Error creating update statement: \(error)")
         }
-
-        values.append(primaryKeyValue)
-        return StatementParts(sql: "UPDATE \(sqlTableName) SET \(setClauses.joined(separator: ",")) WHERE \(primaryKeyMeta.name) = ?", values: values, type: .update)
 
       case false: //New Instance
         var names = [String]()
@@ -204,15 +229,21 @@ extension ModelDef {
         self.existsInDatabase = true
       }
 
-    } catch QueryError.failed(let code){
+    } catch QueryError.failed(let code) {
       if code == 19 && !self.existsInDatabase { //unique constraint error on adding new object
-        let meta = self.getPrimaryKeyColumn()
-        if let primaryKeyValue = self.value(forKey: meta.name) {
-          print("Update object with data that already exists in the db for '\(localTableName)'.\(meta.name)=\(primaryKeyValue).")
-          self.reloadWithData(meta, primaryKeyValue: primaryKeyValue)
-
-        } else {
-          print("Failed to load duplicate object from db because missing primary key value: \(localTableName).\(meta.name)")
+        do {
+          let uniqueKeyData = try self.getKeyData(constraint: .unique, fallbackConstraint: .primary)
+          print("Update object with data that already exists in the db for '\(localTableName)'. \(uniqueKeyData.whereClause) >> \(uniqueKeyData.values)")
+          self.reloadWithData(uniqueKeyData)
+          
+        } catch QueryError.missingKey {
+          preconditionFailure("Failed to load duplicate object from db because no unique key defined: \(localTableName)")
+          
+        } catch QueryError.keyIsNull(let name) {
+          print("Failed to load duplicate object from db because missing unique key value: \(localTableName).\(name)")
+          
+        } catch {
+          print("Failed to update duplicate object: \(error)")
         }
       }
 
@@ -223,58 +254,68 @@ extension ModelDef {
 
   public func reload() {
     precondition(existsInDatabase, "Can't reload an object that doesn't yet exist in the database.")
-
-    let meta = getPrimaryKeyColumn()
-    guard let primaryKeyValue = self.value(forKey: meta.name) else {
-      preconditionFailure("Primary key field '\(meta.name)' must contain a value: \(type(of: self).sqlTableName)")
+    
+    do {
+      let primaryKeyData = try getKeyData(constraint: .primary)
+      reloadWithData(primaryKeyData)
+      
+    } catch QueryError.missingKey {
+      preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).sqlTableName)")
+      
+    } catch QueryError.keyIsNull(let name) {
+      preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).sqlTableName)")
+      
+    } catch {
+      preconditionFailure("Failed to reload: \(error)")
     }
-
-    reloadWithData(meta, primaryKeyValue: primaryKeyValue)
   }
 
   public func delete() {
     if !existsInDatabase {
       return
     }
-
-    let meta = getPrimaryKeyColumn()
+    
     let localTableName = type(of: self).sqlTableName
-    guard let primaryKeyValue = self.value(forKey: meta.name) else {
-      preconditionFailure("Primary key field '\(meta.name)' must contain a value: \(localTableName)")
-    }
-
-    let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(meta.name) = ?", values: [primaryKeyValue], type: .update)
-
     do {
+      let primaryKeyData = try getKeyData(constraint: .primary)
+      let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(primaryKeyData.whereClause)", values: primaryKeyData.values, type: .update)
+      
       try DBManager.executeStatement(statement) { _ in }
       self.isDeleted = true
+      
+    } catch QueryError.missingKey {
+      preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).sqlTableName)")
+      
+    } catch QueryError.keyIsNull(let name) {
+      preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).sqlTableName)")
+      
     } catch {
-      print("Failed to delete object \(primaryKeyValue) from table \(localTableName): \(error)")
+      print("Failed to delete object from table \(localTableName): \(error)")
     }
-
+    
     (self as? ModelType)?.didDelete()
   }
 
   //MARK: Private helpers
-
-  private func reloadWithData(_ meta: ColumnMeta, primaryKeyValue: Any) {
+  
+  fileprivate func reloadWithData(_ keyData: KeyData) {
     do {
       let statement = StatementParts(
-        sql: "SELECT * FROM \(type(of: self).sqlTableName) WHERE \(meta.name) = ? LIMIT 1",
-        values: [primaryKeyValue],
+        sql: "SELECT * FROM \(type(of: self).sqlTableName) WHERE \(keyData.whereClause) LIMIT 1",
+        values: keyData.values,
         type: .query)
       try DBManager.executeStatement(statement, resultHandler: { (result) in
         guard let result = result else {
           print("Failed to reload object from db cache")
           return
         }
-
+        
         var foundMatch = false
         while result.next() {
           type(of: self).populateInstance(result: result, updateInstance: self as! ModelType)
           foundMatch = true
         }
-
+        
         if !foundMatch {
           self.isDeleted = true
         }
@@ -311,14 +352,43 @@ extension ModelDef {
     }
     return val
   }
-
-  private func getPrimaryKeyColumn() -> ColumnMeta {
-    for meta in type(of: self).columns {
-      if meta.primaryKey {
-        return meta
+  
+  fileprivate func getKeyData(constraint: ColumnConstraint, fallbackConstraint: ColumnConstraint? = nil) throws -> KeyData {
+    func readKeyData(constraint: ColumnConstraint) throws -> KeyData {
+      var keys = Array<ColumnMeta>()
+      var values = Array<Any>()
+      
+      for meta in type(of: self).columns {
+        if meta.constraint.contains(constraint) {
+          guard let keyValue = self.value(forKey: meta.name) else {
+            throw QueryError.keyIsNull(fieldName: meta.name)
+          }
+          keys.append(meta)
+          values.append(keyValue)
+        }
+      }
+      guard keys.count > 0 else {
+        throw QueryError.missingKey
+      }
+      
+      let whereClause = keys.map({ (key) -> String in
+        return "\(key.name) = ?"
+      }).joined(separator: " AND ")
+      
+      return KeyData(whereClause: whereClause, values: values, columns: keys)
+    }
+    
+    do {
+      let keyData = try readKeyData(constraint: constraint)
+      return keyData
+      
+    } catch {
+      if let fallbackConstraint = fallbackConstraint {
+        return try readKeyData(constraint: fallbackConstraint)
+      } else {
+        throw error
       }
     }
-    preconditionFailure("Every table must define a primary key column: \(type(of: self).sqlTableName)")
   }
 
   private static func populateInstance(result: FMResultSet, updateInstance: ModelType) -> Void {

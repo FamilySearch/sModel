@@ -2,6 +2,7 @@ import Foundation
 import sModel
 
 class Thing: BaseModel {
+  var localId = BaseModel.generateUUID()
   var tid = ""
   var name: String? = nil
   var other = 0
@@ -11,10 +12,11 @@ class Thing: BaseModel {
 
   static let sqlTableName = "Thing"
   static let columns = [
-    ColumnMeta(name: "tid", type: .text, primaryKey: true),
-    ColumnMeta(name: "name", type: .text, primaryKey: false),
-    ColumnMeta(name: "other", type: .int, primaryKey: false),
-    ColumnMeta(name: "otherDouble", type: .real, primaryKey: false)
+    ColumnMeta(name: "localId", type: .text, constraint: .primary),
+    ColumnMeta(name: "tid", type: .text, constraint: .unique),
+    ColumnMeta(name: "name", type: .text),
+    ColumnMeta(name: "other", type: .int),
+    ColumnMeta(name: "otherDouble", type: .real)
   ]
 
   override func didDelete() {
@@ -38,12 +40,12 @@ class Animal: BaseModel {
 
   static let sqlTableName = "Animal"
   static let columns = [
-    ColumnMeta(name: "aid", type: .text, primaryKey: true),
-    ColumnMeta(name: "name", type: .text, primaryKey: false),
-    ColumnMeta(name: "living", type: .int, primaryKey: false),
-    ColumnMeta(name: "lastUpdated", type: .date, primaryKey: false),
-    ColumnMeta(name: "ids", type: .array, primaryKey: false),
-    ColumnMeta(name: "props", type: .dictionary, primaryKey: false)
+    ColumnMeta(name: "aid", type: .text, constraint: .primary),
+    ColumnMeta(name: "name", type: .text),
+    ColumnMeta(name: "living", type: .int),
+    ColumnMeta(name: "lastUpdated", type: .date),
+    ColumnMeta(name: "ids", type: .array),
+    ColumnMeta(name: "props", type: .dictionary)
   ]
 }
 
