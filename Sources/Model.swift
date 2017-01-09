@@ -16,7 +16,7 @@ public struct ColumnConstraint: OptionSet {
   }
   
   public static let primary = ColumnConstraint(rawValue: 1)
-  public static let serverUnique = ColumnConstraint(rawValue: 2)
+  public static let unique = ColumnConstraint(rawValue: 2)
   public static let none = ColumnConstraint(rawValue: 4)
 }
 
@@ -232,7 +232,7 @@ extension ModelDef {
     } catch QueryError.failed(let code) {
       if code == 19 && !self.existsInDatabase { //unique constraint error on adding new object
         do {
-          let uniqueKeyData = try self.getKeyData(constraint: .serverUnique, fallbackConstraint: .primary)
+          let uniqueKeyData = try self.getKeyData(constraint: .unique, fallbackConstraint: .primary)
           print("Update object with data that already exists in the db for '\(localTableName)'. \(uniqueKeyData.whereClause) >> \(uniqueKeyData.values)")
           self.reloadWithData(uniqueKeyData)
           

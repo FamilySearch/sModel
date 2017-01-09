@@ -13,7 +13,7 @@ class Thing: BaseModel {
   static let sqlTableName = "Thing"
   static let columns = [
     ColumnMeta(name: "localId", type: .text, constraint: .primary),
-    ColumnMeta(name: "tid", type: .text, constraint: .serverUnique),
+    ColumnMeta(name: "tid", type: .text, constraint: .unique),
     ColumnMeta(name: "name", type: .text),
     ColumnMeta(name: "other", type: .int),
     ColumnMeta(name: "otherDouble", type: .real)
