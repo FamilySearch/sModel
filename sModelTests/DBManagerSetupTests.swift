@@ -10,6 +10,29 @@ class DBManagerSetupTests: XCTestCase {
   override func tearDown() {
     super.tearDown()
   }
+  
+  func testDBOpen_notOnStack() {
+    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
+    paths.sort()
+
+    let dbMeta = try! DBManager.open(nil, dbDefFilePaths: paths, pushOnStack: false)
+    dbMeta?.queue.inDatabase({ (db) in
+      if let result = db?.getSchema() {
+        XCTAssertTrue(result.next())
+      } else {
+        XCTFail("`result` should have had a value")
+      }
+    })
+    
+    do {
+      _ = try DBManager.getDBQueue()
+      XCTFail("DBManager should not have saved a db queue in it's internal stack")
+    } catch DBError.missingDBQueue {
+      
+    } catch {
+      XCTFail("DBManager should have thrown a DBError.missingDBQueue error")
+    }
+  }
 
   func testBadDBPath() {
     do {

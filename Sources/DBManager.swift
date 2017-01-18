@@ -27,9 +27,9 @@ public struct StatementParts {
   }
 }
 
-fileprivate struct DBMeta {
-  var queue: FMDatabaseQueue
-  var path: String?
+public struct DBMeta {
+  public var queue: FMDatabaseQueue
+  public var path: String?
 }
 
 @objc
@@ -51,8 +51,18 @@ public class DBManager: NSObject {
     
     try open(dbPath, dbDefFilePaths: dbDefFilePaths)
   }
+  
+  public class func pop(deleteDB: Bool) throws {
+    guard dbs.count > 1 else {
+      print("Can't pop a database if there isn't more than one db open.")
+      throw DBError.popFailed
+    }
+    
+    close(deleteDB: deleteDB)
+  }
 
-  public class func open(_ dbPath: String?, dbDefFilePaths: Array<String>?) throws {
+  @discardableResult
+  public class func open(_ dbPath: String?, dbDefFilePaths: Array<String>?, pushOnStack: Bool = true) throws -> DBMeta? {
     print("Open database queue at: \(dbPath ?? "IN_MEMORY_DB")")
 
     guard let queue = FMDatabaseQueue(path: dbPath) else {
@@ -106,6 +116,7 @@ public class DBManager: NSObject {
       }
     })
 
+    var dbMeta: DBMeta?
     if upgradeFailed {
       if isRetry { //retry failed so don't retry again
         throw DBError.restoreFailed
@@ -123,25 +134,20 @@ public class DBManager: NSObject {
         }
         isRetry = true
         do {
-          try self.open(dbPath, dbDefFilePaths: dbDefFilePaths)
+          dbMeta = try self.open(dbPath, dbDefFilePaths: dbDefFilePaths, pushOnStack: pushOnStack)
         } catch {
           print("Error trying to recreate main db: \(dbPath)")
           throw DBError.recreateFailed
         }
-        return
+        return dbMeta
       }
     }
 
-    dbs.append(DBMeta(queue: queue, path: dbPath))
-  }
-  
-  public class func pop(deleteDB: Bool) throws {
-    guard dbs.count > 1 else {
-      print("Can't pop a database if there isn't more than one db open.")
-      throw DBError.popFailed
+    dbMeta = DBMeta(queue: queue, path: dbPath)
+    if let dbMeta = dbMeta, pushOnStack {
+      dbs.append(dbMeta)
     }
-    
-    close(deleteDB: deleteDB)
+    return dbMeta
   }
   
   public class func close() {

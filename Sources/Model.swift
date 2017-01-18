@@ -391,7 +391,7 @@ extension ModelDef {
     }
   }
 
-  private static func populateInstance(result: FMResultSet, updateInstance: ModelType) -> Void {
+  public static func populateInstance(result: FMResultSet, updateInstance: ModelType) -> Void {
     updateInstance.existsInDatabase = true
 
     for meta in columns {
