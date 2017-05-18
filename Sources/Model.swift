@@ -165,6 +165,62 @@ extension ModelDef {
   }
 
   //MARK: Instance level helpers
+  
+  public func createSaveStatement(withHandler existsInDatabaseHandler: (_ exists: Bool)->Void) -> StatementParts {
+    var values = [Any]()
+    let sqlTableName = type(of: self).sqlTableName
+    let columns = type(of: self).columns
+    
+    switch existsInDatabase {
+    case true: //Update
+      existsInDatabaseHandler(true)
+      do {
+        let primaryKeyData = try getKeyData(constraint: .primary)
+        
+        var setClauses = [String]()
+        
+        for meta in type(of: self).columns {
+          if !meta.constraint.contains(.primary) {
+            let val = getValueToWriteToDB(meta)
+            if let val = val as? NSObject , val == NSNull() {
+              setClauses.append("\(meta.name) = NULL")
+              
+            } else {
+              values.append(val)
+              setClauses.append("\(meta.name) = ?")
+            }
+          }
+        }
+        
+        values.append(contentsOf: primaryKeyData.values)
+        return StatementParts(sql: "UPDATE \(sqlTableName) SET \(setClauses.joined(separator: ",")) WHERE \(primaryKeyData.whereClause)", values: values, type: .update)
+        
+      } catch QueryError.keyIsNull(let name) {
+        preconditionFailure("Primary key field '\(name)' must contain a value: \(sqlTableName)")
+        
+      } catch QueryError.missingKey {
+        preconditionFailure("Primary key field must be defined for table: \(sqlTableName)")
+        
+      } catch {
+        preconditionFailure("Error creating update statement: \(error)")
+      }
+      
+    case false: //New Instance
+      existsInDatabaseHandler(false)
+      var names = [String]()
+      var valueHolders = [String]()
+      
+      for meta in columns {
+        let val = getValueToWriteToDB(meta)
+        values.append(val)
+        names.append(meta.name)
+        valueHolders.append("?")
+      }
+      
+      let insertPrefix = DBManager.shouldReplaceDuplicates ? "INSERT OR REPLACE" : "INSERT"
+      return StatementParts(sql: "\(insertPrefix) INTO \(sqlTableName) (\(names.joined(separator: ","))) VALUES (\(valueHolders.joined(separator: ",")))", values: values, type: .update)
+    }
+  }
 
   public func createSaveStatement() -> StatementParts {
     var values = [Any]()
