@@ -9,10 +9,10 @@
 /* Begin PBXBuildFile section */
 		BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */; };
 		BD297D671E200392003D2D29 /* BatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD297D661E200392003D2D29 /* BatchTests.swift */; };
+		BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952081E6A2CD0001C6BB0 /* DBManager.swift */; };
+		BD39520B1E6A2CD0001C6BB0 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952091E6A2CD0001C6BB0 /* Model.swift */; };
 		BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */; };
 		BD3E926F1DDCCB900089EBEA /* sModel.h in Headers */ = {isa = PBXBuildFile; fileRef = BD3E92611DDCCB8F0089EBEA /* sModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BD3E927A1DDCCBA20089EBEA /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92781DDCCBA20089EBEA /* DBManager.swift */; };
-		BD3E927B1DDCCBA20089EBEA /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92791DDCCBA20089EBEA /* Model.swift */; };
 		BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */; };
 		BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */; };
 		BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */; };
@@ -26,6 +26,8 @@
 		BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92961DDCF3C20089EBEA /* testBad1.badSql */; };
 		BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */; };
 		BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */; };
+		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
+		BD7AABE41F730D0C008EEF47 /* ExperimentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE31F730D0C008EEF47 /* ExperimentTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,13 +56,13 @@
 /* Begin PBXFileReference section */
 		BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = sModelPublicInterfaceTests.swift; sourceTree = "<group>"; };
 		BD297D661E200392003D2D29 /* BatchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchTests.swift; sourceTree = "<group>"; };
+		BD3952081E6A2CD0001C6BB0 /* DBManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManager.swift; sourceTree = "<group>"; };
+		BD3952091E6A2CD0001C6BB0 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		BD3E925E1DDCCB8F0089EBEA /* sModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD3E92611DDCCB8F0089EBEA /* sModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel.h; sourceTree = "<group>"; };
 		BD3E92621DDCCB8F0089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BD3E92671DDCCB900089EBEA /* sModelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sModelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD3E926E1DDCCB900089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BD3E92781DDCCBA20089EBEA /* DBManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DBManager.swift; path = ../Sources/DBManager.swift; sourceTree = "<group>"; };
-		BD3E92791DDCCBA20089EBEA /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Model.swift; path = ../Sources/Model.swift; sourceTree = "<group>"; };
 		BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
 		BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiThreadTests.swift; sourceTree = "<group>"; };
 		BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchemaTests.swift; sourceTree = "<group>"; };
@@ -72,6 +74,8 @@
 		BD3E92961DDCF3C20089EBEA /* testBad1.badSql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testBad1.badSql; sourceTree = "<group>"; };
 		BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerUsageTests.swift; sourceTree = "<group>"; };
 		BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerMultiDBTests.swift; sourceTree = "<group>"; };
+		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
+		BD7AABE31F730D0C008EEF47 /* ExperimentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperimentTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,13 +99,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BD3952071E6A2CD0001C6BB0 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				BD3952081E6A2CD0001C6BB0 /* DBManager.swift */,
+				BD3952091E6A2CD0001C6BB0 /* Model.swift */,
+				BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
 		BD3E92541DDCCB8F0089EBEA = {
 			isa = PBXGroup;
 			children = (
+				BD3E928A1DDCD4240089EBEA /* Frameworks */,
+				BD3E925F1DDCCB8F0089EBEA /* Products */,
 				BD3E92601DDCCB8F0089EBEA /* sModel */,
 				BD3E926B1DDCCB900089EBEA /* sModelTests */,
-				BD3E925F1DDCCB8F0089EBEA /* Products */,
-				BD3E928A1DDCD4240089EBEA /* Frameworks */,
+				BD3952071E6A2CD0001C6BB0 /* Sources */,
 			);
 			sourceTree = "<group>";
 		};
@@ -117,8 +132,6 @@
 		BD3E92601DDCCB8F0089EBEA /* sModel */ = {
 			isa = PBXGroup;
 			children = (
-				BD3E92781DDCCBA20089EBEA /* DBManager.swift */,
-				BD3E92791DDCCBA20089EBEA /* Model.swift */,
 				BD3E92611DDCCB8F0089EBEA /* sModel.h */,
 				BD3E92621DDCCB8F0089EBEA /* Info.plist */,
 			);
@@ -139,6 +152,7 @@
 				BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */,
 				BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */,
 				BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */,
+				BD7AABE31F730D0C008EEF47 /* ExperimentTests.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";
@@ -228,16 +242,17 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = FamilySearch;
 				TargetAttributes = {
 					BD3E925D1DDCCB8F0089EBEA = {
 						CreatedOnToolsVersion = 8.1;
-						LastSwiftMigration = 0810;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					BD3E92661DDCCB900089EBEA = {
 						CreatedOnToolsVersion = 8.1;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -302,8 +317,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD3E927A1DDCCBA20089EBEA /* DBManager.swift in Sources */,
-				BD3E927B1DDCCBA20089EBEA /* Model.swift in Sources */,
+				BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */,
+				BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */,
+				BD39520B1E6A2CD0001C6BB0 /* Model.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -311,6 +327,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD7AABE41F730D0C008EEF47 /* ExperimentTests.swift in Sources */,
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
 				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
@@ -343,7 +360,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -351,7 +370,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
@@ -397,7 +420,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -405,7 +430,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
@@ -455,7 +484,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -478,7 +508,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -494,7 +525,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -510,7 +542,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

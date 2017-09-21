@@ -136,7 +136,7 @@ public class DBManager: NSObject {
         do {
           dbMeta = try self.open(dbPath, dbDefFilePaths: dbDefFilePaths, pushOnStack: pushOnStack)
         } catch {
-          print("Error trying to recreate main db: \(dbPath)")
+          print("Error trying to recreate main db: \(String(describing: dbPath))")
           throw DBError.recreateFailed
         }
         return dbMeta

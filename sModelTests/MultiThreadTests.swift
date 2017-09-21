@@ -51,4 +51,22 @@ class MultiThreadTests: XCTestCase {
       //no cleanup needed
     }
   }
+  
+//  func testEntityIndependence() {
+//    let thing = Thing()
+//    thing.tid = "tid 1"
+//    thing.name = "thing 1"
+//    thing.save()
+//    
+//    let otherThing = thing
+//    
+//    thing.name = "thing 1 - changed"
+//    thing.save()
+//    
+//    XCTAssertNotEqual(thing.name, otherThing.name)
+//    
+//    otherThing.reload()
+//    
+//    XCTAssertEqual(thing.name, otherThing.name)
+//  }
 }
