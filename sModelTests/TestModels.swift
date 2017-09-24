@@ -1,54 +1,43 @@
 import Foundation
 import sModel
 
-class Thing: BaseModel {
-  var localId = BaseModel.generateUUID()
-  var tid = ""
-  var name: String? = nil
-  var other = 0
-  var otherDouble = 0.0
+class Thing: ModelDef {
+  typealias T = Thing
+  var localId: String
+  var tid: String
+  var name: String?
+  var other: Int
+  var otherDouble: Double
   
-  var calledDidDelete = false
+  var existsInDatabase: Bool
+  var isDeleted: Bool
+  
+//  var calledDidDelete = false
 
-  static let sqlTableName = "Thing"
-  static let columns = [
-    ColumnMeta(name: "localId", type: .text, constraint: .primary),
-    ColumnMeta(name: "tid", type: .text, constraint: .unique),
-    ColumnMeta(name: "name", type: .text),
-    ColumnMeta(name: "other", type: .int),
-    ColumnMeta(name: "otherDouble", type: .real)
-  ]
-
-  override func didDelete() {
-    super.didDelete()
-    calledDidDelete = true
-  }
+  static var tableName = "Thing"
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+  var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
+//
+//  func didDelete() {
+//    super.didDelete()
+//    calledDidDelete = true
+//  }
 }
 
-extension Thing: ModelDef {
-  typealias ModelType = Thing
-}
+class Animal: ModelDef {
+  typealias T = Animal
+  
+  var aid: String
+  var name: String?
+  var living: Bool
+  var lastUpdated: Date
+  var ids: [String]
+  var props: ResultDictionary
+  
+  var existsInDatabase: Bool
+  var isDeleted: Bool
 
-
-class Animal: BaseModel {
-  var aid = ""
-  var name: String? = nil
-  var living = false
-  var lastUpdated = Date(timeIntervalSince1970: 0)
-  var ids = [String]()
-  var props = ResultDictionary()
-
-  static let sqlTableName = "Animal"
-  static let columns = [
-    ColumnMeta(name: "aid", type: .text, constraint: .primary),
-    ColumnMeta(name: "name", type: .text),
-    ColumnMeta(name: "living", type: .int),
-    ColumnMeta(name: "lastUpdated", type: .date),
-    ColumnMeta(name: "ids", type: .array),
-    ColumnMeta(name: "props", type: .dictionary)
-  ]
-}
-
-extension Animal: ModelDef {
-  typealias ModelType = Animal
+  var tableName: String { return "Animal" }
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
+  var secondaryKeys: Array<CodingKey> { return [] }
 }

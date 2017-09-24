@@ -12,26 +12,47 @@ import XCTest
 class ExperimentTests: XCTestCase {
   
   struct Person: SQLCodable {
-    var name: String
-    var age: Int
-    var dict: Dictionary<String,String>
-    var arr: Array<String>
+    var localId = BaseModel.generateUUID()
+    var tid: String
+    var name: String?
+    var other: Int
+    var otherDouble: Double
     
-    var tableName: String { return "Person" }
-    var primaryKeys: Array<CodingKey> { return [CodingKeys.name] }
-    var secondaryKeys: Array<CodingKey> { return [CodingKeys.name, CodingKeys.age] }
+    var tableName: String { return "Thing" }
+    var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+    var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
   }
   
   override func setUp() {
     super.setUp()
+    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
+    paths.sort()
+    
+    try! DBManager.open(nil, dbDefFilePaths: paths)
   }
   
   override func tearDown() {
+    DBManager.close()
     super.tearDown()
   }
   
+  func testDecoding() {
+    do {
+      let statement = StatementParts(sql: "SELECT * FROM Thing", values: [], type: .query)
+      try DBManager.executeStatement(statement) { (result) in
+        guard let result = result else { return }
+        while result.next() {
+          let p = try! Person(fromSQL: SQLDecoder(data: result))
+          print("Done")
+        }
+      }
+    } catch {
+      
+    }
+  }
+  
   func testEncoding() {
-    let p = Person(name: "Stephen", age: 40, dict: ["prop": "value"], arr: ["first", "second"])
+    let p = Person(localId: "localId", tid: "tid2", name: "thing2", other: 4, otherDouble: 3.34)
     
     do {
       let e = try SQLEncoder.encode(p)
@@ -39,10 +60,6 @@ class ExperimentTests: XCTestCase {
     } catch {
       print("Error: \(error)")
     }
-//    let finalClauses = [
-//      SQLPair(clause: "name = ?", value: "Stephen"),
-//      SQLPair(clause: "age = ?", value: 40)
-//    ]
   }
   
 }
