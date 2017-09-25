@@ -29,12 +29,13 @@ public enum SQLDecoderError: Error {
 
 //public typealias SQLCodable = SQLEncodable & SQLDecodable
 
-public protocol SQLCodable: SQLEncodable, SQLDecodable {
+// class restriction is because isDeleted/existsInDatabase can't be defined on a value type without making them mutating functions.
+public protocol SQLCodable: class, SQLEncodable, SQLDecodable {
   var isDeleted: Bool { get set }
   var existsInDatabase: Bool { get set }
 }
 
-public protocol SQLEncodable: Encodable {
+public protocol SQLEncodable: class, Encodable {
   static var tableName: String { get }
   var primaryKeys: Array<CodingKey> { get }
   var secondaryKeys: Array<CodingKey> { get }
@@ -47,7 +48,7 @@ public protocol SQLEncodable: Encodable {
 //  }
 //}
 
-public protocol SQLDecodable: Decodable {
+public protocol SQLDecodable: class, Decodable {
   static var tableName: String { get }
   var primaryKeys: Array<CodingKey> { get }
   var secondaryKeys: Array<CodingKey> { get }

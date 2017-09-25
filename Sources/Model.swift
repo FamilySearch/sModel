@@ -169,22 +169,23 @@ extension ModelDef {
     }
   }
 
-  public func save() {
+  public func save() -> T {
+    var returnItem: T = self as! T
     let localTableName = type(of: self).tableName
 
     do {
       let statement = try createSaveStatement()
       try DBManager.executeStatement(statement) { (result) in
-        Explanation of problem: https://www.bignerdranch.com/blog/protocol-oriented-problems-and-the-immutable-self-error/
         self.existsInDatabase = true
       }
 
     } catch QueryError.failed(let code) {
       if code == 19 && !self.existsInDatabase { //unique constraint error on adding new object
         do {
-          let uniqueKeyData = try self.getKeyData(constraint: .unique, fallbackConstraint: .primary)
-          print("Update object with data that already exists in the db for '\(localTableName)'. \(uniqueKeyData.whereClause) >> \(uniqueKeyData.values)")
-          self.reloadWithData(uniqueKeyData)
+          let elements = try SQLEncoder.encode(self)
+          let keyColumns = elements.secondaryKeys.count > 0 ? elements.secondaryKeys : elements.primaryKeys
+          print("Update object with data that already exists in the db for '\(localTableName)'. \(keyColumns))")
+          returnItem = try reloadWithData(keyColumns)
           
         } catch QueryError.missingKey {
           preconditionFailure("Failed to load duplicate object from db because no unique key defined: \(localTableName)")
@@ -200,11 +201,11 @@ extension ModelDef {
     } catch {
       print("Failed to \(self.existsInDatabase ? "update" : "insert") object: \(error)")
     }
+    return returnItem
   }
 
   public func reload() -> T? {
     precondition(existsInDatabase, "Can't reload an object that doesn't yet exist in the database.")
-    
     do {
       let elements = try SQLEncoder.encode(self)
       return try reloadWithData(elements.primaryKeys)
@@ -228,8 +229,8 @@ extension ModelDef {
     let localTableName = type(of: self).tableName
     do {
       let elements = try SQLEncoder.encode(self)
-      var values = elements.primaryKeys.flatMap { $0.value }
-      var clauses = elements.primaryKeys.map{ $0.clause }
+      let values = elements.primaryKeys.flatMap { $0.value }
+      let clauses = elements.primaryKeys.map{ $0.clause }
       let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
       
       try DBManager.executeStatement(statement) { _ in }
@@ -252,9 +253,9 @@ extension ModelDef {
   //MARK: Private helpers
   
   fileprivate func reloadWithData(_ keyColumns: Array<SQLColumn>) throws -> T {
-    var newInstance: T
-    var values = keyColumns.flatMap { $0.value }
-    var clauses = keyColumns.map{ $0.clause }
+    var newInstance: T = self as! T
+    let values = keyColumns.flatMap { $0.value }
+    let clauses = keyColumns.map{ $0.clause }
     
     let statement = StatementParts(
           sql: "SELECT * FROM \(type(of: self).tableName) WHERE \(clauses.joined(separator: " AND ")) LIMIT 1",
