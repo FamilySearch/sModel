@@ -31,11 +31,10 @@ public enum SQLDecoderError: Error {
 
 // class restriction is because isDeleted/existsInDatabase can't be defined on a value type without making them mutating functions.
 public protocol SQLCodable: class, SQLEncodable, SQLDecodable {
-  var isDeleted: Bool { get set }
   var existsInDatabase: Bool { get set }
 }
 
-public protocol SQLEncodable: class, Encodable {
+public protocol SQLEncodable: Encodable {
   static var tableName: String { get }
   var primaryKeys: Array<CodingKey> { get }
   var secondaryKeys: Array<CodingKey> { get }
@@ -48,7 +47,7 @@ public protocol SQLEncodable: class, Encodable {
 //  }
 //}
 
-public protocol SQLDecodable: class, Decodable {
+public protocol SQLDecodable: Decodable {
   static var tableName: String { get }
   var primaryKeys: Array<CodingKey> { get }
   var secondaryKeys: Array<CodingKey> { get }
@@ -262,6 +261,9 @@ public class SQLDecoder: Decoder {
     }
     
     public func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
+      if key.stringValue == "existsInDatabase" {
+        return true
+      }
       return decoder.data.bool(forColumn: key.stringValue)
     }
     

@@ -54,12 +54,11 @@ class BatchTests: XCTestCase {
     var statements = [StatementParts]()
     
     for i in 0..<count {
-      let thing = Thing()
-      thing.tid = "tid\(i)"
-      thing.name = "\(prefix) thing \(i)"
+      let thing = Thing(tid: "tid\(i)", name: "\(prefix) thing \(i)", other: 0, otherDouble: 0)
       
-      let statement = thing.createSaveStatement()
-      statements.append(statement)
+      if let statement = try? thing.createSaveStatement() {
+        statements.append(statement)
+      }
     }
     
     return statements

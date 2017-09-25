@@ -12,13 +12,15 @@ import XCTest
 class ExperimentTests: XCTestCase {
   
   struct Person: SQLCodable {
-    var localId = BaseModel.generateUUID()
+    var localId: String
     var tid: String
     var name: String?
     var other: Int
     var otherDouble: Double
     
-    var tableName: String { return "Thing" }
+    var existsInDatabase: Bool
+    
+    static var tableName = "Thing"
     var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
     var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
   }
@@ -52,7 +54,7 @@ class ExperimentTests: XCTestCase {
   }
   
   func testEncoding() {
-    let p = Person(localId: "localId", tid: "tid2", name: "thing2", other: 4, otherDouble: 3.34)
+    let p = Person(localId: "localId", tid: "tid2", name: "thing2", other: 4, otherDouble: 3.34, existsInDatabase: false)
     
     do {
       let e = try SQLEncoder.encode(p)

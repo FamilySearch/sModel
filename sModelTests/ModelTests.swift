@@ -49,9 +49,7 @@ class ModelTests: XCTestCase {
   }
   
   func testBoolProperty() {
-    let a = Animal()
-    a.aid = "aid"
-    a.living = true
+    let a = Animal(aid: "aid", name: nil, living: true, lastUpdated: Date(), ids: [])
     a.save()
     
     var aFromDB = Animal.firstInstanceWhere("aid = ?", params: "aid")
@@ -78,10 +76,8 @@ class ModelTests: XCTestCase {
   }
 
   func testInsertNullProperty() {
-    let newThing = Thing()
-    newThing.tid = "tid1"
-    newThing.name = nil
-
+    let newThing = Thing(tid: "tid1", name: nil, other: 0, otherDouble: 0)
+    
     XCTAssertFalse(newThing.existsInDatabase)
 
     newThing.save()

@@ -4,7 +4,7 @@ import FMDB
 public typealias ResultDictionary = Dictionary<String, Any>
 
 public protocol ModelDef: SQLCodable {
-  associatedtype T: SQLCodable
+  associatedtype ModelType: SQLCodable
 }
 
 extension ModelDef {
@@ -14,33 +14,33 @@ extension ModelDef {
   }
 
   //MARK: Convenience methods for getting data out of db
-  public static func firstInstanceWhere(_ whereClause: String, params: Any...) -> T? {
+  public static func firstInstanceWhere(_ whereClause: String, params: Any...) -> ModelType? {
     let query = "SELECT * FROM \(tableName) WHERE \(whereClause) LIMIT 1"
     let instances = fetchInstances(query: query, paramArray: params)
     return instances.first
   }
 
-  public static func instances(_ query: String, params: Any...) -> Array<T> {
+  public static func instances(_ query: String, params: Any...) -> Array<ModelType> {
     return fetchInstances(query: query, paramArray: params)
   }
 
-  public static func instancesWhere(_ whereClause: String, params: Any...) -> Array<T> {
+  public static func instancesWhere(_ whereClause: String, params: Any...) -> Array<ModelType> {
     let query = "SELECT * FROM \(tableName) WHERE \(whereClause)"
     return fetchInstances(query: query, paramArray: params)
   }
 
-  public static func instancesOrderedBy(_ orderByClause: String) -> Array<T> {
+  public static func instancesOrderedBy(_ orderByClause: String) -> Array<ModelType> {
     let query = "SELECT * FROM \(tableName) ORDER BY \(orderByClause)"
     return fetchInstances(query: query, paramArray: [])
   }
 
-  public static func allInstances() -> Array<T> {
+  public static func allInstances() -> Array<ModelType> {
     let query = "SELECT * FROM \(tableName)"
     return fetchInstances(query: query, paramArray: [])
   }
 
-  private static func fetchInstances(query: String, paramArray: Array<Any>) -> Array<T> {
-    var instances = [T]()
+  private static func fetchInstances(query: String, paramArray: Array<Any>) -> Array<ModelType> {
+    var instances = [ModelType]()
     //Checking for an array in first element allows Obj-c code to pass an array of parameters since the variadic parameters don't map correctly from Obj-c to swift
     var params = paramArray
     if let firstElement = paramArray.first as? Array<Any> {
@@ -53,7 +53,7 @@ extension ModelDef {
         guard let result = result else { return }
         while result.next() {
           do {
-            let newInstance = try T(fromSQL: SQLDecoder(data: result))
+            let newInstance = try ModelType(fromSQL: SQLDecoder(data: result))
             instances.append(newInstance)
           } catch {
             print("Error creating instance from db result: \(error)")
@@ -169,13 +169,12 @@ extension ModelDef {
     }
   }
 
-  public func save() -> T {
-    var returnItem: T = self as! T
+  public func save() throws {
     let localTableName = type(of: self).tableName
 
     do {
       let statement = try createSaveStatement()
-      try DBManager.executeStatement(statement) { (result) in
+      try DBManager.executeStatement(statement) { _ in
         self.existsInDatabase = true
       }
 
@@ -201,10 +200,9 @@ extension ModelDef {
     } catch {
       print("Failed to \(self.existsInDatabase ? "update" : "insert") object: \(error)")
     }
-    return returnItem
   }
 
-  public func reload() -> T? {
+  public func reload() -> ModelType? {
     precondition(existsInDatabase, "Can't reload an object that doesn't yet exist in the database.")
     do {
       let elements = try SQLEncoder.encode(self)
@@ -234,7 +232,6 @@ extension ModelDef {
       let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
       
       try DBManager.executeStatement(statement) { _ in }
-      self.isDeleted = true
       
     } catch QueryError.missingKey {
       preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
@@ -252,8 +249,8 @@ extension ModelDef {
 
   //MARK: Private helpers
   
-  fileprivate func reloadWithData(_ keyColumns: Array<SQLColumn>) throws -> T {
-    var newInstance: T = self as! T
+  fileprivate func reloadWithData(_ keyColumns: Array<SQLColumn>) throws -> ModelType {
+    var newInstance: ModelType = self as! ModelType
     let values = keyColumns.flatMap { $0.value }
     let clauses = keyColumns.map{ $0.clause }
     
@@ -269,15 +266,8 @@ extension ModelDef {
           return
         }
         
-        var foundMatch = false
         while result.next() {
-          newInstance = try T(fromSQL: SQLDecoder(data: result))
-          newInstance.isDeleted = false
-          foundMatch = true
-        }
-        
-        if !foundMatch {
-          self.isDeleted = true
+          newInstance = try ModelType(fromSQL: SQLDecoder(data: result))
         }
       } catch {
         print("Unable to reload object: \(error)")
