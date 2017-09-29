@@ -16,8 +16,8 @@ class Thing: ModelDef {
   }
   
   typealias ModelType = Thing
-  var existsInDatabase: Bool = false
   static var tableName = "Thing"
+  var existsInDatabase: Bool = false
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
 }
@@ -27,16 +27,31 @@ class Animal: ModelDef {
   var name: String?
   var living: Bool
   var lastUpdated: Date
-  var ids: [String]
-  var props: ResultDictionary = [:]
+  var ids: SQLArrayOfStrings
+  //TODO test optional array
+  //TODO test optional dictionary
   private var propsData: Data = Data()
+  var props: ResultDictionary {
+    get {
+      return (try? Animal.dataToDictionary(propsData)) ?? [:]
+    }
+    set {
+      guard let data = try? Animal.dictionaryToData(newValue) else {
+        print("Can't convert dictionary to data: \(newValue)")
+        self.propsData = Data()
+        return
+      }
+      self.propsData = data
+    }
+  }
   
-  init(aid: String, name: String?, living: Bool, lastUpdated: Date, ids: Array<String>) {
+  init(aid: String, name: String?, living: Bool, lastUpdated: Date, ids: Array<String>, props: Dictionary<String,Any>) {
     self.aid = aid
     self.name = name
     self.living = living
     self.lastUpdated = lastUpdated
     self.ids = ids
+    self.props = props
   }
   
   private enum CodingKeys: String, CodingKey {
@@ -45,8 +60,8 @@ class Animal: ModelDef {
   }
   
   typealias ModelType = Animal
-  var existsInDatabase: Bool = false
   static var tableName = "Animal"
+  var existsInDatabase: Bool = false
   var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
   var secondaryKeys: Array<CodingKey> { return [] }
 }

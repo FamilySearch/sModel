@@ -1,6 +1,8 @@
 import FMDB
 import Foundation
 
+public typealias SQLArrayOfStrings = Array<String>
+
 public struct SQLElements {
   let tableName: String
   let primaryKeys: Array<SQLColumn>
@@ -17,7 +19,7 @@ public struct SQLColumn {
 }
 
 public enum SQLEncoderError: Error {
-  case typeNotConformingToEncodable(Any)
+  case typeNotConformingToEncodable(key: String, Any)
 }
 
 public enum SQLDecoderError: Error {
@@ -72,10 +74,15 @@ public class SQLEncoder: Encoder {
   }
   
   static func encode(_ value: SQLEncodable) throws -> SQLElements {
-    let encoder = SQLEncoder(rootValue: value)
-    try value.encode(to: encoder)
-    let elements = SQLElements(tableName: type(of: value).tableName, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
-    return elements
+    do {
+      let encoder = SQLEncoder(rootValue: value)
+      try value.encode(to: encoder)
+      let elements = SQLElements(tableName: type(of: value).tableName, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
+      return elements
+    } catch {
+      print("Error encoding sql: \(error)")
+      throw error
+    }
   }
   
   public func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
@@ -111,10 +118,16 @@ public class SQLEncoder: Encoder {
     return false
   }
   
-  private func _encode(_ value: Any, key: CodingKey) {
+  private func _encode(_ value: Any?, key: CodingKey) {
     guard key.stringValue != "existsInDatabase" else {
       return
     }
+    
+    guard let value = value else {
+      encodeNil(key)
+      return
+    }
+    
     let column = SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = ?", value: value, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
     if column.isPrimaryKey {
       primaryKeys.append(column)
@@ -125,13 +138,13 @@ public class SQLEncoder: Encoder {
     columns.append(column)
   }
   
-  func encode(_ value: String, key: CodingKey) { _encode(value, key: key) }
-  func encode(_ value: Int, key: CodingKey) { _encode(value, key: key) }
-  func encode(_ value: UInt, key: CodingKey) { _encode(value, key: key) }
-  func encode(_ value: Float, key: CodingKey) { _encode(value, key: key) }
-  func encode(_ value: Double, key: CodingKey) { _encode(value, key: key) }
-  func encode(_ value: Bool, key: CodingKey) { _encode(value, key: key) }
-  func encode(_ value: Data, key: CodingKey) { _encode(value, key: key)}
+  func encode(_ value: String?, key: CodingKey) { _encode(value, key: key) }
+  func encode(_ value: Int?, key: CodingKey) { _encode(value, key: key) }
+  func encode(_ value: UInt?, key: CodingKey) { _encode(value, key: key) }
+  func encode(_ value: Float?, key: CodingKey) { _encode(value, key: key) }
+  func encode(_ value: Double?, key: CodingKey) { _encode(value, key: key) }
+  func encode(_ value: Bool?, key: CodingKey) { _encode(value, key: key) }
+  func encode(_ value: Data?, key: CodingKey) { _encode(value, key: key)}
   
   func encodeNil(_ key: CodingKey) {
     columns.append(SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key)))
@@ -143,30 +156,43 @@ public class SQLEncoder: Encoder {
     var encoder: SQLEncoder
     public var codingPath: [CodingKey]
     
-    public mutating func encode(_ value: Bool, forKey key: Key) throws { encoder.encode(value, key: key) }
-    public mutating func encode(_ value: Int, forKey key: Key) throws { encoder.encode(value, key: key) }
-    public mutating func encode(_ value: Int8, forKey key: Key) throws { encoder.encode(Int(value), key: key) }
-    public mutating func encode(_ value: Int16, forKey key: Key) throws { encoder.encode(Int(value), key: key) }
-    public mutating func encode(_ value: Int32, forKey key: Key) throws { encoder.encode(Int(value), key: key) }
-    public mutating func encode(_ value: Int64, forKey key: Key) throws { encoder.encode(Int(value), key: key) }
-    public mutating func encode(_ value: UInt, forKey key: Key) throws { encoder.encode(value, key: key) }
-    public mutating func encode(_ value: UInt8, forKey key: Key) throws { encoder.encode(UInt(value), key: key) }
-    public mutating func encode(_ value: UInt16, forKey key: Key) throws { encoder.encode(UInt(value), key: key) }
-    public mutating func encode(_ value: UInt32, forKey key: Key) throws { encoder.encode(UInt(value), key: key) }
-    public mutating func encode(_ value: UInt64, forKey key: Key) throws { encoder.encode(UInt(value), key: key) }
-    public mutating func encode(_ value: Float, forKey key: Key) throws { encoder.encode(value, key: key) }
-    public mutating func encode(_ value: Double, forKey key: Key) throws { encoder.encode(value, key: key) }
-    public mutating func encode(_ value: String, forKey key: Key) throws { encoder.encode(value, key: key) }
-    public mutating func encodeNil(forKey key: K) throws { encoder.encodeNil(key) }
+    mutating func encode(_ value: Bool, forKey key: Key) throws { encoder.encode(value, key: key) }
+    mutating func encode(_ value: Int, forKey key: Key) throws { encoder.encode(value, key: key) }
+    mutating func encode(_ value: Int8, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int16, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int32, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int64, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt8, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt16, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt32, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt64, forKey key: Key) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Float, forKey key: Key) throws { encoder.encode(value, key: key) }
+    mutating func encode(_ value: Double, forKey key: Key) throws { encoder.encode(value, key: key) }
+    mutating func encode(_ value: String, forKey key: Key) throws { encoder.encode(value, key: key) }
+    mutating func encodeNil(forKey key: K) throws { encoder.encodeNil(key) }
     
-    public mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
-      if let a = value as? Array<AnyObject> {
+    mutating func encodeIfPresent(_ value: Int?, forKey key: K) throws { encoder.encode(value, key: key) }
+    mutating func encodeIfPresent(_ value: Bool?, forKey key: K) throws { encoder.encode(value, key: key) }
+    mutating func encodeIfPresent(_ value: Float?, forKey key: K) throws { encoder.encode(value, key: key) }
+    mutating func encodeIfPresent(_ value: Double?, forKey key: K) throws { encoder.encode(value, key: key) }
+    mutating func encodeIfPresent(_ value: String?, forKey key: K) throws { encoder.encode(value, key: key) }
+    mutating func encodeIfPresent<T>(_ value: T?, forKey key: K) throws where T : Encodable {
+      preconditionFailure("not implemented")
+    }
+    
+    mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
+      if let date = value as? Date {
+        encoder.encode(date.timeIntervalSince1970, key: key)
+        
+      } else if let a = value as? Array<AnyObject> {
         do {
           let data = try PropertyListSerialization.data(fromPropertyList: a, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
           encoder.encode(data, key: key)
         } catch {
           preconditionFailure("Unable to serialize array for INSERTTABLENAMEHERE.\(key.stringValue): \(error)")
         }
+        
       } else if let d = value as? ResultDictionary {
         do {
           let data = try PropertyListSerialization.data(fromPropertyList: d, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
@@ -174,8 +200,11 @@ public class SQLEncoder: Encoder {
         } catch {
           preconditionFailure("Unable to serialize dictionary for INSERTTABLENAMEHERE.\(key.stringValue): \(error)")
         }
+      } else if let d = value as? Data {
+        encoder.encode(d, key: key)
+        
       } else {
-        throw SQLEncoderError.typeNotConformingToEncodable(value)
+        throw SQLEncoderError.typeNotConformingToEncodable(key: key.stringValue, value)
       }
     }
     
@@ -201,10 +230,10 @@ public class SQLDecoder: Decoder {
   public var codingPath: [CodingKey] = []
   public var userInfo: [CodingUserInfoKey : Any] = [:]
   
-  fileprivate let data: FMResultSet
+  fileprivate let result: FMResultSet
   
-  public init(data: FMResultSet) {
-    self.data = data
+  public init(result: FMResultSet) {
+    self.result = result
   }
   
   public func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
@@ -237,6 +266,7 @@ public class SQLDecoder: Decoder {
     }
     
     public func contains(_ key: Key) -> Bool {
+      let index = decoder.result.columnIndex(forName: key.stringValue)
       //TODO: Can we check if the column exists????
       return true
     }
@@ -258,18 +288,18 @@ public class SQLDecoder: Decoder {
     }
 
     public func decodeNil(forKey key: Key) throws -> Bool {
-      return decoder.data.columnIsNull(key.stringValue)
+      return decoder.result.columnIsNull(key.stringValue)
     }
     
     public func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
       if key.stringValue == "existsInDatabase" {
         return true
       }
-      return decoder.data.bool(forColumn: key.stringValue)
+      return decoder.result.bool(forColumn: key.stringValue)
     }
     
     public func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-      return Int(decoder.data.int(forColumn: key.stringValue))
+      return Int(decoder.result.int(forColumn: key.stringValue))
     }
     
     public func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
@@ -289,7 +319,7 @@ public class SQLDecoder: Decoder {
     }
     
     public func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-      return UInt(decoder.data.unsignedLongLongInt(forColumn: key.stringValue))
+      return UInt(decoder.result.unsignedLongLongInt(forColumn: key.stringValue))
     }
     
     public func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
@@ -309,22 +339,43 @@ public class SQLDecoder: Decoder {
     }
     
     public func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-      let double = decoder.data.double(forColumn: key.stringValue)
+      let double = decoder.result.double(forColumn: key.stringValue)
       return Float(double)
     }
     
     public func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-      return decoder.data.double(forColumn: key.stringValue)
+      return decoder.result.double(forColumn: key.stringValue)
     }
     
     public func decode(_ type: String.Type, forKey key: Key) throws -> String {
-      return decoder.data.string(forColumn: key.stringValue)
+      return decoder.result.string(forColumn: key.stringValue)
     }
     
-    public func decode<T : Decodable>(_ type: T.Type, forKey key: Key) throws -> T {
-//      if type is Data {
-//        return decoder.data.data(forColumn: key.stringValue)
-//      }
+    public func decode<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T {
+      if type == Date.self {
+        let double = decoder.result.double(forColumn: key.stringValue)
+        let date = Date(timeIntervalSince1970: double)
+        if let returnItem = date as? T {
+          return returnItem
+        }
+        throw SQLDecoderError.typeMismatch(key.stringValue)
+        
+      } else if type == SQLArrayOfStrings.self {
+        guard let data = decoder.result.data(forColumn: key.stringValue) else {
+          throw SQLDecoderError.missingValue(key.stringValue)
+        }
+        guard let a = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? T else {
+          throw SQLDecoderError.dataCorrupted(key.stringValue)
+        }
+        return a
+        
+      } else if type == Data.self {
+        let data = decoder.result.data(forColumn: key.stringValue)
+        if let returnItem = data as? T {
+          return returnItem
+        }
+        throw SQLDecoderError.typeMismatch(key.stringValue)
+      }
       preconditionFailure("Not implemented")
     }
   }

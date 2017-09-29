@@ -18,7 +18,7 @@ enum QueryError: Error {
 
 public indirect enum StatementType {
   case query, update
-  case insert(update: StatementParts)
+  case insert(update: StatementParts, query: StatementParts)
 }
 
 public struct StatementParts {
@@ -220,7 +220,7 @@ public class DBManager: NSObject {
 
   public class func executeUpdateQuery(_ query: String, params: Any...) {
     do {
-      try executeStatement(StatementParts(sql: query, values: params, type: .update), resultHandler: {_, _ in })
+      try executeStatement(StatementParts(sql: query, values: params, type: .update), resultHandler: {_ in })
     } catch {
       print("Failed to update db (query): \(error)")
     }
@@ -229,7 +229,7 @@ public class DBManager: NSObject {
   public class func resultDictionariesFromQuery(_ query: String, params: Any...) -> Array<NSDictionary> {
     var resultDicts = [NSDictionary]()
     do {
-      try executeStatement(StatementParts(sql: query, values: params, type: .query), resultHandler: { (result, _) in
+      try executeStatement(StatementParts(sql: query, values: params, type: .query), resultHandler: { (result) in
         while (result?.next())! {
           if let resultDict = result?.resultDictionary() {
             resultDicts.append(resultDict as NSDictionary)
@@ -242,20 +242,19 @@ public class DBManager: NSObject {
     return resultDicts
   }
 
-  public class func executeStatement(_ statement: StatementParts, resultHandler: @escaping (FMResultSet?, Bool) -> ()) throws -> Void {
-    try executeStatements([statement]) { (results, fallthroughUpdate) in
+  public class func executeStatement(_ statement: StatementParts, resultHandler: @escaping (FMResultSet?) -> ()) throws -> Void {
+    try executeStatements([statement]) { (results) in
       if let result = results.first {
-        resultHandler(result, fallthroughUpdate)
+        resultHandler(result)
       } else {
-        resultHandler(nil, fallthroughUpdate)
+        resultHandler(nil)
       }
     }
   }
 
-  public class func executeStatements(_ statements: Array<StatementParts>, resultsHandler: @escaping (Array<FMResultSet?>, Bool) -> ()) throws -> Void {
+  public class func executeStatements(_ statements: Array<StatementParts>, resultsHandler: @escaping (Array<FMResultSet?>) -> ()) throws -> Void {
     let queue = try getDBQueue()
     var transactionError: Error?
-    var fallthroughUpdate = false
 
     queue.inTransaction { (db, rollback) in
       var results = [FMResultSet?]()
@@ -265,11 +264,14 @@ public class DBManager: NSObject {
         }
         for statement in statements {
           switch statement.type {
-          case .insert(let update):
+          case .insert(let update, let select):
             try db.executeUpdate(statement.sql, values: statement.values)
             if db.changes() == 0 { //insert failed so attempt update
-              fallthroughUpdate = true
               try db.executeUpdate(update.sql, values: update.values)
+              let result = try db.executeQuery(select.sql, values: select.values)
+              results.append(result)
+            } else {
+              results.append(nil)
             }
           case .query:
             let result = try db.executeQuery(statement.sql, values: statement.values)
@@ -280,7 +282,7 @@ public class DBManager: NSObject {
             results.append(nil)
           }
         }
-        resultsHandler(results, fallthroughUpdate)
+        resultsHandler(results)
 
         for result in results {
           result?.close()
@@ -303,7 +305,7 @@ public class DBManager: NSObject {
   public class func executeUpdateQuery_Objc(_ query: String, args:[Any])
   {
     do {
-      try executeStatement(StatementParts(sql: query, values: args, type: .update), resultHandler: {_, _ in })
+      try executeStatement(StatementParts(sql: query, values: args, type: .update), resultHandler: {_ in })
     } catch {
       print("Failed to update db (query): \(error)")
     }
@@ -312,7 +314,7 @@ public class DBManager: NSObject {
   public class func resultDictionariesFromQuery_Objc(_ query: String, args:[Any]) -> Array<NSDictionary> {
     var resultDicts = [NSDictionary]()
     do {
-      try executeStatement(StatementParts(sql: query, values: args, type: .query), resultHandler: { (result, _) in
+      try executeStatement(StatementParts(sql: query, values: args, type: .query), resultHandler: { (result) in
         while (result?.next())! {
           if let resultDict = result?.resultDictionary() {
             resultDicts.append(resultDict as NSDictionary)
