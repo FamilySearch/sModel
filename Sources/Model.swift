@@ -49,7 +49,7 @@ extension ModelDef {
     let statement = StatementParts(sql: query, values: params, type: .query)
 
     do {
-      try DBManager.executeStatement(statement) { (result) in
+      try DBManager.executeStatement(statement) { (result, _) in
         guard let result = result else { return }
         while result.next() {
           do {
@@ -76,7 +76,7 @@ extension ModelDef {
     let statement = StatementParts(sql: query, values: params, type: .query)
 
     do {
-      try DBManager.executeStatement(statement) { (result) in
+      try DBManager.executeStatement(statement) { (result, _) in
         guard let result = result else { return }
         while result.next() {
           count = Int(result.int(forColumnIndex: 0))
@@ -105,7 +105,7 @@ extension ModelDef {
     let statement = StatementParts(sql: query, values: params, type: .update)
 
     do {
-      try DBManager.executeStatement(statement) { _ in }
+      try DBManager.executeStatement(statement) { _, _ in }
     } catch {
       print("Failed to delete objects from table \(tableName): \(error)")
     }
@@ -113,100 +113,109 @@ extension ModelDef {
 
   //MARK: Instance level helpers
 
-  public func createSaveStatement() throws -> StatementParts {
-    var values = [Any]()
-    let elements = try SQLEncoder.encode(self)
-
-    switch self.existsInDatabase {
-      case true: //Update
-        do {
-          guard elements.primaryKeys.count > 0 else {
-            throw QueryError.missingKey
-          }
-          var setClauses = [String]()
-          var primaryKeyClauses = [String]()
-          for column in elements.columns {
-            if column.isPrimaryKey {
-              primaryKeyClauses.append(column.clause)
-              guard let value = column.value else {
-                throw QueryError.keyIsNull(fieldName: column.clause)
-              }
-              values.append(value)
-            } else {
-              setClauses.append(column.clause)
-              if let value = column.value {
-                values.append(value)
-              }
-            }
-          }
-          
-          return StatementParts(sql: "UPDATE \(elements.tableName) SET \(setClauses.joined(separator: ",")) WHERE \(primaryKeyClauses.joined(separator: ","))", values: values, type: .update)
-          
-        } catch QueryError.keyIsNull(let name) {
-          preconditionFailure("Primary key field '\(name)' must contain a value: \(elements.tableName)")
-          
-        } catch QueryError.missingKey {
-          preconditionFailure("Primary key field must be defined for table: \(elements.tableName)")
-          
-        } catch {
-          preconditionFailure("Error creating update statement: \(error)")
+  public func createSaveStatements(_ elements: SQLElements) throws -> Array<StatementParts> {
+    func computeParts() throws -> (setClauses: Array<String>, primaryKeyClauses: Array<String>, updateValues: Array<Any>, insertNames: Array<String>, insertValueHolders: Array<String>, insertValues: Array<Any>) {
+      var updateValues = [Any]()
+      var setClauses = [String]()
+      var keyClauses = [String]()
+      var keyValues = [Any]()
+      var insertValues = [Any]()
+      var insertNames = [String]()
+      var insertValueHolders = [String]()
+      let useSecondary = (elements.secondaryKeys.count > 0)
+      
+      for column in elements.columns {
+        if let value = column.value {
+          insertNames.append(column.name)
+          insertValueHolders.append("?")
+          insertValues.append(value)
         }
+        
+        if column.isPrimaryKey || column.isSecondaryKey {
+          guard (useSecondary && column.isSecondaryKey) || (!useSecondary && column.isPrimaryKey) else { //ignore key columns if they aren't part of the keys we are looking at
+            continue
+          }
+          keyClauses.append(column.clause)
+          guard let value = column.value else {
+            throw QueryError.keyIsNull(fieldName: column.clause)
+          }
+          keyValues.append(value)
+        } else {
+          setClauses.append(column.clause)
+          if let value = column.value {
+            updateValues.append(value)
+          }
+        }
+      }
+      return (setClauses, keyClauses, updateValues + keyValues, insertNames, insertValueHolders, insertValues)
+    }
+
+    do {
+      guard elements.primaryKeys.count > 0 else {
+        throw QueryError.missingKey
+      }
+      let sqlParts = try computeParts()
+      
+      switch self.existsInDatabase {
+      case true: //Update
+        return [StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.primaryKeyClauses.joined(separator: " AND "))", values: sqlParts.updateValues, type: .update)]
 
       case false: //New Instance
-        var names = [String]()
-        var valueHolders = [String]()
-
-        for column in elements.columns {
-          if let value = column.value {
-            names.append(column.name)
-            valueHolders.append("?")
-            values.append(value)
-          }
-        }
-
-        let insertPrefix = DBManager.shouldReplaceDuplicates ? "INSERT OR REPLACE" : "INSERT"
-        return StatementParts(sql: "\(insertPrefix) INTO \(elements.tableName) (\(names.joined(separator: ","))) VALUES (\(valueHolders.joined(separator: ",")))", values: values, type: .update)
+        let insertPrefix = DBManager.shouldReplaceDuplicates ? "INSERT OR REPLACE" : "INSERT OR IGNORE"
+        //TODO: We'll still need to throw an exception if the insert fails so they can get a version of the object with the correct primary key (localId)
+        let updateStatement = StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.primaryKeyClauses.joined(separator: " AND "))", values: sqlParts.updateValues, type: .update)
+        let type = StatementType.insert(update: updateStatement)
+        let insertStatement = StatementParts(sql: "\(insertPrefix) INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: type)
+        return [insertStatement]
+      }
+    } catch QueryError.keyIsNull(let name) {
+      preconditionFailure("Primary key field '\(name)' must contain a value: \(elements.tableName)")
+      
+    } catch QueryError.missingKey {
+      preconditionFailure("Primary key field must be defined for table: \(elements.tableName)")
+      
+    } catch {
+      preconditionFailure("Error creating insert/update statement: \(error)")
     }
   }
 
   public func save() throws {
-    let localTableName = type(of: self).tableName
-
+    guard let elements = try? SQLEncoder.encode(self) else {
+      throw ModelError<ModelType>.invalidObject
+    }
+    
     do {
-      let statement = try createSaveStatement()
-      try DBManager.executeStatement(statement) { _ in
-        self.existsInDatabase = true
+      let statements = try createSaveStatements(elements)
+      var didUpdate = false
+      try DBManager.executeStatements(statements) { results, fallthroughUpdate in
+        didUpdate = fallthroughUpdate
+      }
+      
+      if didUpdate {
+        print("Updated row in db instead of insert: '\(elements.tableName): \(elements.primaryKeys)')")
+        let keyColumns = elements.secondaryKeys.count > 0 ? elements.secondaryKeys : elements.primaryKeys
+        let returnItem = try readFromDB(keyColumns)
+        throw ModelError<ModelType>.duplicate(existingItem: returnItem)
       }
 
-    } catch QueryError.failed(let code) {
-      if code == 19 && !self.existsInDatabase { //unique constraint error on adding new object
-        do {
-          let elements = try SQLEncoder.encode(self)
-          let keyColumns = elements.secondaryKeys.count > 0 ? elements.secondaryKeys : elements.primaryKeys
-          print("Update object with data that already exists in the db for '\(localTableName)'. \(keyColumns))")
-          returnItem = try reloadWithData(keyColumns)
-          
-        } catch QueryError.missingKey {
-          preconditionFailure("Failed to load duplicate object from db because no unique key defined: \(localTableName)")
-          
-        } catch QueryError.keyIsNull(let name) {
-          print("Failed to load duplicate object from db because missing unique key value: \(localTableName).\(name)")
-          
-        } catch {
-          print("Failed to update duplicate object: \(error)")
-        }
-      }
-
-    } catch {
-      print("Failed to \(self.existsInDatabase ? "update" : "insert") object: \(error)")
+    } catch QueryError.missingKey {
+      preconditionFailure("Failed to load duplicate object from db because no unique key defined: \(elements.tableName)")
+      
+    } catch QueryError.keyIsNull(let name) {
+      preconditionFailure("Failed to load duplicate object from db because missing unique key value: \(elements.tableName).\(name)")
     }
   }
+  
+  @available(*, unavailable, message: ".reload is no longer available.  Use `readFromDB` instead.")
+  public func reload() {
+    preconditionFailure(".reload is no longer available.  Use `readFromDB` instead.")
+  }
 
-  public func reload() -> ModelType? {
+  public func readFromDB() -> ModelType? {
     precondition(existsInDatabase, "Can't reload an object that doesn't yet exist in the database.")
     do {
       let elements = try SQLEncoder.encode(self)
-      return try reloadWithData(elements.primaryKeys)
+      return try readFromDB(elements.primaryKeys)
       
     } catch QueryError.missingKey {
       preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
@@ -231,7 +240,7 @@ extension ModelDef {
       let clauses = elements.primaryKeys.map{ $0.clause }
       let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
       
-      try DBManager.executeStatement(statement) { _ in }
+      try DBManager.executeStatement(statement) { _, _ in }
       
     } catch QueryError.missingKey {
       preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
@@ -242,14 +251,11 @@ extension ModelDef {
     } catch {
       print("Failed to delete object from table \(localTableName): \(error)")
     }
-    
-    //TODO: Do we care to preserve this behavior??????
-//    (self as? T)?.didDelete()
   }
 
   //MARK: Private helpers
   
-  fileprivate func reloadWithData(_ keyColumns: Array<SQLColumn>) throws -> ModelType {
+  fileprivate func readFromDB(_ keyColumns: Array<SQLColumn>) throws -> ModelType {
     var newInstance: ModelType = self as! ModelType
     let values = keyColumns.flatMap { $0.value }
     let clauses = keyColumns.map{ $0.clause }
@@ -259,7 +265,7 @@ extension ModelDef {
           values: values,
           type: .query)
     
-    try DBManager.executeStatement(statement, resultHandler: { (result) in
+    try DBManager.executeStatement(statement, resultHandler: { (result, _) in
       do {
         guard let result = result else {
           print("Failed to reload object from db cache")

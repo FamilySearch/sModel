@@ -27,7 +27,6 @@
 		BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */; };
 		BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
-		BD7AABE41F730D0C008EEF47 /* ExperimentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE31F730D0C008EEF47 /* ExperimentTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -327,7 +326,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD7AABE41F730D0C008EEF47 /* ExperimentTests.swift in Sources */,
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
 				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
