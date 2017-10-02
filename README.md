@@ -6,7 +6,7 @@ sModel is a Swift framework written on top of FMDB to provide:
   - Batch updates for improved performance on large updates
 
 The included test project has examples of how to use all of the different features
-of sModel.
+of sModel.  Compatible with Swift 4.
 
 ## DB Schema Management
 
