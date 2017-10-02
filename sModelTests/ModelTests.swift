@@ -83,8 +83,8 @@ class ModelTests: XCTestCase {
     var aFromDB = Animal.firstInstanceWhere("aid = ?", params: "aid")
     XCTAssertTrue(aFromDB!.living)
 
-    a.living = false
-    try? a.save()
+    aFromDB?.living = false
+    try? aFromDB?.save()
 
     aFromDB = Animal.firstInstanceWhere("aid = ?", params: "aid")
     XCTAssertFalse(aFromDB!.living)
@@ -168,9 +168,35 @@ class ModelTests: XCTestCase {
     
     XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
     XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(update.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
-    XCTAssertEqual(4, update.values.count)
+    XCTAssertNotNil(update)
+    XCTAssertEqual(update!.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
+    XCTAssertEqual(4, update!.values.count)
     XCTAssertEqual(query.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
+    XCTAssertEqual(1, query.values.count)
+  }
+  
+  func testCreateSaveStatement_insert_syncable() {
+    let tree = Tree(name: "tree 1")
+    
+    guard let statement = try? tree.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+    
+    guard case .insert(let updateOptional, let query) = statement.type else {
+      XCTFail()
+      return
+    }
+    guard let update = updateOptional else {
+      XCTFail("Update statement should not be nil")
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name) VALUES (?,?)")
+    XCTAssertEqual(2, statement.values.count)
+    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ? WHERE localId = ?")
+    XCTAssertEqual(2, update.values.count)
+    XCTAssertEqual(query.sql, "SELECT * FROM Tree WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, query.values.count)
   }
   
@@ -196,7 +222,7 @@ class ModelTests: XCTestCase {
   }
 
   func testCreateSaveStatement_replaceDuplicates() {
-    DBManager.shouldReplaceDuplicates = true
+    DBManager.blindlyReplaceDuplicates = true
     let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
     
     guard let statement = try? thing.createSaveStatement() else {
@@ -209,18 +235,18 @@ class ModelTests: XCTestCase {
       return
     }
     XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
-    DBManager.shouldReplaceDuplicates = false
+    DBManager.blindlyReplaceDuplicates = false
   }
 
   //MARK: Edge cases
-
+  
   func testInsertDuplicateObject_overwriteExistingDBRowWithLatest() {
     let originalThing = insertThing("tid1", name: "thing 1")
-
+    
     var newThing = Thing(tid: "tid1", name: "otherThing1", other: 0, otherDouble: 0)
     
     XCTAssertNotEqual(originalThing.localId, newThing.localId)
-
+    
     do {
       try newThing.save()
     } catch ModelError<Thing>.duplicate(let existingItem) {
@@ -228,13 +254,37 @@ class ModelTests: XCTestCase {
     } catch {
       XCTFail()
     }
-
+    
     XCTAssertEqual(originalThing.localId, newThing.localId)
     XCTAssertEqual(newThing.name, "otherThing1")
     XCTAssertEqual(newThing.localId, originalThing.localId)
-
+    
     let thingCount = Thing.numberOfInstancesWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingCount, 1)
+  }
+  
+  func testInsertDuplicateSyncableObject_doNotOverwriteExistingDBRowWithLatest() {
+    let originalAnimal = Animal(aid: "aid1", name: "animal 1", living: true, lastUpdated: Date(), ids: nil, props: [:])
+    try? originalAnimal.save()
+    
+    var newAnimal = Animal(aid: "aid1", name: "otheranimal 1", living: true, lastUpdated: Date(), ids: nil, props: [:])
+    
+    XCTAssertNotEqual(originalAnimal.name, newAnimal.name)
+    
+    do {
+      try newAnimal.save()
+    } catch ModelError<Animal>.duplicate(let existingItem) {
+      newAnimal = existingItem
+    } catch {
+      XCTFail()
+    }
+    
+    XCTAssertEqual(originalAnimal.aid, newAnimal.aid)
+    XCTAssertEqual(originalAnimal.name, newAnimal.name)
+    XCTAssertEqual(newAnimal.name, "animal 1")
+    
+    let animalCount = Animal.numberOfInstancesWhere("aid = ?", params: "aid1")
+    XCTAssertEqual(animalCount, 1)
   }
 
   func testInsertDuplicateObject_usePrimaryAsUniqueKey() {
@@ -250,7 +300,7 @@ class ModelTests: XCTestCase {
       XCTFail()
     }
 
-    XCTAssertEqual(newAnimal.name, "otherAnimal 1")
+    XCTAssertEqual(newAnimal.name, "animal 1")
 
     let count = Animal.numberOfInstancesWhere("aid = ?", params: "aid1")
     XCTAssertEqual(count, 1)

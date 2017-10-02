@@ -11,10 +11,11 @@ struct Tree: ModelDef {
   }
   
   typealias ModelType = Tree
-  static var tableName = "Tree"
+  static let tableName = "Tree"
   let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [] }
+  static let syncable = false
 }
 
 class Thing: ModelDef {
@@ -33,10 +34,11 @@ class Thing: ModelDef {
   }
   
   typealias ModelType = Thing
-  static var tableName = "Thing"
+  static let tableName = "Thing"
   let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
+  static let syncable = false
 }
 
 class Animal: ModelDef {
@@ -76,8 +78,9 @@ class Animal: ModelDef {
   }
   
   typealias ModelType = Animal
-  static var tableName = "Animal"
+  static let tableName = "Animal"
   let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
   var secondaryKeys: Array<CodingKey> { return [] }
+  static let syncable = true
 }

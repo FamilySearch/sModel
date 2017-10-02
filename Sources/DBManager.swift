@@ -18,7 +18,7 @@ enum QueryError: Error {
 
 public indirect enum StatementType {
   case query, update
-  case insert(update: StatementParts, query: StatementParts)
+  case insert(update: StatementParts?, query: StatementParts)
 }
 
 public struct StatementParts {
@@ -40,6 +40,17 @@ public struct DBMeta {
 
 @objc
 public class DBManager: NSObject {
+  /**
+   Defines how the system will handle database inserts.  If false, the system will use `INSERT OR IGNORE` statements when inserting.
+   If an insert failes because of a constraint violation, then the system will attempt to recover according to the object's `syncable`
+   property.  This option has slight performance hit but is safe for cases where the local database might contain changes that only
+   exist in the local database and should not be overwritten by data being loaded from other sources (i.e., a network response). 
+   If this is true, then the system will use `INSERT OR REPLACE` statements which will blindly replace any existing rows in
+   the database that trigger a constraint violation.  This is the fastest option and is suitable if the database won't ever contain
+   data locally that is newer than data you will load from other sources (i.e., a network response).
+   */
+  public static var blindlyReplaceDuplicates = false
+  @available(*, unavailable, message: "The `shouldReplaceDuplicates` property has been replaced by the `blindlyReplaceDuplicates` property.")
   public static var shouldReplaceDuplicates = false
   private static var dbs: Array<DBMeta> = []
   private static var isRetry: Bool = false
@@ -252,7 +263,17 @@ public class DBManager: NSObject {
     }
   }
 
-  public class func executeStatements(_ statements: Array<StatementParts>, resultsHandler: @escaping (Array<FMResultSet?>) -> ()) throws -> Void {
+  /** Execute statements
+   
+   Executes an array of statements in order as part of a single transaction.  An array of result objects is generated from each statement and passed to the `resultsHandler`.
+   
+   @param statements The statements to be executed.
+   
+   @param silentInserts Defaults to `false`.  By default, when an insert statement fails because of a constraint violation, this function will instead execute an update on that conflicting row in the database and perform a select on that object to get the latest data from the db.  Setting this parameter to `true` will skip the step of querying the object from the db.
+   
+   @return An `Array<FMResultSet?>` objects.  One for each statement that was run if there is a result for that statement.
+   */
+  public class func executeStatements(_ statements: Array<StatementParts>, silentInserts: Bool = false, resultsHandler: @escaping (Array<FMResultSet?>) -> ()) throws -> Void {
     let queue = try getDBQueue()
     var transactionError: Error?
 
@@ -267,9 +288,15 @@ public class DBManager: NSObject {
           case .insert(let update, let select):
             try db.executeUpdate(statement.sql, values: statement.values)
             if db.changes() == 0 { //insert failed so attempt update
-              try db.executeUpdate(update.sql, values: update.values)
-              let result = try db.executeQuery(select.sql, values: select.values)
-              results.append(result)
+              if let update = update {
+                try db.executeUpdate(update.sql, values: update.values)
+              }
+              if !silentInserts {
+                let result = try db.executeQuery(select.sql, values: select.values)
+                results.append(result)
+              } else {
+                results.append(nil)
+              }
             } else {
               results.append(nil)
             }

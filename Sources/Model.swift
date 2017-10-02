@@ -5,6 +5,23 @@ public typealias ResultDictionary = Dictionary<String, Any>
 
 public protocol ModelDef: SQLCodable {
   associatedtype ModelType: SQLCodable
+  /**
+   Name of the database table that should be used to persist/read objects of this type.
+   */
+  static var tableName: String { get }
+  /**
+   This flag influences how constraint violations are handled when inserting objects into the db.  If true, the data already in the database will remain unchanged.  If false, the non-key data in the database will be updated with the object being inserted.
+   */
+  static var syncable: Bool { get }
+  /**
+   The `primaryKeys` are required to contain one or more columns that are used to uniquely identify an object in the database table and are required to have values.
+   */
+  var primaryKeys: Array<CodingKey> { get }
+  /**
+   The `secondaryKeys` define set of columns that can be used to uniquely identify a row in the table but columns may contain null values. Server generated keys are often used as `secondaryKeys` to avoid duplicate database entries, but still allow for
+   objects to be created locally without a server generated id value.
+   */
+  var secondaryKeys: Array<CodingKey> { get }
 }
 
 extension ModelDef {
@@ -181,14 +198,14 @@ extension ModelDef {
         return StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)
 
       case false: //New Instance
-        if DBManager.shouldReplaceDuplicates {
+        if DBManager.blindlyReplaceDuplicates {
           let insertStatement = StatementParts(sql: "INSERT OR REPLACE INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: .update)
           return insertStatement
           
         } else {
           let updateStatement = StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)
           let selectStatement = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(sqlParts.keyClauses.joined(separator: " AND ")) LIMIT 1", values: sqlParts.keyValues, type: .query)
-          let type = StatementType.insert(update: updateStatement, query: selectStatement)
+          let type = StatementType.insert(update: elements.syncable ? nil : updateStatement, query: selectStatement)
           let insertStatement = StatementParts(sql: "INSERT OR IGNORE INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: type)
           return insertStatement
         }
@@ -241,7 +258,30 @@ extension ModelDef {
   public func readFromDB() -> ModelType? {
     do {
       let elements = try SQLEncoder.encode(self)
-      return try readFromDB(elements.primaryKeys)
+      var newInstance: ModelType? = nil
+      let values = elements.primaryKeys.flatMap { $0.value }
+      let clauses = elements.primaryKeys.map{ $0.clause }
+      
+      let statement = StatementParts(
+        sql: "SELECT * FROM \(type(of: self).tableName) WHERE \(clauses.joined(separator: " AND ")) LIMIT 1",
+        values: values,
+        type: .query)
+      
+      try DBManager.executeStatement(statement, resultHandler: { (result) in
+        do {
+          guard let result = result else {
+            print("Failed to reload object from db cache")
+            return
+          }
+          
+          while result.next() {
+            newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
+          }
+        } catch {
+          print("Unable to reload object: \(error)")
+        }
+      })
+      return newInstance
       
     } catch QueryError.missingKey {
       preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
@@ -254,15 +294,20 @@ extension ModelDef {
     }
   }
 
+  public func createDeleteStatement() throws -> StatementParts {
+    guard let elements = try? SQLEncoder.encode(self) else {
+      throw ModelError<ModelType>.invalidObject
+    }
+    let values = elements.primaryKeys.flatMap { $0.value }
+    let clauses = elements.primaryKeys.map{ $0.clause }
+    let statement = StatementParts(sql: "DELETE FROM \(elements.tableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
+    return statement
+  }
+
   public func delete() {
-    let localTableName = type(of: self).tableName
     do {
-      let elements = try SQLEncoder.encode(self)
-      let values = elements.primaryKeys.flatMap { $0.value }
-      let clauses = elements.primaryKeys.map{ $0.clause }
-      let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
-      
-      try DBManager.executeStatement(statement) { _ in }
+      let deleteStatement = try createDeleteStatement()
+      try DBManager.executeStatement(deleteStatement) { _ in }
       
     } catch QueryError.missingKey {
       preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
@@ -271,7 +316,7 @@ extension ModelDef {
       preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).tableName)")
       
     } catch {
-      print("Failed to delete object from table \(localTableName): \(error)")
+      print("Failed to delete object from table \(type(of: self).tableName): \(error)")
     }
   }
 

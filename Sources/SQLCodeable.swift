@@ -5,6 +5,7 @@ public typealias SQLArrayOfStrings = Array<String>
 
 public struct SQLElements {
   let tableName: String
+  let syncable: Bool
   let primaryKeys: Array<SQLColumn>
   let secondaryKeys: Array<SQLColumn>
   let columns: Array<SQLColumn>
@@ -36,16 +37,10 @@ public protocol SQLCodable: SQLEncodable, SQLDecodable {
 
 public protocol SQLEncodable: Encodable {
   static var tableName: String { get }
+  static var syncable: Bool { get }
   var primaryKeys: Array<CodingKey> { get }
   var secondaryKeys: Array<CodingKey> { get }
-  
-//  func sqlEncode(to encoder: SQLEncoder) throws
 }
-//public extension SQLEncodable {
-//  func sqlEncode(to encoder: SQLEncoder) throws {
-//    try self.encode(to: encoder)
-//  }
-//}
 
 public protocol SQLDecodable: Decodable {
   static var tableName: String { get }
@@ -77,7 +72,7 @@ public class SQLEncoder: Encoder {
     do {
       let encoder = SQLEncoder(rootValue: value)
       try value.encode(to: encoder)
-      let elements = SQLElements(tableName: type(of: value).tableName, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
+      let elements = SQLElements(tableName: type(of: value).tableName, syncable: type(of: value).syncable, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
       return elements
     } catch {
       print("Error encoding sql: \(error)")
@@ -90,13 +85,8 @@ public class SQLEncoder: Encoder {
     return KeyedEncodingContainer(container)
   }
   
-  public func unkeyedContainer() -> UnkeyedEncodingContainer {
-    preconditionFailure("Not implemented")
-  }
-  
-  public func singleValueContainer() -> SingleValueEncodingContainer {
-    preconditionFailure("Not implemented")
-  }
+  public func unkeyedContainer() -> UnkeyedEncodingContainer { preconditionFailure("Not implemented") }
+  public func singleValueContainer() -> SingleValueEncodingContainer { preconditionFailure("Not implemented") }
   
   private func isPrimary(key: CodingKey) -> Bool {
     let keyString = key.stringValue
@@ -119,10 +109,7 @@ public class SQLEncoder: Encoder {
   }
   
   private func _encode(_ value: Any?, key: CodingKey) {
-    guard key.stringValue != "existsInDatabase" else {
-      return
-    }
-    
+    guard key.stringValue != "existsInDatabase" else { return }
     guard let value = value else {
       encodeNil(key)
       return
@@ -212,21 +199,10 @@ public class SQLEncoder: Encoder {
       }
     }
     
-    mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-      preconditionFailure("Not implemented")
-    }
-    
-    mutating func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
-      preconditionFailure("Not implemented")
-    }
-    
-    mutating func superEncoder() -> Encoder {
-      preconditionFailure("Not implemented")
-    }
-    
-    mutating func superEncoder(forKey key: K) -> Encoder {
-      preconditionFailure("Not implemented")
-    }
+    mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey { preconditionFailure("Not implemented") }
+    mutating func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer { preconditionFailure("Not implemented") }
+    mutating func superEncoder() -> Encoder { preconditionFailure("Not implemented") }
+    mutating func superEncoder(forKey key: K) -> Encoder { preconditionFailure("Not implemented") }
   }
 }
 
@@ -245,13 +221,8 @@ public class SQLDecoder: Decoder {
     return KeyedDecodingContainer(container)
   }
   
-  public func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-    preconditionFailure("Not implemented")
-  }
-  
-  public func singleValueContainer() throws -> SingleValueDecodingContainer {
-    preconditionFailure("Not implemented")
-  }
+  public func unkeyedContainer() throws -> UnkeyedDecodingContainer { preconditionFailure("Not implemented") }
+  public func singleValueContainer() throws -> SingleValueDecodingContainer { preconditionFailure("Not implemented") }
   
   private struct SQLKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerProtocol {
     typealias Key = K
@@ -270,26 +241,13 @@ public class SQLDecoder: Decoder {
     }
     
     public func contains(_ key: Key) -> Bool {
-      let index = decoder.result.columnIndex(forName: key.stringValue)
-      //TODO: Can we check if the column exists????
       return true
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-      preconditionFailure("Not implemented")
-    }
-    
-    func nestedUnkeyedContainer(forKey key: K) throws -> UnkeyedDecodingContainer {
-      preconditionFailure("Not implemented")
-    }
-    
-    func superDecoder() throws -> Decoder {
-      preconditionFailure("Not implemented")
-    }
-    
-    func superDecoder(forKey key: K) throws -> Decoder {
-      preconditionFailure("Not implemented")
-    }
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey { preconditionFailure("Not implemented") }
+    func nestedUnkeyedContainer(forKey key: K) throws -> UnkeyedDecodingContainer { preconditionFailure("Not implemented") }
+    func superDecoder() throws -> Decoder { preconditionFailure("Not implemented") }
+    func superDecoder(forKey key: K) throws -> Decoder { preconditionFailure("Not implemented") }
 
     public func decodeNil(forKey key: Key) throws -> Bool {
       return decoder.result.columnIsNull(key.stringValue)
@@ -306,41 +264,18 @@ public class SQLDecoder: Decoder {
       return Int(decoder.result.int(forColumn: key.stringValue))
     }
     
-    public func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-      preconditionFailure("Not implemented")
-    }
-    
-    public func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-      preconditionFailure("Not implemented")
-    }
-    
-    public func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-      preconditionFailure("Not implemented")
-    }
-    
-    public func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
-      preconditionFailure("Not implemented")
-    }
-    
     public func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
       return UInt(decoder.result.unsignedLongLongInt(forColumn: key.stringValue))
     }
     
-    public func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-      preconditionFailure("Not implemented")
-    }
-    
-    public func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-      preconditionFailure("Not implemented")
-    }
-    
-    public func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-      preconditionFailure("Not implemented")
-    }
-    
-    public func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-      preconditionFailure("Not implemented")
-    }
+    public func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 { preconditionFailure("Not implemented") }
+    public func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 { preconditionFailure("Not implemented") }
+    public func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 { preconditionFailure("Not implemented") }
+    public func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 { preconditionFailure("Not implemented") }
+    public func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 { preconditionFailure("Not implemented") }
+    public func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { preconditionFailure("Not implemented") }
+    public func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { preconditionFailure("Not implemented") }
+    public func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { preconditionFailure("Not implemented") }
     
     public func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
       let double = decoder.result.double(forColumn: key.stringValue)
