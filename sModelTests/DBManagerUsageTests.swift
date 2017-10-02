@@ -36,9 +36,8 @@ class DBManagerUsageTests: XCTestCase {
   func testTruncateAllTables_excludeTable() {
     insertThing("tid1", name: "thing 1")
 
-    let animal = Animal()
-    animal.aid = "aid1"
-    animal.save()
+    let animal = Animal(aid: "aid1", name: nil, living: true, lastUpdated: Date(), ids: nil, props: [:])
+    try? animal.save()
 
     guard Thing.firstInstanceWhere("tid = ?", params: "tid1") != nil else {
       XCTFail("Thing should have had a value")
@@ -95,8 +94,8 @@ class DBManagerUsageTests: XCTestCase {
   }
 
   func testExecuteStatement_multipleUpdateStatements() {
-    let statement1 = StatementParts(sql: "INSERT INTO Thing (tid, name) VALUES (?,?)", values: ["tid1", "thing 1"], type: .update)
-    let statement2 = StatementParts(sql: "INSERT INTO Thing (tid, name) VALUES (?,?)", values: ["tid2", "thing 2"], type: .update)
+    let statement1 = StatementParts(sql: "INSERT INTO Thing (localId, tid, name) VALUES (?,?,?)", values: ["local1", "tid1", "thing 1"], type: .update)
+    let statement2 = StatementParts(sql: "INSERT INTO Thing (localId, tid, name) VALUES (?,?,?)", values: ["local2", "tid2", "thing 2"], type: .update)
     let statements = [statement1, statement2]
 
     try! DBManager.executeStatements(statements, resultsHandler: { (results) in
@@ -113,9 +112,9 @@ class DBManagerUsageTests: XCTestCase {
   }
 
   func testExecuteStatement_interleavedSelectUpdateStatements() {
-    let statement1 = StatementParts(sql: "INSERT INTO Thing (tid, name) VALUES (?,?)", values: ["tid1", "thing 1"], type: .update)
+    let statement1 = StatementParts(sql: "INSERT INTO Thing (localId, tid, name) VALUES (?,?,?)", values: ["local1", "tid1", "thing 1"], type: .update)
     let statement2 = StatementParts(sql: "Select * from Thing", values: [], type: .query)
-    let statement3 = StatementParts(sql: "INSERT INTO Thing (tid, name) VALUES (?,?)", values: ["tid2", "thing 2"], type: .update)
+    let statement3 = StatementParts(sql: "INSERT INTO Thing (localId, tid, name) VALUES (?,?,?)", values: ["local2", "tid2", "thing 2"], type: .update)
     let statement4 = StatementParts(sql: "Select * from Thing ORDER BY tid", values: [], type: .query)
     let statements = [statement1, statement2, statement3, statement4]
 
@@ -169,11 +168,8 @@ class DBManagerUsageTests: XCTestCase {
 
   @discardableResult
   func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing()
-    newThing.tid = tid
-    newThing.name = name
-    newThing.save()
-
+    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+    try? newThing.save()
     return newThing
   }
 }

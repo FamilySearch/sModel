@@ -76,11 +76,8 @@ class DBManagerMultiDBTests: XCTestCase {
 
   @discardableResult
   private func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing()
-    newThing.tid = tid
-    newThing.name = name
-    newThing.save()
-
+    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+    try? newThing.save()
     return newThing
   }
 }

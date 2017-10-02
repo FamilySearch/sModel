@@ -3,75 +3,49 @@ import FMDB
 
 public typealias ResultDictionary = Dictionary<String, Any>
 
-
-public enum ColumnType {
-  case text, real, int, bool, date, array, dictionary
+public protocol ModelDef: SQLCodable {
+  associatedtype ModelType: SQLCodable
+  /**
+   Name of the database table that should be used to persist/read objects of this type.
+   */
+  static var tableName: String { get }
+  /**
+   This flag influences how constraint violations are handled when inserting objects into the db.  If true, the data already in the database will remain unchanged.  If false, the non-key data in the database will be updated with the object being inserted.
+   */
+  static var syncable: Bool { get }
+  /**
+   The `primaryKeys` are required to contain one or more columns that are used to uniquely identify an object in the database table and are required to have values.
+   */
+  var primaryKeys: Array<CodingKey> { get }
+  /**
+   The `secondaryKeys` define set of columns that can be used to uniquely identify a row in the table but columns may contain null values. Server generated keys are often used as `secondaryKeys` to avoid duplicate database entries, but still allow for
+   objects to be created locally without a server generated id value.
+   */
+  var secondaryKeys: Array<CodingKey> { get }
 }
-
-public struct ColumnConstraint: OptionSet {
-  public let rawValue: Int
-  
-  public init(rawValue: Int) {
-    self.rawValue = rawValue
-  }
-  
-  public static let primary = ColumnConstraint(rawValue: 1)
-  public static let unique = ColumnConstraint(rawValue: 2)
-  public static let none = ColumnConstraint(rawValue: 4)
-}
-
-public struct ColumnMeta {
-  let name: String
-  let type: ColumnType
-  let constraint: ColumnConstraint
-  
-  public init(name: String, type: ColumnType, constraint: ColumnConstraint = .none) {
-    self.name = name
-    self.type = type
-    self.constraint = constraint
-  }
-}
-
-public struct KeyData {
-  let whereClause: String
-  let values: Array<Any>
-  let columns: Array<ColumnMeta>
-}
-
-
-open class BaseModel: NSObject {
-  public var isDeleted = false
-  public var existsInDatabase = false
-
-  required override public init() {
-    super.init()
-  }
-
-  public class func generateUUID() -> String {
-    return UUID().uuidString
-  }
-
-  open func didDelete() { } //No op by default
-}
-
-
-public protocol ModelDef: class {
-  var isDeleted: Bool { get set }
-  var existsInDatabase: Bool { get set }
-  static var sqlTableName: String { get }
-  static var columns: Array<ColumnMeta> { get }
-
-  associatedtype ModelType: BaseModel
-
-  func value(forKey name: String) -> Any?
-}
-
 
 extension ModelDef {
+  
+  public static func generateUUID() -> String {
+    return UUID().uuidString
+  }
+  
+  public static func dataToDictionary(_ data: Data) throws -> Dictionary<String,Any> {
+    guard let d = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Dictionary<String,Any> else {
+      print("Error converting data to a dictionary")
+      throw ModelError<ModelType>.invalidObject
+    }
+    return d
+  }
+  
+  public static func dictionaryToData(_ dictionary: Dictionary<String,Any>) throws -> Data {
+    let data = try PropertyListSerialization.data(fromPropertyList: dictionary, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
+    return data
+  }
 
   //MARK: Convenience methods for getting data out of db
   public static func firstInstanceWhere(_ whereClause: String, params: Any...) -> ModelType? {
-    let query = "SELECT * FROM \(sqlTableName) WHERE \(whereClause) LIMIT 1"
+    let query = "SELECT * FROM \(tableName) WHERE \(whereClause) LIMIT 1"
     let instances = fetchInstances(query: query, paramArray: params)
     return instances.first
   }
@@ -81,17 +55,17 @@ extension ModelDef {
   }
 
   public static func instancesWhere(_ whereClause: String, params: Any...) -> Array<ModelType> {
-    let query = "SELECT * FROM \(sqlTableName) WHERE \(whereClause)"
+    let query = "SELECT * FROM \(tableName) WHERE \(whereClause)"
     return fetchInstances(query: query, paramArray: params)
   }
 
   public static func instancesOrderedBy(_ orderByClause: String) -> Array<ModelType> {
-    let query = "SELECT * FROM \(sqlTableName) ORDER BY \(orderByClause)"
+    let query = "SELECT * FROM \(tableName) ORDER BY \(orderByClause)"
     return fetchInstances(query: query, paramArray: [])
   }
 
   public static func allInstances() -> Array<ModelType> {
-    let query = "SELECT * FROM \(sqlTableName)"
+    let query = "SELECT * FROM \(tableName)"
     return fetchInstances(query: query, paramArray: [])
   }
 
@@ -108,9 +82,12 @@ extension ModelDef {
       try DBManager.executeStatement(statement) { (result) in
         guard let result = result else { return }
         while result.next() {
-          let newInstance = ModelType()
-          populateInstance(result: result, updateInstance: newInstance)
-          instances.append(newInstance)
+          do {
+            let newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
+            instances.append(newInstance)
+          } catch {
+            print("Error creating instance from db result: \(error)")
+          }
         }
       }
     } catch {
@@ -122,7 +99,7 @@ extension ModelDef {
   public static func numberOfInstancesWhere(_ whereClause: String?, params: Any...) -> Int {
     var count = 0
 
-    var query = "SELECT COUNT(*) FROM \(sqlTableName)"
+    var query = "SELECT COUNT(*) FROM \(tableName)"
     if let whereClause = whereClause {
       query += " WHERE \(whereClause)"
     }
@@ -151,7 +128,7 @@ extension ModelDef {
   }
 
   private static func deleteInstances(whereClause: String? = nil, params: Array<Any>) {
-    var query = "DELETE FROM \(sqlTableName)"
+    var query = "DELETE FROM \(tableName)"
     if let whereClause = whereClause {
       query += " WHERE \(whereClause)"
     }
@@ -160,302 +137,216 @@ extension ModelDef {
     do {
       try DBManager.executeStatement(statement) { _ in }
     } catch {
-      print("Failed to delete objects from table \(sqlTableName): \(error)")
+      print("Failed to delete objects from table \(tableName): \(error)")
     }
   }
 
   //MARK: Instance level helpers
+  
+  public func createSaveStatement() throws -> StatementParts {
+    guard let elements = try? SQLEncoder.encode(self) else {
+      throw ModelError<ModelType>.invalidObject
+    }
+    return try createSaveStatement(elements)
+  }
 
-  public func createSaveStatement() -> StatementParts {
-    var values = [Any]()
-    let sqlTableName = type(of: self).sqlTableName
-    let columns = type(of: self).columns
-
-    switch existsInDatabase {
-      case true: //Update
-        do {
-          let primaryKeyData = try getKeyData(constraint: .primary)
-          
-          var setClauses = [String]()
-          
-          for meta in type(of: self).columns {
-            if !meta.constraint.contains(.primary) {
-              let val = getValueToWriteToDB(meta)
-              if let val = val as? NSObject , val == NSNull() {
-                setClauses.append("\(meta.name) = NULL")
-                
-              } else {
-                values.append(val)
-                setClauses.append("\(meta.name) = ?")
-              }
-            }
-          }
-          
-          values.append(contentsOf: primaryKeyData.values)
-          return StatementParts(sql: "UPDATE \(sqlTableName) SET \(setClauses.joined(separator: ",")) WHERE \(primaryKeyData.whereClause)", values: values, type: .update)
-          
-        } catch QueryError.keyIsNull(let name) {
-          preconditionFailure("Primary key field '\(name)' must contain a value: \(sqlTableName)")
-          
-        } catch QueryError.missingKey {
-          preconditionFailure("Primary key field must be defined for table: \(sqlTableName)")
-          
-        } catch {
-          preconditionFailure("Error creating update statement: \(error)")
+  private func createSaveStatement(_ elements: SQLElements) throws -> StatementParts {
+    func computeParts() throws -> (setClauses: Array<String>, keyClauses: Array<String>, updateValues: Array<Any>, keyValues: Array<Any>, insertNames: Array<String>, insertValueHolders: Array<String>, insertValues: Array<Any>) {
+      var updateValues = [Any]()
+      var setClauses = [String]()
+      var keyClauses = [String]()
+      var keyValues = [Any]()
+      var insertValues = [Any]()
+      var insertNames = [String]()
+      var insertValueHolders = [String]()
+      let useSecondary = (!existsInDatabase && elements.secondaryKeys.count > 0)
+      
+      for column in elements.columns {
+        if let value = column.value {
+          insertNames.append(column.name)
+          insertValueHolders.append("?")
+          insertValues.append(value)
         }
+        
+        if column.isPrimaryKey || column.isSecondaryKey {
+          guard (useSecondary && column.isSecondaryKey) || (!useSecondary && column.isPrimaryKey) else { //ignore key columns if they aren't part of the keys we are looking at
+            continue
+          }
+          guard let value = column.value else {
+            throw QueryError.keyIsNull(fieldName: column.clause)
+          }
+          keyClauses.append(column.clause)
+          keyValues.append(value)
+        } else {
+          setClauses.append(column.clause)
+          if let value = column.value {
+            updateValues.append(value)
+          }
+        }
+      }
+      return (setClauses, keyClauses, updateValues, keyValues, insertNames, insertValueHolders, insertValues)
+    }
+
+    do {
+      guard elements.primaryKeys.count > 0 else {
+        throw QueryError.missingKey
+      }
+      let sqlParts = try computeParts()
+      
+      switch self.existsInDatabase {
+      case true: //Update
+        return StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)
 
       case false: //New Instance
-        var names = [String]()
-        var valueHolders = [String]()
-
-        for meta in columns {
-          let val = getValueToWriteToDB(meta)
-          values.append(val)
-          names.append(meta.name)
-          valueHolders.append("?")
-        }
-
-        let insertPrefix = DBManager.shouldReplaceDuplicates ? "INSERT OR REPLACE" : "INSERT"
-        return StatementParts(sql: "\(insertPrefix) INTO \(sqlTableName) (\(names.joined(separator: ","))) VALUES (\(valueHolders.joined(separator: ",")))", values: values, type: .update)
-    }
-  }
-
-  public func save() {
-    let localTableName = type(of: self).sqlTableName
-    let statement = createSaveStatement()
-
-    do {
-      try DBManager.executeStatement(statement) { (result) in
-        self.existsInDatabase = true
-      }
-
-    } catch QueryError.failed(let code) {
-      if code == 19 && !self.existsInDatabase { //unique constraint error on adding new object
-        do {
-          let uniqueKeyData = try self.getKeyData(constraint: .unique, fallbackConstraint: .primary)
-          print("Update object with data that already exists in the db for '\(localTableName)'. \(uniqueKeyData.whereClause) >> \(uniqueKeyData.values)")
-          self.reloadWithData(uniqueKeyData)
+        if DBManager.blindlyReplaceDuplicates {
+          let insertStatement = StatementParts(sql: "INSERT OR REPLACE INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: .update)
+          return insertStatement
           
-        } catch QueryError.missingKey {
-          preconditionFailure("Failed to load duplicate object from db because no unique key defined: \(localTableName)")
-          
-        } catch QueryError.keyIsNull(let name) {
-          print("Failed to load duplicate object from db because missing unique key value: \(localTableName).\(name)")
-          
-        } catch {
-          print("Failed to update duplicate object: \(error)")
+        } else {
+          let updateStatement = StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)
+          let selectStatement = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(sqlParts.keyClauses.joined(separator: " AND ")) LIMIT 1", values: sqlParts.keyValues, type: .query)
+          let type = StatementType.insert(update: elements.syncable ? nil : updateStatement, query: selectStatement)
+          let insertStatement = StatementParts(sql: "INSERT OR IGNORE INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: type)
+          return insertStatement
         }
       }
-
-    } catch {
-      print("Failed to \(self.existsInDatabase ? "update" : "insert") object: \(error)")
-    }
-  }
-
-  public func reload() {
-    precondition(existsInDatabase, "Can't reload an object that doesn't yet exist in the database.")
-    
-    do {
-      let primaryKeyData = try getKeyData(constraint: .primary)
-      reloadWithData(primaryKeyData)
+    } catch QueryError.keyIsNull(let name) {
+      preconditionFailure("Primary key field '\(name)' must contain a value: \(elements.tableName)")
       
     } catch QueryError.missingKey {
-      preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).sqlTableName)")
+      preconditionFailure("Primary key field must be defined for table: \(elements.tableName)")
+      
+    } catch {
+      preconditionFailure("Error creating insert/update statement: \(error)")
+    }
+  }
+
+  public func save() throws {
+    guard let elements = try? SQLEncoder.encode(self) else {
+      throw ModelError<ModelType>.invalidObject
+    }
+    
+    do {
+      let statement = try createSaveStatement(elements)
+      var updatedInstance: ModelType?
+      try DBManager.executeStatements([statement]) { results in
+        if let result = results[0] { //did an update
+          print("Updated row in db instead of insert: '\(elements.tableName): \(elements.primaryKeys)')")
+          while result.next() {
+            updatedInstance = try? ModelType(fromSQL: SQLDecoder(result: result))
+          }
+        }
+      }
+      
+      if let updatedInstance = updatedInstance {
+        throw ModelError<ModelType>.duplicate(existingItem: updatedInstance)
+      }
+
+    } catch QueryError.missingKey {
+      preconditionFailure("Failed to load duplicate object from db because no unique key defined: \(elements.tableName)")
       
     } catch QueryError.keyIsNull(let name) {
-      preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).sqlTableName)")
+      preconditionFailure("Failed to load duplicate object from db because missing unique key value: \(elements.tableName).\(name)")
+    }
+  }
+  
+  @available(*, unavailable, message: ".reload is no longer available.  Use `readFromDB` instead.")
+  public func reload() {
+    preconditionFailure(".reload is no longer available.  Use `readFromDB` instead.")
+  }
+
+  public func readFromDB() -> ModelType? {
+    do {
+      let elements = try SQLEncoder.encode(self)
+      var newInstance: ModelType? = nil
+      let values = elements.primaryKeys.flatMap { $0.value }
+      let clauses = elements.primaryKeys.map{ $0.clause }
+      
+      let statement = StatementParts(
+        sql: "SELECT * FROM \(type(of: self).tableName) WHERE \(clauses.joined(separator: " AND ")) LIMIT 1",
+        values: values,
+        type: .query)
+      
+      try DBManager.executeStatement(statement, resultHandler: { (result) in
+        do {
+          guard let result = result else {
+            print("Failed to reload object from db cache")
+            return
+          }
+          
+          while result.next() {
+            newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
+          }
+        } catch {
+          print("Unable to reload object: \(error)")
+        }
+      })
+      return newInstance
+      
+    } catch QueryError.missingKey {
+      preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
+      
+    } catch QueryError.keyIsNull(let name) {
+      preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).tableName)")
       
     } catch {
       preconditionFailure("Failed to reload: \(error)")
     }
   }
 
-  public func delete() {
-    if !existsInDatabase {
-      return
+  public func createDeleteStatement() throws -> StatementParts {
+    guard let elements = try? SQLEncoder.encode(self) else {
+      throw ModelError<ModelType>.invalidObject
     }
-    
-    let localTableName = type(of: self).sqlTableName
+    let values = elements.primaryKeys.flatMap { $0.value }
+    let clauses = elements.primaryKeys.map{ $0.clause }
+    let statement = StatementParts(sql: "DELETE FROM \(elements.tableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
+    return statement
+  }
+
+  public func delete() {
     do {
-      let primaryKeyData = try getKeyData(constraint: .primary)
-      let statement = StatementParts(sql: "DELETE FROM \(localTableName) WHERE \(primaryKeyData.whereClause)", values: primaryKeyData.values, type: .update)
-      
-      try DBManager.executeStatement(statement) { _ in }
-      self.isDeleted = true
+      let deleteStatement = try createDeleteStatement()
+      try DBManager.executeStatement(deleteStatement) { _ in }
       
     } catch QueryError.missingKey {
-      preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).sqlTableName)")
+      preconditionFailure("Every table must define one or more primary key columns: \(type(of: self).tableName)")
       
     } catch QueryError.keyIsNull(let name) {
-      preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).sqlTableName)")
+      preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).tableName)")
       
     } catch {
-      print("Failed to delete object from table \(localTableName): \(error)")
+      print("Failed to delete object from table \(type(of: self).tableName): \(error)")
     }
-    
-    (self as? ModelType)?.didDelete()
   }
 
   //MARK: Private helpers
   
-  fileprivate func reloadWithData(_ keyData: KeyData) {
-    do {
-      let statement = StatementParts(
-        sql: "SELECT * FROM \(type(of: self).sqlTableName) WHERE \(keyData.whereClause) LIMIT 1",
-        values: keyData.values,
-        type: .query)
-      try DBManager.executeStatement(statement, resultHandler: { (result) in
+  fileprivate func readFromDB(_ keyColumns: Array<SQLColumn>) throws -> ModelType? {
+    var newInstance: ModelType? = nil
+    let values = keyColumns.flatMap { $0.value }
+    let clauses = keyColumns.map{ $0.clause }
+    
+    let statement = StatementParts(
+          sql: "SELECT * FROM \(type(of: self).tableName) WHERE \(clauses.joined(separator: " AND ")) LIMIT 1",
+          values: values,
+          type: .query)
+    
+    try DBManager.executeStatement(statement, resultHandler: { (result) in
+      do {
         guard let result = result else {
           print("Failed to reload object from db cache")
           return
         }
         
-        var foundMatch = false
         while result.next() {
-          type(of: self).populateInstance(result: result, updateInstance: self as! ModelType)
-          foundMatch = true
+          newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
         }
-        
-        if !foundMatch {
-          self.isDeleted = true
-        }
-      })
-    } catch {
-      print("Failed to reload object: \(error)")
-    }
-  }
-
-  private func getValueToWriteToDB(_ meta: ColumnMeta) -> Any {
-    var val: Any = self.value(forKey: meta.name) ?? NSNull()
-
-    switch meta.type {
-      case .array:
-        if let a = val as? Array<AnyObject> {
-          do {
-            let data = try PropertyListSerialization.data(fromPropertyList: a, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
-            val = data
-          } catch {
-            preconditionFailure("Unable to serialize array for \(type(of: self).sqlTableName).\(meta.name): \(error)")
-          }
-        }
-      case .dictionary:
-        if let d = val as? ResultDictionary {
-          do {
-            let data = try PropertyListSerialization.data(fromPropertyList: d, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
-            val = data
-          } catch {
-            preconditionFailure("Unable to serialize dictionary for \(type(of: self).sqlTableName).\(meta.name): \(error)")
-          }
-        }
-      default:
-        break
-    }
-    return val
-  }
-  
-  fileprivate func getKeyData(constraint: ColumnConstraint, fallbackConstraint: ColumnConstraint? = nil) throws -> KeyData {
-    func readKeyData(constraint: ColumnConstraint) throws -> KeyData {
-      var keys = Array<ColumnMeta>()
-      var values = Array<Any>()
-      
-      for meta in type(of: self).columns {
-        if meta.constraint.contains(constraint) {
-          guard let keyValue = self.value(forKey: meta.name) else {
-            throw QueryError.keyIsNull(fieldName: meta.name)
-          }
-          keys.append(meta)
-          values.append(keyValue)
-        }
+      } catch {
+        print("Unable to reload object: \(error)")
       }
-      guard keys.count > 0 else {
-        throw QueryError.missingKey
-      }
-      
-      let whereClause = keys.map({ (key) -> String in
-        return "\(key.name) = ?"
-      }).joined(separator: " AND ")
-      
-      return KeyData(whereClause: whereClause, values: values, columns: keys)
-    }
+    })
     
-    do {
-      let keyData = try readKeyData(constraint: constraint)
-      return keyData
-      
-    } catch {
-      if let fallbackConstraint = fallbackConstraint {
-        return try readKeyData(constraint: fallbackConstraint)
-      } else {
-        throw error
-      }
-    }
-  }
-
-  public static func populateInstance(result: FMResultSet, updateInstance: ModelType) -> Void {
-    updateInstance.existsInDatabase = true
-
-    for meta in columns {
-      switch meta.type {
-        case .text:
-          let val = result.string(forColumn: meta.name)
-          updateInstance.setValue(val, forKey: meta.name)
-        case .int:
-          let val = Int(result.int(forColumn: meta.name))
-          updateInstance.setValue(val, forKey: meta.name)
-        case .bool:
-          let val = result.bool(forColumn: meta.name)
-          updateInstance.setValue(val, forKey: meta.name)
-        case .real:
-          let val = Double(result.double(forColumn: meta.name))
-          updateInstance.setValue(val, forKey: meta.name)
-        case .date:
-          let val = Double(result.long(forColumn: meta.name))
-          let d = Date(timeIntervalSince1970: val)
-          updateInstance.setValue(d, forKey: meta.name)
-
-        case .array:
-          var arrayVal = [Any]()
-          guard let data = result.data(forColumn: meta.name) else {
-            updateInstance.setValue(arrayVal, forKey: meta.name)
-            continue
-          }
-
-          do {
-            if let a = try PropertyListSerialization.propertyList(
-              from: data, options: PropertyListSerialization.MutabilityOptions(),
-              format: nil) as? Array<Any>
-            {
-              arrayVal = a
-            } else {
-              preconditionFailure("Unable to deserialize array for \(sqlTableName).\(meta.name): Was nil or couldn't be cast as Array<String>")
-            }
-          } catch {
-            preconditionFailure("Unable to deserialize array for \(sqlTableName).\(meta.name): \(error)")
-          }
-          updateInstance.setValue(arrayVal, forKey: meta.name)
-
-        case .dictionary:
-          var dictVal = ResultDictionary()
-          guard let data = result.data(forColumn: meta.name) else {
-            updateInstance.setValue(dictVal, forKey: meta.name)
-            continue
-          }
-
-          do {
-            if let d = try PropertyListSerialization.propertyList(
-              from: data,
-              options: PropertyListSerialization.MutabilityOptions(),
-              format: nil) as? ResultDictionary
-            {
-              dictVal = d
-            } else {
-              preconditionFailure("Unable to deserialize dictionary for \(sqlTableName).\(meta.name): Was nil or couldn't be cast as ResultDictionary")
-            }
-          } catch {
-            preconditionFailure("Unable to deserialize dictionary for \(sqlTableName).\(meta.name): \(error)")
-          }
-          updateInstance.setValue(dictVal, forKey: meta.name)
-      }
-    }
+    return newInstance
   }
 }

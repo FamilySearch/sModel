@@ -16,50 +16,76 @@ class ModelTests: XCTestCase {
     super.tearDown()
   }
 
+  
   //MARK: Happy path
   
-  func testInstancesWhere_nomatches() {
-    insertABunchOfThings(10)
+  func testInsertDuplicateRow() {
+    try? Thing(tid: "tid1", name: "thing 1", other: 10, otherDouble: 10.1234).save()
+    guard let thing = Thing.firstInstanceWhere("tid = ?", params: ["tid1"]) else {
+      XCTFail()
+      return
+    }
     
-    let things = Thing.instancesWhere("tid in (?)", params: "nomatch")
+    XCTAssertNotNil(thing)
+    XCTAssertEqual(thing.other, 10)
     
-    XCTAssertNotNil(things)
-    XCTAssertEqual(things.count, 0)
+    let newThing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    
+    do {
+      try newThing.save()
+    } catch ModelError<Thing>.duplicate(let existingItem) {
+      XCTAssertEqual(existingItem.tid, "tid1")
+      XCTAssertEqual(existingItem.other, 0)
+      return
+    } catch {
+      XCTFail()
+    }
+    
+    XCTFail("Test should have gone through the catch")
   }
+  
   
   func testInstancesWhere_arrayOfParams() {
     insertABunchOfThings(10)
-    
+
     let things = Thing.instancesWhere("tid = ? AND name = ?", params: ["tid1", "thing 1"])
-    
+
     XCTAssertNotNil(things)
     XCTAssertEqual(things.count, 1)
     XCTAssertEqual(things[0].tid, "tid1")
+  }
+
+  func testInstancesWhere_nomatches() {
+    insertABunchOfThings(10)
+
+    let things = Thing.instancesWhere("tid in (?)", params: "nomatch")
+
+    XCTAssertNotNil(things)
+    XCTAssertEqual(things.count, 0)
   }
 
   func testDoubleProperties() {
     let thing = insertThing("tid1", name: "thing1")
     thing.other = 23
     thing.otherDouble = 0.23
-    thing.save()
+    try? thing.save()
 
     let thingFromDB = Thing.firstInstanceWhere("tid = ?", params: "tid1")
     XCTAssertNotNil(thingFromDB)
     XCTAssertEqual(thingFromDB?.otherDouble, 0.23)
   }
-  
-  func testBoolProperty() {
-    let a = Animal()
-    a.aid = "aid"
-    a.living = true
-    a.save()
+
+  func testBoolAndDateProperties() {
+    let a = Animal(aid: "aid", name: nil, living: true, lastUpdated: Date(), ids: [], props: [:])
     
+    try? a.save()
+
     var aFromDB = Animal.firstInstanceWhere("aid = ?", params: "aid")
     XCTAssertTrue(aFromDB!.living)
-    
-    a.living = false
-    a.save()
-    
+
+    aFromDB?.living = false
+    try? aFromDB?.save()
+
     aFromDB = Animal.firstInstanceWhere("aid = ?", params: "aid")
     XCTAssertFalse(aFromDB!.living)
   }
@@ -71,22 +97,21 @@ class ModelTests: XCTestCase {
 
     thing.name = nil
 
-    thing.save()
+    try? thing.save()
 
     let dbThing = Thing.firstInstanceWhere("tid = ?", params: "tid1")
     XCTAssertNil(dbThing!.name)
   }
 
   func testInsertNullProperty() {
-    let newThing = Thing()
-    newThing.tid = "tid1"
-    newThing.name = nil
+    let newThing = Thing(tid: "tid1", name: nil, other: 0, otherDouble: 0)
 
     XCTAssertFalse(newThing.existsInDatabase)
 
-    newThing.save()
+    try? newThing.save()
 
-    XCTAssertTrue(newThing.existsInDatabase)
+    let dbThing = Thing.firstInstanceWhere("tid = ?", params: "tid1")
+    XCTAssertNil(dbThing!.name)
   }
 
   //MARK: Non primitive data types
@@ -95,77 +120,188 @@ class ModelTests: XCTestCase {
     let lastUpdatedDate = Date(timeIntervalSince1970: 20000000)
     let ids = ["id1", "id2"]
     let props: ResultDictionary = ["prop1": "val1", "prop2": "val2"]
-
-    let newAnimal = Animal()
-    newAnimal.aid = "aid1"
-    newAnimal.lastUpdated = lastUpdatedDate
-    newAnimal.ids = ids
-    newAnimal.props = props
-
-    newAnimal.save()
-
-    let dbAnimal = Animal.firstInstanceWhere("aid = ?", params: "aid1")
-    XCTAssertEqual(dbAnimal?.lastUpdated.timeIntervalSince1970, lastUpdatedDate.timeIntervalSince1970)
-    XCTAssertEqual(dbAnimal?.ids.first, ids.first)
+    
+    let newAnimal = Animal(aid: "aid1", name: nil, living: true, lastUpdated: lastUpdatedDate, ids: ids, props: props)
+    try? newAnimal.save()
+    
+    guard let dbAnimal = Animal.firstInstanceWhere("aid = ?", params: "aid1") else {
+      XCTFail("Can't read object we just inserted")
+      return
+    }
+    
+    XCTAssertEqual(dbAnimal.lastUpdated.timeIntervalSince1970, lastUpdatedDate.timeIntervalSince1970)
+    XCTAssertEqual(dbAnimal.ids!.first, ids.first)
     let origProp: String = props["prop2"] as! String
-    let dbProp: String = dbAnimal!.props["prop2"] as! String
+    let dbProp: String = dbAnimal.props["prop2"] as! String
     XCTAssertEqual(dbProp, origProp)
   }
   
-  func testCreateSaveStatement() {
-    let thing = Thing()
-    thing.tid = "tid1"
-    thing.name = "thing 1"
+  func testInsertGetInstanceWithNilArray() {
+    let lastUpdatedDate = Date(timeIntervalSince1970: 20000000)
+    let props: ResultDictionary = ["prop1": "val1", "prop2": "val2"]
     
-    let statement = thing.createSaveStatement()
-    XCTAssertEqual(statement.sql, "INSERT INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
+    let newAnimal = Animal(aid: "aid1", name: nil, living: true, lastUpdated: lastUpdatedDate, ids: nil, props: props)
+    try? newAnimal.save()
+    
+    guard let dbAnimal = Animal.firstInstanceWhere("aid = ?", params: "aid1") else {
+      XCTFail("Can't read object we just inserted")
+      return
+    }
+    
+    XCTAssertNil(dbAnimal.ids)
+  }
+
+  //MARK: Statement Options
+  
+  func testCreateSaveStatement_insert() {
+    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    
+    guard let statement = try? thing.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+    
+    guard case .insert(let update, let query) = statement.type else {
+      XCTFail()
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
+    XCTAssertEqual(5, statement.values.count)
+    XCTAssertNotNil(update)
+    XCTAssertEqual(update!.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
+    XCTAssertEqual(4, update!.values.count)
+    XCTAssertEqual(query.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
+    XCTAssertEqual(1, query.values.count)
   }
   
-  func testCreateSaveStatement_replaceDuplicates() {
-    DBManager.shouldReplaceDuplicates = true
-    let thing = Thing()
-    thing.tid = "tid1"
-    thing.name = "thing 1"
+  func testCreateSaveStatement_insert_syncable() {
+    let tree = Tree(name: "tree 1")
     
-    let statement = thing.createSaveStatement()
+    guard let statement = try? tree.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+    
+    guard case .insert(let updateOptional, let query) = statement.type else {
+      XCTFail()
+      return
+    }
+    guard let update = updateOptional else {
+      XCTFail("Update statement should not be nil")
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name) VALUES (?,?)")
+    XCTAssertEqual(2, statement.values.count)
+    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ? WHERE localId = ?")
+    XCTAssertEqual(2, update.values.count)
+    XCTAssertEqual(query.sql, "SELECT * FROM Tree WHERE localId = ? LIMIT 1")
+    XCTAssertEqual(1, query.values.count)
+  }
+  
+  func testCreateSaveStatement_update() {
+    insertThing("tid1", name: "thing 1")
+    guard let thing = Thing.firstInstanceWhere("tid = ?", params: "tid1") else {
+      XCTFail("should be able read object")
+      return
+    }
+    
+    guard let statement = try? thing.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+
+    guard case .update = statement.type else {
+      XCTFail()
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE localId = ?")
+    XCTAssertEqual(4, statement.values.count)
+  }
+
+  func testCreateSaveStatement_replaceDuplicates() {
+    DBManager.blindlyReplaceDuplicates = true
+    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    
+    guard let statement = try? thing.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+
+    guard case .update = statement.type else {
+      XCTFail()
+      return
+    }
     XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
-    DBManager.shouldReplaceDuplicates = false
+    DBManager.blindlyReplaceDuplicates = false
   }
 
   //MARK: Edge cases
-
-  func testInsertDuplicateObject_overwriteWithLatestFromDB() {
+  
+  func testInsertDuplicateObject_overwriteExistingDBRowWithLatest() {
     let originalThing = insertThing("tid1", name: "thing 1")
-
-    let newThing = Thing()
-    newThing.tid = "tid1"
-    newThing.name = "otherThing 1"
+    
+    var newThing = Thing(tid: "tid1", name: "otherThing1", other: 0, otherDouble: 0)
     
     XCTAssertNotEqual(originalThing.localId, newThing.localId)
     
-    newThing.save()
-
+    do {
+      try newThing.save()
+    } catch ModelError<Thing>.duplicate(let existingItem) {
+      newThing = existingItem
+    } catch {
+      XCTFail()
+    }
+    
     XCTAssertEqual(originalThing.localId, newThing.localId)
-    XCTAssertEqual(newThing.name, "thing 1")
+    XCTAssertEqual(newThing.name, "otherThing1")
+    XCTAssertEqual(newThing.localId, originalThing.localId)
     
     let thingCount = Thing.numberOfInstancesWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingCount, 1)
   }
   
-  func testInsertDuplicateObject_usePrimaryAsUniqueKey() {
-    let originalAnimal = Animal()
-    originalAnimal.aid = "aid1"
-    originalAnimal.name = "animal 1"
-    originalAnimal.save()
+  func testInsertDuplicateSyncableObject_doNotOverwriteExistingDBRowWithLatest() {
+    let originalAnimal = Animal(aid: "aid1", name: "animal 1", living: true, lastUpdated: Date(), ids: nil, props: [:])
+    try? originalAnimal.save()
     
-    let newAnimal = Animal()
-    newAnimal.aid = "aid1"
-    newAnimal.name = "otherAnimal 1"
-    newAnimal.save()
+    var newAnimal = Animal(aid: "aid1", name: "otheranimal 1", living: true, lastUpdated: Date(), ids: nil, props: [:])
     
+    XCTAssertNotEqual(originalAnimal.name, newAnimal.name)
+    
+    do {
+      try newAnimal.save()
+    } catch ModelError<Animal>.duplicate(let existingItem) {
+      newAnimal = existingItem
+    } catch {
+      XCTFail()
+    }
+    
+    XCTAssertEqual(originalAnimal.aid, newAnimal.aid)
     XCTAssertEqual(originalAnimal.name, newAnimal.name)
     XCTAssertEqual(newAnimal.name, "animal 1")
     
+    let animalCount = Animal.numberOfInstancesWhere("aid = ?", params: "aid1")
+    XCTAssertEqual(animalCount, 1)
+  }
+
+  func testInsertDuplicateObject_usePrimaryAsUniqueKey() {
+    let originalAnimal = Animal(aid: "aid1", name: "animal 1", living: true, lastUpdated: Date(), ids: [], props: [:])
+    try? originalAnimal.save()
+
+    var newAnimal = Animal(aid: "aid1", name: "otherAnimal 1", living: true, lastUpdated: Date(), ids: [], props: [:])
+    do {
+      try newAnimal.save()
+    } catch ModelError<Animal>.duplicate(let existingItem) {
+      newAnimal = existingItem
+    } catch {
+      XCTFail()
+    }
+
+    XCTAssertEqual(newAnimal.name, "animal 1")
+
     let count = Animal.numberOfInstancesWhere("aid = ?", params: "aid1")
     XCTAssertEqual(count, 1)
   }
@@ -182,21 +318,22 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(emptyList)
     XCTAssertEqual(emptyList.count, 0)
   }
+  
+  func testReadFromDB_unsavedInstance() {
+    let thing = Thing(tid: "tidx", name: "thing x", other: 0, otherDouble: 0)
+    let otherThing = thing.readFromDB()
+    XCTAssertNil(otherThing)
+  }
 
-  func testReloadDeletedInstance() {
-    insertThing("tid1", name: "thing 1")
+  func testReloadInstance() {
+    let thing = insertThing("tid1", name: "thing 1")
 
-    guard let thing = Thing.firstInstanceWhere("tid = ?", params: "tid1") else {
-      XCTAssert(false, "Couldn't read object we just inserted")
+    guard let dbThing = thing.readFromDB() else {
+      XCTFail("Can't read object we just inserted")
       return
     }
-
-    XCTAssertFalse(thing.isDeleted)
-
-    Thing.deleteWhere("tid = ?", params: "tid1")
-
-    thing.reload()
-    XCTAssertTrue(thing.isDeleted)
+    
+    XCTAssertEqual(thing.localId, dbThing.localId)
   }
 
   //MARK: Peformance Tests
@@ -228,11 +365,8 @@ class ModelTests: XCTestCase {
   
   @discardableResult
   private func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing()
-    newThing.tid = tid
-    newThing.name = name
-    newThing.save()
-    
+    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+    try? newThing.save()
     return newThing
   }
 }

@@ -23,11 +23,8 @@ class MultiThreadTests: XCTestCase {
 
     @discardableResult
     func insertThing(_ tid: String, name: String) -> Thing {
-      let newThing = Thing()
-      newThing.tid = tid
-      newThing.name = name
-      newThing.save()
-
+      let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+      try? newThing.save()
       return newThing
     }
 
@@ -50,5 +47,25 @@ class MultiThreadTests: XCTestCase {
     self.waitForExpectations(timeout: 10) { (error) -> Void in
       //no cleanup needed
     }
+  }
+  
+  func testEntityIndependence() {
+    var tree = Tree(name: "tree 1")
+    
+    try? tree.save()
+    
+    let otherTree = tree
+    tree.name = "tree 1 - changed"
+    XCTAssertNotEqual(tree.name, otherTree.name)
+    
+    try? tree.save()
+    XCTAssertNotEqual(tree.name, otherTree.name)
+    
+    guard let reloadedTree = otherTree.readFromDB() else {
+      XCTFail("Should have been able to read tree from db")
+      return
+    }
+    
+    XCTAssertEqual(tree.name, reloadedTree.name)
   }
 }

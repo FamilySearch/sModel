@@ -1,54 +1,86 @@
 import Foundation
 import sModel
 
-class Thing: BaseModel {
-  var localId = BaseModel.generateUUID()
-  var tid = ""
-  var name: String? = nil
-  var other = 0
-  var otherDouble = 0.0
+struct Tree: ModelDef {
+  var localId = UUID().uuidString
+  var name: String
   
-  var calledDidDelete = false
-
-  static let sqlTableName = "Thing"
-  static let columns = [
-    ColumnMeta(name: "localId", type: .text, constraint: .primary),
-    ColumnMeta(name: "tid", type: .text, constraint: .unique),
-    ColumnMeta(name: "name", type: .text),
-    ColumnMeta(name: "other", type: .int),
-    ColumnMeta(name: "otherDouble", type: .real)
-  ]
-
-  override func didDelete() {
-    super.didDelete()
-    calledDidDelete = true
+  init(name: String) {
+    self.name = name
+    self.existsInDatabase = false
   }
+  
+  typealias ModelType = Tree
+  static let tableName = "Tree"
+  let existsInDatabase: Bool
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+  var secondaryKeys: Array<CodingKey> { return [] }
+  static let syncable = false
 }
 
-extension Thing: ModelDef {
+class Thing: ModelDef {
+  var localId = UUID().uuidString
+  var tid: String
+  var name: String?
+  var other: Int
+  var otherDouble: Double
+  
+  init(tid: String, name: String?, other: Int, otherDouble: Double) {
+    self.tid = tid
+    self.name = name
+    self.other = other
+    self.otherDouble = otherDouble
+    self.existsInDatabase = false
+  }
+  
   typealias ModelType = Thing
+  static let tableName = "Thing"
+  let existsInDatabase: Bool
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+  var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
+  static let syncable = false
 }
 
-
-class Animal: BaseModel {
-  var aid = ""
-  var name: String? = nil
-  var living = false
-  var lastUpdated = Date(timeIntervalSince1970: 0)
-  var ids = [String]()
-  var props = ResultDictionary()
-
-  static let sqlTableName = "Animal"
-  static let columns = [
-    ColumnMeta(name: "aid", type: .text, constraint: .primary),
-    ColumnMeta(name: "name", type: .text),
-    ColumnMeta(name: "living", type: .int),
-    ColumnMeta(name: "lastUpdated", type: .date),
-    ColumnMeta(name: "ids", type: .array),
-    ColumnMeta(name: "props", type: .dictionary)
-  ]
-}
-
-extension Animal: ModelDef {
+class Animal: ModelDef {
+  var aid: String
+  var name: String?
+  var living: Bool
+  var lastUpdated: Date
+  var ids: SQLArrayOfStrings?
+  private var propsData: Data = Data()
+  var props: ResultDictionary {
+    get {
+      return (try? Animal.dataToDictionary(propsData)) ?? [:]
+    }
+    set {
+      guard let data = try? Animal.dictionaryToData(newValue) else {
+        print("Can't convert dictionary to data: \(newValue)")
+        self.propsData = Data()
+        return
+      }
+      self.propsData = data
+    }
+  }
+  
+  init(aid: String, name: String?, living: Bool, lastUpdated: Date, ids: Array<String>?, props: Dictionary<String,Any>) {
+    self.aid = aid
+    self.name = name
+    self.living = living
+    self.lastUpdated = lastUpdated
+    self.ids = ids
+    self.existsInDatabase = false
+    self.props = props
+  }
+  
+  private enum CodingKeys: String, CodingKey {
+    case aid, name, living, lastUpdated, ids, existsInDatabase
+    case propsData = "props"
+  }
+  
   typealias ModelType = Animal
+  static let tableName = "Animal"
+  let existsInDatabase: Bool
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
+  var secondaryKeys: Array<CodingKey> { return [] }
+  static let syncable = true
 }
