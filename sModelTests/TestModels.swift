@@ -1,6 +1,22 @@
 import Foundation
 import sModel
 
+struct Tree: ModelDef {
+  var localId = UUID().uuidString
+  var name: String
+  
+  init(name: String) {
+    self.name = name
+    self.existsInDatabase = false
+  }
+  
+  typealias ModelType = Tree
+  static var tableName = "Tree"
+  let existsInDatabase: Bool
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+  var secondaryKeys: Array<CodingKey> { return [] }
+}
+
 class Thing: ModelDef {
   var localId = UUID().uuidString
   var tid: String
@@ -13,11 +29,12 @@ class Thing: ModelDef {
     self.name = name
     self.other = other
     self.otherDouble = otherDouble
+    self.existsInDatabase = false
   }
   
   typealias ModelType = Thing
   static var tableName = "Thing"
-  var existsInDatabase: Bool = false
+  let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
 }
@@ -27,9 +44,7 @@ class Animal: ModelDef {
   var name: String?
   var living: Bool
   var lastUpdated: Date
-  var ids: SQLArrayOfStrings
-  //TODO test optional array
-  //TODO test optional dictionary
+  var ids: SQLArrayOfStrings?
   private var propsData: Data = Data()
   var props: ResultDictionary {
     get {
@@ -45,23 +60,24 @@ class Animal: ModelDef {
     }
   }
   
-  init(aid: String, name: String?, living: Bool, lastUpdated: Date, ids: Array<String>, props: Dictionary<String,Any>) {
+  init(aid: String, name: String?, living: Bool, lastUpdated: Date, ids: Array<String>?, props: Dictionary<String,Any>) {
     self.aid = aid
     self.name = name
     self.living = living
     self.lastUpdated = lastUpdated
     self.ids = ids
+    self.existsInDatabase = false
     self.props = props
   }
   
   private enum CodingKeys: String, CodingKey {
-    case aid, name, living, lastUpdated, ids
+    case aid, name, living, lastUpdated, ids, existsInDatabase
     case propsData = "props"
   }
   
   typealias ModelType = Animal
   static var tableName = "Animal"
-  var existsInDatabase: Bool = false
+  let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
   var secondaryKeys: Array<CodingKey> { return [] }
 }

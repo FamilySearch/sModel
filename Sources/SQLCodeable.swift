@@ -178,7 +178,11 @@ public class SQLEncoder: Encoder {
     mutating func encodeIfPresent(_ value: Double?, forKey key: K) throws { encoder.encode(value, key: key) }
     mutating func encodeIfPresent(_ value: String?, forKey key: K) throws { encoder.encode(value, key: key) }
     mutating func encodeIfPresent<T>(_ value: T?, forKey key: K) throws where T : Encodable {
-      preconditionFailure("not implemented")
+      guard let value = value else {
+        try encodeNil(forKey: key)
+        return
+      }
+      try encode(value, forKey: key)
     }
     
     mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {

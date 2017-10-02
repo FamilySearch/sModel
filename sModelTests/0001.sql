@@ -14,3 +14,8 @@ CREATE TABLE "Animal" (
   "ids" BLOB,
   "props" BLOB
 );
+
+CREATE TABLE "Tree" (
+  "localId" TEXT PRIMARY KEY,
+  "name" TEXT
+);

@@ -74,7 +74,6 @@
 		BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerUsageTests.swift; sourceTree = "<group>"; };
 		BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerMultiDBTests.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
-		BD7AABE31F730D0C008EEF47 /* ExperimentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperimentTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,7 +150,6 @@
 				BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */,
 				BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */,
 				BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */,
-				BD7AABE31F730D0C008EEF47 /* ExperimentTests.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";

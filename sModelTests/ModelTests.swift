@@ -120,34 +120,47 @@ class ModelTests: XCTestCase {
     let lastUpdatedDate = Date(timeIntervalSince1970: 20000000)
     let ids = ["id1", "id2"]
     let props: ResultDictionary = ["prop1": "val1", "prop2": "val2"]
-
+    
     let newAnimal = Animal(aid: "aid1", name: nil, living: true, lastUpdated: lastUpdatedDate, ids: ids, props: props)
     try? newAnimal.save()
-
+    
     guard let dbAnimal = Animal.firstInstanceWhere("aid = ?", params: "aid1") else {
       XCTFail("Can't read object we just inserted")
       return
     }
     
     XCTAssertEqual(dbAnimal.lastUpdated.timeIntervalSince1970, lastUpdatedDate.timeIntervalSince1970)
-    XCTAssertEqual(dbAnimal.ids.first, ids.first)
+    XCTAssertEqual(dbAnimal.ids!.first, ids.first)
     let origProp: String = props["prop2"] as! String
     let dbProp: String = dbAnimal.props["prop2"] as! String
     XCTAssertEqual(dbProp, origProp)
   }
+  
+  func testInsertGetInstanceWithNilArray() {
+    let lastUpdatedDate = Date(timeIntervalSince1970: 20000000)
+    let props: ResultDictionary = ["prop1": "val1", "prop2": "val2"]
+    
+    let newAnimal = Animal(aid: "aid1", name: nil, living: true, lastUpdated: lastUpdatedDate, ids: nil, props: props)
+    try? newAnimal.save()
+    
+    guard let dbAnimal = Animal.firstInstanceWhere("aid = ?", params: "aid1") else {
+      XCTFail("Can't read object we just inserted")
+      return
+    }
+    
+    XCTAssertNil(dbAnimal.ids)
+  }
 
   //MARK: Statement Options
   
-  func testCreateSaveStatement() {
+  func testCreateSaveStatement_insert() {
     let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
-
-    guard let statements = try? thing.createSaveStatements() else {
+    
+    guard let statement = try? thing.createSaveStatement() else {
       XCTFail()
       return
     }
-    XCTAssertEqual(1, statements.count)
     
-    let statement = statements[0]
     guard case .insert(let update, let query) = statement.type else {
       XCTFail()
       return
@@ -160,18 +173,37 @@ class ModelTests: XCTestCase {
     XCTAssertEqual(query.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
     XCTAssertEqual(1, query.values.count)
   }
+  
+  func testCreateSaveStatement_update() {
+    insertThing("tid1", name: "thing 1")
+    guard let thing = Thing.firstInstanceWhere("tid = ?", params: "tid1") else {
+      XCTFail("should be able read object")
+      return
+    }
+    
+    guard let statement = try? thing.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+
+    guard case .update = statement.type else {
+      XCTFail()
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE localId = ?")
+    XCTAssertEqual(4, statement.values.count)
+  }
 
   func testCreateSaveStatement_replaceDuplicates() {
     DBManager.shouldReplaceDuplicates = true
     let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
     
-    guard let statements = try? thing.createSaveStatements() else {
+    guard let statement = try? thing.createSaveStatement() else {
       XCTFail()
       return
     }
-    XCTAssertEqual(1, statements.count)
-    
-    let statement = statements[0]
+
     guard case .update = statement.type else {
       XCTFail()
       return
@@ -236,6 +268,12 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(emptyList)
     XCTAssertEqual(emptyList.count, 0)
   }
+  
+  func testReadFromDB_unsavedInstance() {
+    let thing = Thing(tid: "tidx", name: "thing x", other: 0, otherDouble: 0)
+    let otherThing = thing.readFromDB()
+    XCTAssertNil(otherThing)
+  }
 
   func testReloadInstance() {
     let thing = insertThing("tid1", name: "thing 1")
@@ -279,7 +317,6 @@ class ModelTests: XCTestCase {
   private func insertThing(_ tid: String, name: String) -> Thing {
     let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
     try? newThing.save()
-    newThing.existsInDatabase = true
     return newThing
   }
 }

@@ -126,14 +126,14 @@ extension ModelDef {
 
   //MARK: Instance level helpers
   
-  public func createSaveStatements() throws -> Array<StatementParts> {
+  public func createSaveStatement() throws -> StatementParts {
     guard let elements = try? SQLEncoder.encode(self) else {
       throw ModelError<ModelType>.invalidObject
     }
-    return try createSaveStatements(elements)
+    return try createSaveStatement(elements)
   }
 
-  private func createSaveStatements(_ elements: SQLElements) throws -> Array<StatementParts> {
+  private func createSaveStatement(_ elements: SQLElements) throws -> StatementParts {
     func computeParts() throws -> (setClauses: Array<String>, keyClauses: Array<String>, updateValues: Array<Any>, keyValues: Array<Any>, insertNames: Array<String>, insertValueHolders: Array<String>, insertValues: Array<Any>) {
       var updateValues = [Any]()
       var setClauses = [String]()
@@ -142,7 +142,7 @@ extension ModelDef {
       var insertValues = [Any]()
       var insertNames = [String]()
       var insertValueHolders = [String]()
-      let useSecondary = (elements.secondaryKeys.count > 0)
+      let useSecondary = (!existsInDatabase && elements.secondaryKeys.count > 0)
       
       for column in elements.columns {
         if let value = column.value {
@@ -155,10 +155,10 @@ extension ModelDef {
           guard (useSecondary && column.isSecondaryKey) || (!useSecondary && column.isPrimaryKey) else { //ignore key columns if they aren't part of the keys we are looking at
             continue
           }
-          keyClauses.append(column.clause)
           guard let value = column.value else {
             throw QueryError.keyIsNull(fieldName: column.clause)
           }
+          keyClauses.append(column.clause)
           keyValues.append(value)
         } else {
           setClauses.append(column.clause)
@@ -178,19 +178,19 @@ extension ModelDef {
       
       switch self.existsInDatabase {
       case true: //Update
-        return [StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)]
+        return StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)
 
       case false: //New Instance
         if DBManager.shouldReplaceDuplicates {
           let insertStatement = StatementParts(sql: "INSERT OR REPLACE INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: .update)
-          return [insertStatement]
+          return insertStatement
           
         } else {
           let updateStatement = StatementParts(sql: "UPDATE \(elements.tableName) SET \(sqlParts.setClauses.joined(separator: ",")) WHERE \(sqlParts.keyClauses.joined(separator: " AND "))", values: sqlParts.updateValues + sqlParts.keyValues, type: .update)
           let selectStatement = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(sqlParts.keyClauses.joined(separator: " AND ")) LIMIT 1", values: sqlParts.keyValues, type: .query)
           let type = StatementType.insert(update: updateStatement, query: selectStatement)
           let insertStatement = StatementParts(sql: "INSERT OR IGNORE INTO \(elements.tableName) (\(sqlParts.insertNames.joined(separator: ","))) VALUES (\(sqlParts.insertValueHolders.joined(separator: ",")))", values: sqlParts.insertValues, type: type)
-          return [insertStatement]
+          return insertStatement
         }
       }
     } catch QueryError.keyIsNull(let name) {
@@ -210,9 +210,9 @@ extension ModelDef {
     }
     
     do {
-      let statements = try createSaveStatements(elements)
+      let statement = try createSaveStatement(elements)
       var updatedInstance: ModelType?
-      try DBManager.executeStatements(statements) { results in
+      try DBManager.executeStatements([statement]) { results in
         if let result = results[0] { //did an update
           print("Updated row in db instead of insert: '\(elements.tableName): \(elements.primaryKeys)')")
           while result.next() {
@@ -239,7 +239,6 @@ extension ModelDef {
   }
 
   public func readFromDB() -> ModelType? {
-    precondition(existsInDatabase, "Can't reload an object that doesn't yet exist in the database.")
     do {
       let elements = try SQLEncoder.encode(self)
       return try readFromDB(elements.primaryKeys)
@@ -256,10 +255,6 @@ extension ModelDef {
   }
 
   public func delete() {
-    if !existsInDatabase {
-      return
-    }
-    
     let localTableName = type(of: self).tableName
     do {
       let elements = try SQLEncoder.encode(self)
@@ -282,8 +277,8 @@ extension ModelDef {
 
   //MARK: Private helpers
   
-  fileprivate func readFromDB(_ keyColumns: Array<SQLColumn>) throws -> ModelType {
-    var newInstance: ModelType = self as! ModelType
+  fileprivate func readFromDB(_ keyColumns: Array<SQLColumn>) throws -> ModelType? {
+    var newInstance: ModelType? = nil
     let values = keyColumns.flatMap { $0.value }
     let clauses = keyColumns.map{ $0.clause }
     
@@ -309,138 +304,4 @@ extension ModelDef {
     
     return newInstance
   }
-
-//  private func getValueToWriteToDB(_ meta: ColumnMeta) -> Any {
-//    var val: Any = self.value(forKey: meta.name) ?? NSNull()
-//
-//    switch meta.type {
-//      case .array:
-//        if let a = val as? Array<AnyObject> {
-//          do {
-//            let data = try PropertyListSerialization.data(fromPropertyList: a, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
-//            val = data
-//          } catch {
-//            preconditionFailure("Unable to serialize array for \(type(of: self).tableName).\(meta.name): \(error)")
-//          }
-//        }
-//      case .dictionary:
-//        if let d = val as? ResultDictionary {
-//          do {
-//            let data = try PropertyListSerialization.data(fromPropertyList: d, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
-//            val = data
-//          } catch {
-//            preconditionFailure("Unable to serialize dictionary for \(type(of: self).tableName).\(meta.name): \(error)")
-//          }
-//        }
-//      default:
-//        break
-//    }
-//    return val
-//  }
-  
-//  fileprivate func getKeyData(constraint: ColumnConstraint, fallbackConstraint: ColumnConstraint? = nil) throws -> KeyData {
-//    func readKeyData(constraint: ColumnConstraint) throws -> KeyData {
-//      var keys = Array<ColumnMeta>()
-//      var values = Array<Any>()
-//
-//      for meta in type(of: self).columns {
-//        if meta.constraint.contains(constraint) {
-//          guard let keyValue = self.value(forKey: meta.name) else {
-//            throw QueryError.keyIsNull(fieldName: meta.name)
-//          }
-//          keys.append(meta)
-//          values.append(keyValue)
-//        }
-//      }
-//      guard keys.count > 0 else {
-//        throw QueryError.missingKey
-//      }
-//
-//      let whereClause = keys.map({ (key) -> String in
-//        return "\(key.name) = ?"
-//      }).joined(separator: " AND ")
-//
-//      return KeyData(whereClause: whereClause, values: values, columns: keys)
-//    }
-//
-//    do {
-//      let keyData = try readKeyData(constraint: constraint)
-//      return keyData
-//
-//    } catch {
-//      if let fallbackConstraint = fallbackConstraint {
-//        return try readKeyData(constraint: fallbackConstraint)
-//      } else {
-//        throw error
-//      }
-//    }
-//  }
-
-//  public static func populateInstance(result: FMResultSet, updateInstance: T) -> Void {
-//    updateInstance.existsInDatabase = true
-//
-//    for meta in columns {
-//      switch meta.type {
-//        case .text:
-//          let val = result.string(forColumn: meta.name)
-//          updateInstance.setValue(val, forKey: meta.name)
-//        case .int:
-//          let val = Int(result.int(forColumn: meta.name))
-//          updateInstance.setValue(val, forKey: meta.name)
-//        case .bool:
-//          let val = result.bool(forColumn: meta.name)
-//          updateInstance.setValue(val, forKey: meta.name)
-//        case .real:
-//          let val = Double(result.double(forColumn: meta.name))
-//          updateInstance.setValue(val, forKey: meta.name)
-//        case .date:
-//          let val = Double(result.long(forColumn: meta.name))
-//          let d = Date(timeIntervalSince1970: val)
-//          updateInstance.setValue(d, forKey: meta.name)
-//
-//        case .array:
-//          var arrayVal = [Any]()
-//          guard let data = result.data(forColumn: meta.name) else {
-//            updateInstance.setValue(arrayVal, forKey: meta.name)
-//            continue
-//          }
-//
-//          do {
-//            if let a = try PropertyListSerialization.propertyList(
-//              from: data, options: PropertyListSerialization.MutabilityOptions(),
-//              format: nil) as? Array<Any>
-//            {
-//              arrayVal = a
-//            } else {
-//              preconditionFailure("Unable to deserialize array for \(tableName).\(meta.name): Was nil or couldn't be cast as Array<String>")
-//            }
-//          } catch {
-//            preconditionFailure("Unable to deserialize array for \(tableName).\(meta.name): \(error)")
-//          }
-//          updateInstance.setValue(arrayVal, forKey: meta.name)
-//
-//        case .dictionary:
-//          var dictVal = ResultDictionary()
-//          guard let data = result.data(forColumn: meta.name) else {
-//            updateInstance.setValue(dictVal, forKey: meta.name)
-//            continue
-//          }
-//
-//          do {
-//            if let d = try PropertyListSerialization.propertyList(
-//              from: data,
-//              options: PropertyListSerialization.MutabilityOptions(),
-//              format: nil) as? ResultDictionary
-//            {
-//              dictVal = d
-//            } else {
-//              preconditionFailure("Unable to deserialize dictionary for \(tableName).\(meta.name): Was nil or couldn't be cast as ResultDictionary")
-//            }
-//          } catch {
-//            preconditionFailure("Unable to deserialize dictionary for \(tableName).\(meta.name): \(error)")
-//          }
-//          updateInstance.setValue(dictVal, forKey: meta.name)
-//      }
-//    }
-//  }
 }

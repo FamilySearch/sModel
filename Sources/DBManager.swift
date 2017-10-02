@@ -278,7 +278,6 @@ public class DBManager: NSObject {
             results.append(result)
           case .update:
             try db.executeUpdate(statement.sql, values: statement.values)
-            print("changes = \(db.changes())")
             results.append(nil)
           }
         }
