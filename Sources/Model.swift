@@ -30,7 +30,29 @@ extension ModelDef {
     return UUID().uuidString
   }
   
-  public static func dataToDictionary(_ data: Data) throws -> Dictionary<String,Any> {
+  public static func dataToArray(_ data: Data?) throws -> Array<Dictionary<String,Any>>? {
+    guard let data = data else {
+      return nil
+    }
+    guard let a = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Array<Dictionary<String,Any>> else {
+      print("Error converting data to an array")
+      throw ModelError<ModelType>.invalidObject
+    }
+    return a
+  }
+  
+  public static func arrayToData(_ array: Array<Dictionary<String,Any>>?) throws -> Data? {
+    guard let array = array else {
+      return nil
+    }
+    let data = try PropertyListSerialization.data(fromPropertyList: array, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
+    return data
+  }
+  
+  public static func dataToDictionary(_ data: Data?) throws -> Dictionary<String,Any>? {
+    guard let data = data else {
+      return nil
+    }
     guard let d = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Dictionary<String,Any> else {
       print("Error converting data to a dictionary")
       throw ModelError<ModelType>.invalidObject
@@ -38,7 +60,10 @@ extension ModelDef {
     return d
   }
   
-  public static func dictionaryToData(_ dictionary: Dictionary<String,Any>) throws -> Data {
+  public static func dictionaryToData(_ dictionary: Dictionary<String,Any>?) throws -> Data? {
+    guard let dictionary = dictionary else {
+      return nil
+    }
     let data = try PropertyListSerialization.data(fromPropertyList: dictionary, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
     return data
   }
