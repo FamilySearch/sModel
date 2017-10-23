@@ -17,5 +17,6 @@ CREATE TABLE "Animal" (
 
 CREATE TABLE "Tree" (
   "localId" TEXT PRIMARY KEY,
-  "name" TEXT
+  "name" TEXT,
+  "status" INTEGER
 );

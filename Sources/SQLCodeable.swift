@@ -63,6 +63,7 @@ public class SQLEncoder: Encoder {
   fileprivate var secondaryKeys: Array<SQLColumn> = []
   fileprivate var columns: Array<SQLColumn> = []
   fileprivate var rootValue: SQLEncodable
+  fileprivate var pendingKey: CodingKey?
   
   init(rootValue: SQLEncodable) {
     self.rootValue = rootValue
@@ -86,7 +87,9 @@ public class SQLEncoder: Encoder {
   }
   
   public func unkeyedContainer() -> UnkeyedEncodingContainer { preconditionFailure("Not implemented") }
-  public func singleValueContainer() -> SingleValueEncodingContainer { preconditionFailure("Not implemented") }
+  public func singleValueContainer() -> SingleValueEncodingContainer {
+    return SQLSingleValueEncodingContainer(encoder: self, codingPath: codingPath)
+  }
   
   private func isPrimary(key: CodingKey) -> Bool {
     let keyString = key.stringValue
@@ -135,6 +138,41 @@ public class SQLEncoder: Encoder {
   
   func encodeNil(_ key: CodingKey) {
     columns.append(SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key)))
+  }
+  
+  /**
+   Adds support for serializing Int and String backed enums
+   */
+  private struct SQLSingleValueEncodingContainer: SingleValueEncodingContainer {
+    var encoder: SQLEncoder
+    var codingPath: [CodingKey]
+    
+    mutating func encodeNil() throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Bool) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int8) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int16) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int32) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Int64) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt8) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt16) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt32) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: UInt64) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Float) throws { preconditionFailure("Not implemented") }
+    mutating func encode(_ value: Double) throws { preconditionFailure("Not implemented") }
+    mutating func encode<T>(_ value: T) throws where T : Encodable { preconditionFailure("Not implemented") }
+    
+    mutating func encode(_ value: Int) throws {
+      if let key = encoder.pendingKey {
+        encoder.encode(value, key: key)
+      }
+    }
+    
+    mutating func encode(_ value: String) throws {
+      if let key = encoder.pendingKey {
+        encoder.encode(value, key: key)
+      }
+    }
   }
   
   private struct SQLKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerProtocol {
@@ -195,7 +233,9 @@ public class SQLEncoder: Encoder {
         encoder.encode(d, key: key)
         
       } else {
-        throw SQLEncoderError.typeNotConformingToEncodable(key: key.stringValue, value)
+        encoder.pendingKey = key
+        try value.encode(to: encoder)
+        encoder.pendingKey = nil
       }
     }
     
@@ -209,6 +249,7 @@ public class SQLEncoder: Encoder {
 public class SQLDecoder: Decoder {
   public var codingPath: [CodingKey] = []
   public var userInfo: [CodingUserInfoKey : Any] = [:]
+  fileprivate var pendingKey: CodingKey?
   
   fileprivate let result: FMResultSet
   
@@ -222,7 +263,47 @@ public class SQLDecoder: Decoder {
   }
   
   public func unkeyedContainer() throws -> UnkeyedDecodingContainer { preconditionFailure("Not implemented") }
-  public func singleValueContainer() throws -> SingleValueDecodingContainer { preconditionFailure("Not implemented") }
+  public func singleValueContainer() throws -> SingleValueDecodingContainer {
+    return SQLSingleValueDecodingContainer(decoder: self, codingPath: codingPath)
+  }
+  
+  private struct SQLSingleValueDecodingContainer: SingleValueDecodingContainer {
+    var decoder: SQLDecoder
+    var codingPath: [CodingKey]
+    
+    func decodeNil() -> Bool { preconditionFailure("Not implemented") }
+    func decode(_ type: Bool.Type) throws -> Bool { preconditionFailure("Not implemented") }
+    func decode(_ type: Int8.Type) throws -> Int8 { preconditionFailure("Not implemented") }
+    func decode(_ type: Int16.Type) throws -> Int16 { preconditionFailure("Not implemented") }
+    func decode(_ type: Int32.Type) throws -> Int32 { preconditionFailure("Not implemented") }
+    func decode(_ type: Int64.Type) throws -> Int64 { preconditionFailure("Not implemented") }
+    func decode(_ type: UInt.Type) throws -> UInt { preconditionFailure("Not implemented") }
+    func decode(_ type: UInt8.Type) throws -> UInt8 { preconditionFailure("Not implemented") }
+    func decode(_ type: UInt16.Type) throws -> UInt16 { preconditionFailure("Not implemented") }
+    func decode(_ type: UInt32.Type) throws -> UInt32 { preconditionFailure("Not implemented") }
+    func decode(_ type: UInt64.Type) throws -> UInt64 { preconditionFailure("Not implemented") }
+    func decode(_ type: Float.Type) throws -> Float { preconditionFailure("Not implemented") }
+    func decode(_ type: Double.Type) throws -> Double { preconditionFailure("Not implemented") }
+    func decode<T>(_ type: T.Type) throws -> T where T : Decodable { preconditionFailure("Not implemented") }
+    
+    func decode(_ type: Int.Type) throws -> Int {
+      if let key = decoder.pendingKey {
+        let value = decoder.result.int(forColumn: key.stringValue)
+        return Int(value)
+      }
+      throw SQLDecoderError.missingKey("Can't read int from db result set because no pendingKey was set")
+    }
+    
+    func decode(_ type: String.Type) throws -> String {
+      if let key = decoder.pendingKey {
+        if let value = decoder.result.string(forColumn: key.stringValue) {
+          return value
+        }
+        throw SQLDecoderError.missingValue(key.stringValue)
+      }
+      throw SQLDecoderError.missingKey("Can't read string from db result set because no pendingKey was set")
+    }
+  }
   
   private struct SQLKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerProtocol {
     typealias Key = K
@@ -314,8 +395,13 @@ public class SQLDecoder: Decoder {
           return returnItem
         }
         throw SQLDecoderError.typeMismatch(key.stringValue)
+        
+      } else {
+        decoder.pendingKey = key
+        let decoded: T = try T(from: decoder)
+        decoder.pendingKey = nil
+        return decoded
       }
-      preconditionFailure("Not implemented")
     }
   }
 }

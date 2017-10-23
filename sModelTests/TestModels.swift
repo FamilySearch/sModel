@@ -1,9 +1,14 @@
 import Foundation
 import sModel
 
+enum DataStatus: Int, Codable {
+  case localOnly = 1, dirty, synced, deleted, temporary, ignore
+}
+
 struct Tree: ModelDef {
   var localId = UUID().uuidString
   var name: String
+  var status = DataStatus.synced
   
   init(name: String) {
     self.name = name
@@ -50,15 +55,24 @@ class Animal: ModelDef {
   private var propsData: Data = Data()
   var props: ResultDictionary {
     get {
-      return (try? Animal.dataToDictionary(propsData)) ?? [:]
+      if
+        let dictResult = try? Animal.dataToDictionary(propsData),
+        let dict = dictResult
+      {
+        return dict
+      }
+      return [:]
     }
     set {
-      guard let data = try? Animal.dictionaryToData(newValue) else {
-        print("Can't convert dictionary to data: \(newValue)")
-        self.propsData = Data()
+      if
+        let dataResult = try? Animal.dictionaryToData(newValue),
+        let data = dataResult
+      {
+        propsData = data
         return
       }
-      self.propsData = data
+      print("Can't convert dictionary to data: \(newValue)")
+      propsData = Data()
     }
   }
   

@@ -76,7 +76,7 @@ class ModelTests: XCTestCase {
   }
 
   func testBoolAndDateProperties() {
-    let a = Animal(aid: "aid", name: nil, living: true, lastUpdated: Date(), ids: [], props: [:])
+    let a = Animal(aid: "aid", name: nil, living: true, lastUpdated: Date(), ids: [], props: ["prop":"value"])
     
     try? a.save()
 
@@ -177,7 +177,7 @@ class ModelTests: XCTestCase {
   
   func testCreateSaveStatement_insert_syncable() {
     let tree = Tree(name: "tree 1")
-    
+
     guard let statement = try? tree.createSaveStatement() else {
       XCTFail()
       return
@@ -192,10 +192,10 @@ class ModelTests: XCTestCase {
       return
     }
     
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name) VALUES (?,?)")
-    XCTAssertEqual(2, statement.values.count)
-    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ? WHERE localId = ?")
-    XCTAssertEqual(2, update.values.count)
+    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name,status) VALUES (?,?,?)")
+    XCTAssertEqual(3, statement.values.count)
+    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ?,status = ? WHERE localId = ?")
+    XCTAssertEqual(3, update.values.count)
     XCTAssertEqual(query.sql, "SELECT * FROM Tree WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, query.values.count)
   }
