@@ -193,16 +193,25 @@ extension ModelDef {
           insertValues.append(value)
         }
         
-        if column.isPrimaryKey || column.isSecondaryKey {
-          guard (useSecondary && column.isSecondaryKey) || (!useSecondary && column.isPrimaryKey) else { //ignore key columns if they aren't part of the keys we are looking at
-            continue
+        if column.isPrimaryKey || column.isSecondaryKey { //key column
+          switch (useSecondary, column.isSecondaryKey, column.isPrimaryKey) {
+          case (false, true, false):
+            setClauses.append(column.clause)
+            if let value = column.value {
+              updateValues.append(value)
+            }
+            
+          case (true, true, false): fallthrough
+          case (false, false, true):
+            guard let value = column.value else {
+              throw QueryError.keyIsNull(fieldName: column.clause)
+            }
+            keyClauses.append(column.clause)
+            keyValues.append(value)
+          default: continue
           }
-          guard let value = column.value else {
-            throw QueryError.keyIsNull(fieldName: column.clause)
-          }
-          keyClauses.append(column.clause)
-          keyValues.append(value)
-        } else {
+          
+        } else { //non key column
           setClauses.append(column.clause)
           if let value = column.value {
             updateValues.append(value)
@@ -256,7 +265,7 @@ extension ModelDef {
       var updatedInstance: ModelType?
       try DBManager.executeStatements([statement]) { results in
         if let result = results[0] { //did an update
-          print("Updated row in db instead of insert: '\(elements.tableName): \(elements.primaryKeys)')")
+          print("Updated row in db instead of insert: '\(elements.tableName)': primaryKeys=\(elements.primaryKeys): secondaryKeys=\(elements.secondaryKeys)')")
           while result.next() {
             updatedInstance = try? ModelType(fromSQL: SQLDecoder(result: result))
           }

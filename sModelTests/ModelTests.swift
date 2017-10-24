@@ -194,10 +194,61 @@ class ModelTests: XCTestCase {
     
     XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name,status) VALUES (?,?,?)")
     XCTAssertEqual(3, statement.values.count)
-    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ?,status = ? WHERE localId = ?")
+    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ?,status = ?,serverId = NULL WHERE localId = ?")
     XCTAssertEqual(3, update.values.count)
     XCTAssertEqual(query.sql, "SELECT * FROM Tree WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, query.values.count)
+  }
+  
+  func testCreateSaveStatement_insertOptionalSecondaryKey() {
+    var tree = Tree(name: "tree 1")
+    tree.serverId = "serverId"
+    
+    guard let statement = try? tree.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+    
+    guard case .insert(let updateOptional, let query) = statement.type else {
+      XCTFail()
+      return
+    }
+    guard let update = updateOptional else {
+      XCTFail("Update statement should not be nil")
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name,status,serverId) VALUES (?,?,?,?)")
+    XCTAssertEqual(4, statement.values.count)
+    XCTAssertEqual(update.sql, "UPDATE Tree SET name = ?,status = ? WHERE serverId = ?")
+    XCTAssertEqual(3, update.values.count)
+    XCTAssertEqual(query.sql, "SELECT * FROM Tree WHERE serverId = ? LIMIT 1")
+    XCTAssertEqual(1, query.values.count)
+  }
+  
+  func testCreateSaveStatement_updateOptionalSecondaryKey() {
+    let tree = Tree(name: "tree 1")
+    try? tree.save()
+    
+    guard let treeFromDB = tree.readFromDB() else {
+      XCTFail()
+      return
+    }
+    
+    var updateTree = treeFromDB
+    updateTree.serverId = "serverId"
+    
+    guard let statement = try? updateTree.createSaveStatement() else {
+      XCTFail()
+      return
+    }
+    guard case .update = statement.type else {
+      XCTFail()
+      return
+    }
+    
+    XCTAssertEqual(statement.sql, "UPDATE Tree SET name = ?,status = ?,serverId = ? WHERE localId = ?")
+    XCTAssertEqual(4, statement.values.count)
   }
   
   func testCreateSaveStatement_update() {
@@ -211,14 +262,14 @@ class ModelTests: XCTestCase {
       XCTFail()
       return
     }
-
+    
     guard case .update = statement.type else {
       XCTFail()
       return
     }
     
-    XCTAssertEqual(statement.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE localId = ?")
-    XCTAssertEqual(4, statement.values.count)
+    XCTAssertEqual(statement.sql, "UPDATE Thing SET tid = ?,name = ?,other = ?,otherDouble = ? WHERE localId = ?")
+    XCTAssertEqual(5, statement.values.count)
   }
 
   func testCreateSaveStatement_replaceDuplicates() {

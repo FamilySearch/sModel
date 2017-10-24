@@ -51,7 +51,6 @@ class MultiThreadTests: XCTestCase {
   
   func testEntityIndependence() {
     var tree = Tree(name: "tree 1")
-    
     try? tree.save()
     
     let otherTree = tree

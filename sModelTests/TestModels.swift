@@ -9,6 +9,7 @@ struct Tree: ModelDef {
   var localId = UUID().uuidString
   var name: String
   var status = DataStatus.synced
+  var serverId: String?
   
   init(name: String) {
     self.name = name
@@ -19,7 +20,7 @@ struct Tree: ModelDef {
   static let tableName = "Tree"
   let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
-  var secondaryKeys: Array<CodingKey> { return [] }
+  var secondaryKeys: Array<CodingKey> { return [CodingKeys.serverId] }
   static let syncable = false
 }
 
