@@ -14,11 +14,15 @@ enum QueryError: Error {
   case failed(errorCode: Int)
   case missingKey
   case keyIsNull(fieldName: String)
+  case insertUpdateFailed
+  case syncableRequiresSecondaryKey
 }
 
 public indirect enum StatementType {
-  case query, update
-  case insert(update: StatementParts?, query: StatementParts)
+  case query
+  case insert
+  case update
+  case save(syncable: Bool, updatePrimary: StatementParts, selectPrimary: StatementParts, updateSecondary: StatementParts?, selectSecondary: StatementParts?)
 }
 
 public struct StatementParts {
@@ -285,13 +289,49 @@ public class DBManager: NSObject {
         }
         for statement in statements {
           switch statement.type {
-          case .insert(let update, let select):
-            try db.executeUpdate(statement.sql, values: statement.values)
-            if db.changes() == 0 { //insert failed so attempt update
-              if let update = update {
-                try db.executeUpdate(update.sql, values: update.values)
+          case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary):
+            if syncable { //syncable objects should perform update, if row already exists in db
+              let result = try db.executeQuery(selectPrimary.sql, values: selectPrimary.values)
+              if result.next() { //object with this primary key already exists so perform update and return
+                try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
+                results.append(nil)
+                result.close()
+                continue
               }
-              if !silentInserts {
+              result.close()
+            }
+            
+            try db.executeUpdate(statement.sql, values: statement.values) //attempt an Insert into the database first
+            if db.changes() == 0 { //insert failed so attempt update
+              let update: StatementParts
+              var select: StatementParts
+              let usingSecondary: Bool
+              if //Favor an update on a secondary key. Common case is we are trying to save an object from a network response that already is in the db but we didn't want to check for it's existence before the save.
+                let secondaryUpdate = updateSecondary,
+                let secondarySelect = selectSecondary
+              {
+                update = secondaryUpdate
+                select = secondarySelect
+                usingSecondary = true
+              } else { //Fall back to the primary key in cases where the secondary key values were null.
+                update = updatePrimary
+                select = selectPrimary
+                usingSecondary = false
+              }
+              
+              if !syncable {
+                try db.executeUpdate(update.sql, values: update.values)
+                if db.changes() == 0 && usingSecondary { //update on the secondary key failed so try on the primary key
+                  try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
+                  select = selectPrimary
+                  
+                  if db.changes() == 0 {
+                    throw QueryError.insertUpdateFailed
+                  }
+                }
+              }
+              
+              if !silentInserts { //read the entry from the database so we have the latest values for this row
                 let result = try db.executeQuery(select.sql, values: select.values)
                 results.append(result)
               } else {
@@ -300,6 +340,10 @@ public class DBManager: NSObject {
             } else {
               results.append(nil)
             }
+            
+          case .insert:
+            try db.executeUpdate(statement.sql, values: statement.values)
+            results.append(nil)
           case .query:
             let result = try db.executeQuery(statement.sql, values: statement.values)
             results.append(result)

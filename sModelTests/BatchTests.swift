@@ -72,6 +72,25 @@ class BatchTests: XCTestCase {
     XCTAssertEqual("B thing 1", thing1.name)
   }
   
+  func testBatchInsert_Performance_blindlyReplace() {
+    DBManager.blindlyReplaceDuplicates = true
+    let count = 10000
+    
+    let statementsA = generateInsertStatements(count: count, prefix: "A")
+    let statementsB = generateInsertStatements(count: count, prefix: "B")
+    
+    self.measure {
+      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results) in
+        XCTAssertEqual(count, results.count)
+      }
+      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results) in
+        XCTAssertEqual(count, results.count)
+      }
+      DBManager.truncateAllTables()
+    }
+    DBManager.blindlyReplaceDuplicates = false
+  }
+  
   func testBatchInsert_Performance() {
     DBManager.blindlyReplaceDuplicates = false
     let count = 10000
@@ -126,9 +145,9 @@ class BatchTests: XCTestCase {
     var statements = [StatementParts]()
     
     for i in 0..<count {
-      let animal = Animal(aid: "aid\(i)", name: "\(prefix) animal \(i)", living: true, lastUpdated: Date(), ids: nil, props: [:])
-      
-      if let statement = try? animal.createSaveStatement() {
+      let sThing = SyncableThing(tid: "tid\(i)", name: "\(prefix) animal \(i)")
+
+      if let statement = try? sThing.createSaveStatement() {
         statements.append(statement)
       }
     }

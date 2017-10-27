@@ -13,12 +13,10 @@ struct Tree: ModelDef {
   
   init(name: String) {
     self.name = name
-    self.existsInDatabase = false
   }
   
   typealias ModelType = Tree
   static let tableName = "Tree"
-  let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.serverId] }
   static let syncable = false
@@ -36,15 +34,30 @@ class Thing: ModelDef {
     self.name = name
     self.other = other
     self.otherDouble = otherDouble
-    self.existsInDatabase = false
   }
   
   typealias ModelType = Thing
   static let tableName = "Thing"
-  let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
   static let syncable = false
+}
+
+class SyncableThing: ModelDef {
+  var localId = UUID().uuidString
+  var tid: String?
+  var name: String?
+  
+  init(tid: String, name: String?) {
+    self.tid = tid
+    self.name = name
+  }
+  
+  typealias ModelType = SyncableThing
+  static let tableName = "SyncableThing"
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+  var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
+  static let syncable = true
 }
 
 class Animal: ModelDef {
@@ -83,19 +96,17 @@ class Animal: ModelDef {
     self.living = living
     self.lastUpdated = lastUpdated
     self.ids = ids
-    self.existsInDatabase = false
     self.props = props
   }
   
   private enum CodingKeys: String, CodingKey {
-    case aid, name, living, lastUpdated, ids, existsInDatabase
+    case aid, name, living, lastUpdated, ids
     case propsData = "props"
   }
   
   typealias ModelType = Animal
   static let tableName = "Animal"
-  let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
   var secondaryKeys: Array<CodingKey> { return [] }
-  static let syncable = true
+  static let syncable = false
 }
