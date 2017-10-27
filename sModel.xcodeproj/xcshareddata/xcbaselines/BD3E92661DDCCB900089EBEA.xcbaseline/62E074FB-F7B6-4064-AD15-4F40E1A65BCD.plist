@@ -11,9 +11,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.44072</real>
+					<real>0.43529</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>Oct 27, 2017, 4:32:06 PM</string>
+					<string>Oct 27, 2017, 4:34:57 PM</string>
 				</dict>
 			</dict>
 			<key>testBatchInsert_Performance_blindlyReplace()</key>
@@ -21,9 +21,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.34106</real>
+					<real>0.33225</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>Local Baseline</string>
+					<string>Oct 27, 2017, 4:34:57 PM</string>
 				</dict>
 			</dict>
 			<key>testBatchSyncableInsert_Performance()</key>
@@ -31,9 +31,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.30405</real>
+					<real>0.5426</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>Oct 27, 2017, 4:32:06 PM</string>
+					<string>Oct 27, 2017, 4:34:57 PM</string>
 				</dict>
 			</dict>
 		</dict>
@@ -44,9 +44,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.11297</real>
+					<real>0.12863</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>Oct 27, 2017, 4:32:06 PM</string>
+					<string>Oct 27, 2017, 4:34:57 PM</string>
 				</dict>
 			</dict>
 			<key>testPerformanceLotsOfInsertsReads()</key>
@@ -54,9 +54,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.38661</real>
+					<real>0.41863</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>Oct 27, 2017, 4:32:06 PM</string>
+					<string>Oct 27, 2017, 4:34:57 PM</string>
 				</dict>
 			</dict>
 		</dict>
