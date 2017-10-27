@@ -41,7 +41,6 @@ class sModelPublicInterfaceTests: XCTestCase {
 
   func testInsertAndFirstInstance() {
     let newThing = insertThing("tid1", name: "thing 1")
-    XCTAssertEqual(newThing.existsInDatabase, false)
 
     let thingFromDB = Thing.firstInstanceWhere("tid = ?", params: "tid1")
     XCTAssertNotNil(thingFromDB)
@@ -74,11 +73,9 @@ class sModelPublicInterfaceTests: XCTestCase {
   func testReadFromDB() {
     var newThing = insertThing("tid1", name: "thing 1")
     newThing.name = "changedName"
-    XCTAssertFalse(newThing.existsInDatabase)
     
     newThing = newThing.readFromDB()!
 
-    XCTAssertTrue(newThing.existsInDatabase)
     XCTAssertEqual(newThing.name, "thing 1")
   }
 

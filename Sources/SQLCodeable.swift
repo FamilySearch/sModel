@@ -30,10 +30,7 @@ public enum SQLDecoderError: Error {
   case dataCorrupted(String)
 }
 
-// class restriction is because isDeleted/existsInDatabase can't be defined on a value type without making them mutating functions.
-public protocol SQLCodable: SQLEncodable, SQLDecodable {
-  var existsInDatabase: Bool { get }
-}
+public protocol SQLCodable: SQLEncodable, SQLDecodable {}
 
 public protocol SQLEncodable: Encodable {
   static var tableName: String { get }
@@ -112,7 +109,6 @@ public class SQLEncoder: Encoder {
   }
   
   private func _encode(_ value: Any?, key: CodingKey) {
-    guard key.stringValue != "existsInDatabase" else { return }
     guard let value = value else {
       encodeNil(key)
       return
@@ -335,9 +331,6 @@ public class SQLDecoder: Decoder {
     }
     
     public func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
-      if key.stringValue == "existsInDatabase" {
-        return true
-      }
       return decoder.result.bool(forColumn: key.stringValue)
     }
     

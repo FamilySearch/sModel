@@ -21,3 +21,11 @@ CREATE TABLE "Tree" (
   "status" INTEGER,
   "serverId" TEXT
 );
+
+CREATE TABLE "SyncableThing" (
+  "localId" TEXT PRIMARY KEY,
+  "tid" TEXT,
+  "name" TEXT
+);
+
+CREATE UNIQUE INDEX "main"."INDEX_syncabletid" ON SyncableThing ("tid");
