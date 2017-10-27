@@ -27,6 +27,7 @@
 		BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */; };
 		BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
+		BDB1ECC91FA3EE940004CAA5 /* LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +75,7 @@
 		BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerUsageTests.swift; sourceTree = "<group>"; };
 		BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerMultiDBTests.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
+		BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +147,7 @@
 				BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */,
 				BD3E92821DDCCBB90089EBEA /* defs */,
 				BD3E926E1DDCCB900089EBEA /* Info.plist */,
+				BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */,
 				BD3E92831DDCCBBE0089EBEA /* model */,
 				BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */,
 				BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */,
@@ -326,6 +329,7 @@
 			files = (
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
+				BDB1ECC91FA3EE940004CAA5 /* LifecycleTests.swift in Sources */,
 				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
 				BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,

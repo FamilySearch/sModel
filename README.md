@@ -46,7 +46,6 @@ struct Thing: ModelDef {
 
   typealias ModelType = Thing
   static let tableName = "Thing"
-  let existsInDatabase: Bool
   var primaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
   var secondaryKeys: Array<CodingKey> { return [] }
   static let syncable = false
