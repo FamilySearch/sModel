@@ -255,14 +255,14 @@ extension ModelDef {
         return insertStatement
         
       } else {
-        let updatePrimary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.primaryUpdateSets.joined(separator: ",")) WHERE \(parts.primaryKeySets.joined(separator: ","))", values: parts.primaryUpdateValues + parts.primaryKeyValues, type: .update)
-        let selectPrimary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.primaryKeySets.joined(separator: ",")) LIMIT 1", values: parts.primaryKeyValues, type: .query)
+        let updatePrimary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.primaryUpdateSets.joined(separator: ",")) WHERE \(parts.primaryKeySets.joined(separator: " AND "))", values: parts.primaryUpdateValues + parts.primaryKeyValues, type: .update)
+        let selectPrimary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.primaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.primaryKeyValues, type: .query)
         
         var updateSecondary: StatementParts? = nil
         var selectSecondary: StatementParts? = nil
         if parts.canDoSecondary && elements.secondaryKeys.count > 0 {
-          updateSecondary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSets.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: ","))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
-          selectSecondary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: ",")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
+          updateSecondary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSets.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
+          selectSecondary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
         }
         
         let type = StatementType.save(syncable: elements.syncable, updatePrimary: updatePrimary, selectPrimary: selectPrimary, updateSecondary: updateSecondary, selectSecondary: selectSecondary)
