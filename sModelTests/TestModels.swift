@@ -48,7 +48,7 @@ class SyncableThing: ModelDef {
   var tid: String?
   var name: String?
   
-  init(tid: String, name: String?) {
+  init(tid: String?, name: String?) {
     self.tid = tid
     self.name = name
   }

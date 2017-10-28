@@ -368,6 +368,15 @@ class ModelTests: XCTestCase {
     let thingCount = SyncableThing.numberOfInstancesWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingCount, 1)
   }
+  
+  func testInsertSyncableWithNullSecondaryKey() {
+    let thing = SyncableThing(tid: nil, name: "thing1")
+    try? thing.save()
+    
+    let thingFromDB = thing.readFromDB()
+    
+    XCTAssertEqual(thingFromDB!.name, "thing1")
+  }
 
   func testGetNonExistentInstance_returnNil() {
     let nonExistentThing = Thing.firstInstanceWhere("tid = ?", params: "blah")
