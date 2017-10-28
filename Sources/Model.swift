@@ -361,7 +361,7 @@ extension ModelDef {
     }
     let values = elements.primaryKeys.flatMap { $0.value }
     let clauses = elements.primaryKeys.map{ $0.clause }
-    let statement = StatementParts(sql: "DELETE FROM \(elements.tableName) WHERE \(clauses.joined(separator: ","))", values: values, type: .update)
+    let statement = StatementParts(sql: "DELETE FROM \(elements.tableName) WHERE \(clauses.joined(separator: " AND "))", values: values, type: .update)
     return statement
   }
 
