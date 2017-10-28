@@ -133,7 +133,14 @@ public class SQLEncoder: Encoder {
   func encode(_ value: Data?, key: CodingKey) { _encode(value, key: key)}
   
   func encodeNil(_ key: CodingKey) {
-    columns.append(SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key)))
+    let column = SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
+    columns.append(column)
+    if column.isPrimaryKey {
+      primaryKeys.append(column)
+    }
+    if column.isSecondaryKey {
+      secondaryKeys.append(column)
+    }
   }
   
   /**
