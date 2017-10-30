@@ -21,6 +21,7 @@ CREATE TABLE "Tree" (
   "status" INTEGER,
   "serverId" TEXT
 );
+CREATE UNIQUE INDEX "main"."INDEX_tree_serverId" ON Tree ("serverId");
 
 CREATE TABLE "SyncableThing" (
   "localId" TEXT PRIMARY KEY,

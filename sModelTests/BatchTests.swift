@@ -26,6 +26,38 @@ class BatchTests: XCTestCase {
   
   //MARK: Happy path
   
+  func testBatchSave_withDuplicateEntries() {
+    var t1 = Tree(name: "tree1")
+    t1.serverId = "t1"
+    let t2 = Tree(name: "tree2")
+    var t1Dup = Tree(name: "tree1Dup")
+    t1Dup.serverId = "t1"
+    let t3 = Tree(name: "tree3")
+    
+    do {
+      let t1Statement = try t1.createSaveStatement()
+      let t2Statement = try t2.createSaveStatement()
+      let t1DupStatement = try t1Dup.createSaveStatement()
+      let t3Statement = try t3.createSaveStatement()
+      
+      try DBManager.executeStatements([t1Statement, t2Statement, t1DupStatement, t3Statement], resultsHandler: { (results) in })
+      
+      guard
+        let t3FromDB = t3.readFromDB(),
+        let t1FromDB = t1.readFromDB()
+      else {
+        XCTFail()
+        return
+      }
+      XCTAssertEqual(t1FromDB.name, "tree1Dup")
+      XCTAssertNil(t1Dup.readFromDB())
+      XCTAssertEqual(t3FromDB.name, "tree3")
+      
+    } catch {
+      XCTFail()
+    }
+  }
+  
   func testBatchInserts_withReplace() {
     DBManager.blindlyReplaceDuplicates = true
     

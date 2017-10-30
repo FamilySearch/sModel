@@ -19,6 +19,12 @@ public struct SQLColumn {
   let isSecondaryKey: Bool
 }
 
+extension SQLColumn: CustomDebugStringConvertible {
+  public var debugDescription: String {
+    return "\(name)=\(value) [p=\(isPrimaryKey ? "t" : "f") s=\(isSecondaryKey ? "t" : "f")"
+  }
+}
+
 public enum SQLEncoderError: Error {
   case typeNotConformingToEncodable(key: String, Any)
 }
