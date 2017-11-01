@@ -26,7 +26,9 @@ CREATE UNIQUE INDEX "main"."INDEX_tree_serverId" ON Tree ("serverId");
 CREATE TABLE "SyncableThing" (
   "localId" TEXT PRIMARY KEY,
   "tid" TEXT,
-  "name" TEXT
+  "name" TEXT,
+  "syncStatus" INTEGER,
+  "syncInFlightStatus" INTEGER
 );
 
 CREATE UNIQUE INDEX "main"."INDEX_syncabletid" ON SyncableThing ("tid");

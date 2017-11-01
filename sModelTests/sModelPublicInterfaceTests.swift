@@ -40,7 +40,7 @@ class sModelPublicInterfaceTests: XCTestCase {
   }
 
   func testInsertAndFirstInstance() {
-    let newThing = insertThing("tid1", name: "thing 1")
+    _ = insertThing("tid1", name: "thing 1")
 
     let thingFromDB = Thing.firstInstanceWhere("tid = ?", params: "tid1")
     XCTAssertNotNil(thingFromDB)

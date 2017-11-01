@@ -22,7 +22,9 @@ public indirect enum StatementType {
   case query
   case insert
   case update
-  case save(syncable: Bool, updatePrimary: StatementParts, selectPrimary: StatementParts, updateSecondary: StatementParts?, selectSecondary: StatementParts?)
+  case save(syncable: Bool, updatePrimary: StatementParts, selectPrimary: StatementParts,
+    updateSecondary: StatementParts?, selectSecondary: StatementParts?,
+    updateSecondarySyncable: StatementParts?, selectSecondarySyncable: StatementParts?)
 }
 
 public struct StatementParts {
@@ -289,8 +291,8 @@ public class DBManager: NSObject {
         }
         for statement in statements {
           switch statement.type {
-          case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary):
-            if syncable { //syncable objects should perform update, if row already exists in db
+          case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable):
+            if syncable { //syncable objects should perform update, if row already exists in db and isn't waiting for sync
               let result = try db.executeQuery(selectPrimary.sql, values: selectPrimary.values)
               if result.next() { //object with this primary key already exists so perform update and return
                 try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
@@ -299,6 +301,21 @@ public class DBManager: NSObject {
                 continue
               }
               result.close()
+              
+              //allow update based on secondaryKey if the existing row doesn't have any local changes to sync
+              if
+                let update = updateSecondarySyncable,
+                let select = selectSecondarySyncable
+              {
+                let localIsSyncedResult = try db.executeQuery(select.sql, values: select.values)
+                if localIsSyncedResult.next() { //object with this secondary key already exists and is in a synced state so perform update and return
+                  try db.executeUpdate(update.sql, values: update.values)
+                  results.append(nil)
+                  result.close()
+                  continue
+                }
+                localIsSyncedResult.close()
+              }
             }
             
             try db.executeUpdate(statement.sql, values: statement.values) //attempt an Insert into the database first

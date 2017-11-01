@@ -44,12 +44,14 @@ class LifecycleTests: XCTestCase {
     XCTAssertEqual(thingFromDB!.localId, thing.localId)
   }
   
-  func testSyncable_firstSaveWins_PreserveUpdatesToFirst() {
+  func testSyncable_firstSaveWins_PreserveUpdatesToFirstWhenNotSynced() {
     let thing = SyncableThing(tid: "tid1", name: "thing 1")
+    thing.syncStatus = .dirty
     try? thing.save()
     
     let newThing = SyncableThing(tid: "tid1", name: "newThing 1")
     
+    //can't save newThing because thing has non-synced status
     do {
       try newThing.save()
     } catch ModelError<SyncableThing>.duplicate(let existingItem) {
@@ -76,6 +78,19 @@ class LifecycleTests: XCTestCase {
     
     thingFromDB = SyncableThing.firstInstanceWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingFromDB!.name, "thing1 - copy updated")
+    
+    //allow updates from server if there are no local changes
+    thing.syncStatus = .synced
+    try? thing.save()
+    let thingFromServer = SyncableThing(tid: "tid1", name: "serverThing")
+    do {
+      try thingFromServer.save()
+    } catch {
+      XCTFail("Should have been able to save thingFromServer without throwing an exception: \(error)")
+    }
+    
+    thingFromDB = SyncableThing.firstInstanceWhere("tid = ?", params: "tid1")
+    XCTAssertEqual(thingFromDB!.name, "serverThing")
   }
   
 }
