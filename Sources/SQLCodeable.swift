@@ -21,7 +21,7 @@ public struct SQLColumn {
 
 extension SQLColumn: CustomDebugStringConvertible {
   public var debugDescription: String {
-    return "\(name)=\(value) [p=\(isPrimaryKey ? "t" : "f") s=\(isSecondaryKey ? "t" : "f")"
+    return "\(name)=\(value ?? "NULL") [p=\(isPrimaryKey ? "t" : "f") s=\(isSecondaryKey ? "t" : "f")"
   }
 }
 
@@ -40,7 +40,6 @@ public protocol SQLCodable: SQLEncodable, SQLDecodable {}
 
 public protocol SQLEncodable: Encodable {
   static var tableName: String { get }
-  static var syncable: Bool { get }
   var primaryKeys: Array<CodingKey> { get }
   var secondaryKeys: Array<CodingKey> { get }
 }
@@ -76,7 +75,8 @@ public class SQLEncoder: Encoder {
     do {
       let encoder = SQLEncoder(rootValue: value)
       try value.encode(to: encoder)
-      let elements = SQLElements(tableName: type(of: value).tableName, syncable: type(of: value).syncable, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
+      let syncable = value is SyncableModel
+      let elements = SQLElements(tableName: type(of: value).tableName, syncable: syncable, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
       return elements
     } catch {
       print("Error encoding sql: \(error)")

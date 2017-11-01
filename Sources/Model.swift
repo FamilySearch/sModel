@@ -10,10 +10,6 @@ public protocol ModelDef: SQLCodable {
    */
   static var tableName: String { get }
   /**
-   This flag influences how constraint violations are handled when inserting objects into the db.  If true, the data already in the database will remain unchanged.  If false, the non-key data in the database will be updated with the object being inserted.
-   */
-  static var syncable: Bool { get }
-  /**
    The `primaryKeys` are required to contain one or more columns that are used to uniquely identify an object in the database table and are required to have values.
    */
   var primaryKeys: Array<CodingKey> { get }
@@ -22,10 +18,24 @@ public protocol ModelDef: SQLCodable {
    objects to be created locally without a server generated id value.
    */
   var secondaryKeys: Array<CodingKey> { get }
+  static func isSyncable() -> Bool
+}
+
+/**
+ Adopting this protocol will ensure that local changes to an object are not overwritten by attempted inserts that result in secondary key violations.  If the object is showing as synced (no local changes) then it will still be updated with the data from the insert.
+ */
+public protocol SyncableModel {
+  var syncStatus: DataStatus { get set }
+  var syncInFlightStatus: DataStatus { get set }
+}
+
+public enum DataStatus: Int, Codable {
+  case localOnly = 1, dirty, synced, deleted, temporary, ignore
 }
 
 extension ModelDef {
-  
+  public static func isSyncable() -> Bool { return false }
+
   public static func generateUUID() -> String {
     return UUID().uuidString
   }
@@ -178,7 +188,8 @@ extension ModelDef {
   private func createSaveStatement(_ elements: SQLElements) throws -> StatementParts {
     func computeParts() throws -> (insertNames: [String], insertPlaceholders: [String], insertValues: [Any],
                                    primaryUpdateSets: [String], primaryUpdateValues: [Any], primaryKeySets: [String], primaryKeyValues: [Any],
-                                   canDoSecondary: Bool, secondaryUpdateSets: [String], secondaryUpdateValues: [Any], secondaryKeySets: [String], secondaryKeyValues: [Any])
+                                   canDoSecondary: Bool, secondaryUpdateSets: [String], secondaryUpdateValues: [Any], secondaryKeySets: [String], secondaryKeyValues: [Any],
+                                   secondaryUpdateSetsSyncable: [String], secondaryUpdateValuesSyncable: [Any])
     {
       var insertNames = [String]()
       var insertPlaceholders = [String]()
@@ -194,6 +205,9 @@ extension ModelDef {
       var secondaryUpdateValues = [Any]()
       var secondaryKeySets = [String]()
       var secondaryKeyValues = [Any]()
+      
+      var secondaryUpdateSetsSyncable = [String]()
+      var secondaryUpdateValuesSyncable = [Any]()
 
       for column in elements.columns {
         if let value = column.value {
@@ -229,6 +243,12 @@ extension ModelDef {
           if let value = column.value {
             secondaryUpdateValues.append(value)
           }
+          if elements.syncable && column.name != "syncStatus" && column.name != "syncInFlightStatus" {
+            secondaryUpdateSetsSyncable.append(column.clause)
+            if let value = column.value {
+              secondaryUpdateValuesSyncable.append(value)
+            }
+          }
         }
       }
       
@@ -238,7 +258,8 @@ extension ModelDef {
       
       return (insertNames, insertPlaceholders, insertValues,
               primaryUpdateSets, primaryUpdateValues, primaryKeySets, primaryKeyValues,
-              canDoSecondary, secondaryUpdateSets, secondaryUpdateValues, secondaryKeySets, secondaryKeyValues)
+              canDoSecondary, secondaryUpdateSets, secondaryUpdateValues, secondaryKeySets, secondaryKeyValues,
+              secondaryUpdateSetsSyncable, secondaryUpdateValuesSyncable)
     }
 
     do {
@@ -264,8 +285,14 @@ extension ModelDef {
           updateSecondary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSets.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
           selectSecondary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
         }
+        var updateSecondarySyncable: StatementParts? = nil
+        var selectSecondarySyncable: StatementParts? = nil
+        if elements.syncable && parts.canDoSecondary && elements.secondaryKeys.count > 0 {
+          updateSecondarySyncable = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSetsSyncable.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValuesSyncable + parts.secondaryKeyValues, type: .update)
+          selectSecondarySyncable = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1", values: parts.secondaryKeyValues + [DataStatus.synced.rawValue, DataStatus.synced.rawValue], type: .query)
+        }
         
-        let type = StatementType.save(syncable: elements.syncable, updatePrimary: updatePrimary, selectPrimary: selectPrimary, updateSecondary: updateSecondary, selectSecondary: selectSecondary)
+        let type = StatementType.save(syncable: elements.syncable, updatePrimary: updatePrimary, selectPrimary: selectPrimary, updateSecondary: updateSecondary, selectSecondary: selectSecondary, updateSecondarySyncable: updateSecondarySyncable, selectSecondarySyncable: selectSecondarySyncable)
         let insertStatement = StatementParts(sql: "INSERT OR IGNORE INTO \(elements.tableName) (\(parts.insertNames.joined(separator: ","))) VALUES (\(parts.insertPlaceholders.joined(separator: ",")))", values: parts.insertValues, type: type)
         return insertStatement
       }

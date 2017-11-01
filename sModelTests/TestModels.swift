@@ -1,10 +1,6 @@
 import Foundation
 import sModel
 
-enum DataStatus: Int, Codable {
-  case localOnly = 1, dirty, synced, deleted, temporary, ignore
-}
-
 struct Tree: ModelDef {
   var localId = UUID().uuidString
   var name: String
@@ -19,7 +15,6 @@ struct Tree: ModelDef {
   static let tableName = "Tree"
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.serverId] }
-  static let syncable = false
 }
 
 class Thing: ModelDef {
@@ -40,13 +35,15 @@ class Thing: ModelDef {
   static let tableName = "Thing"
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
-  static let syncable = false
 }
 
-class SyncableThing: ModelDef {
+class SyncableThing: ModelDef, SyncableModel {
   var localId = UUID().uuidString
   var tid: String?
   var name: String?
+  
+  var syncStatus: DataStatus = .localOnly
+  var syncInFlightStatus: DataStatus = .synced
   
   init(tid: String?, name: String?) {
     self.tid = tid
@@ -57,7 +54,6 @@ class SyncableThing: ModelDef {
   static let tableName = "SyncableThing"
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
-  static let syncable = true
 }
 
 class Animal: ModelDef {
@@ -108,5 +104,4 @@ class Animal: ModelDef {
   static let tableName = "Animal"
   var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
   var secondaryKeys: Array<CodingKey> { return [] }
-  static let syncable = false
 }

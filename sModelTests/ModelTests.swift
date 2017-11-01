@@ -159,7 +159,7 @@ class ModelTests: XCTestCase {
       return
     }
     
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary) = statement.type else {
+    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
       XCTFail()
       return
     }
@@ -177,6 +177,8 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
     XCTAssertEqual(1, selectSecondary!.values.count)
+    XCTAssertNil(updateSecondarySyncable)
+    XCTAssertNil(selectSecondarySyncable)
   }
   
   func testCreateSaveStatement_insert_syncable() {
@@ -187,24 +189,30 @@ class ModelTests: XCTestCase {
       return
     }
     
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary) = statement.type else {
+    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
       XCTFail()
       return
     }
 
     XCTAssertTrue(syncable)
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO SyncableThing (localId,tid,name) VALUES (?,?,?)")
-    XCTAssertEqual(3, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE SyncableThing SET tid = ?,name = ? WHERE localId = ?")
-    XCTAssertEqual(3, updatePrimary.values.count)
+    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO SyncableThing (localId,tid,name,syncStatus,syncInFlightStatus) VALUES (?,?,?,?,?)")
+    XCTAssertEqual(5, statement.values.count)
+    XCTAssertEqual(updatePrimary.sql, "UPDATE SyncableThing SET tid = ?,name = ?,syncStatus = ?,syncInFlightStatus = ? WHERE localId = ?")
+    XCTAssertEqual(5, updatePrimary.values.count)
     XCTAssertEqual(selectPrimary.sql, "SELECT * FROM SyncableThing WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, selectPrimary.values.count)
     XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE SyncableThing SET name = ? WHERE tid = ?")
-    XCTAssertEqual(2, updateSecondary!.values.count)
+    XCTAssertEqual(updateSecondary!.sql, "UPDATE SyncableThing SET name = ?,syncStatus = ?,syncInFlightStatus = ? WHERE tid = ?")
+    XCTAssertEqual(4, updateSecondary!.values.count)
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM SyncableThing WHERE tid = ? LIMIT 1")
     XCTAssertEqual(1, selectSecondary!.values.count)
+    XCTAssertNotNil(updateSecondarySyncable)
+    XCTAssertEqual(updateSecondarySyncable!.sql, "UPDATE SyncableThing SET name = ? WHERE tid = ?")
+    XCTAssertEqual(2, updateSecondarySyncable!.values.count)
+    XCTAssertNotNil(selectSecondarySyncable)
+    XCTAssertEqual(selectSecondarySyncable!.sql, "SELECT * FROM SyncableThing WHERE tid = ? AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1")
+    XCTAssertEqual(3, selectSecondarySyncable!.values.count)
   }
   
   func testCreateSaveStatement_insertOptionalSecondaryKey() {
@@ -216,7 +224,7 @@ class ModelTests: XCTestCase {
       return
     }
     
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary) = statement.type else {
+    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
       XCTFail()
       return
     }
@@ -234,6 +242,8 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Tree WHERE serverId = ? LIMIT 1")
     XCTAssertEqual(1, selectSecondary!.values.count)
+    XCTAssertNil(updateSecondarySyncable)
+    XCTAssertNil(selectSecondarySyncable)
   }
   
   func testCreateSaveStatement_updateOptionalSecondaryKey() {
@@ -252,7 +262,7 @@ class ModelTests: XCTestCase {
       XCTFail()
       return
     }
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary) = statement.type else {
+    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
       XCTFail()
       return
     }
@@ -270,6 +280,8 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Tree WHERE serverId = ? LIMIT 1")
     XCTAssertEqual(1, selectSecondary!.values.count)
+    XCTAssertNil(updateSecondarySyncable)
+    XCTAssertNil(selectSecondarySyncable)
   }
   
   func testCreateSaveStatement_update() {
@@ -283,7 +295,7 @@ class ModelTests: XCTestCase {
       XCTFail()
       return
     }
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary) = statement.type else {
+    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
       XCTFail()
       return
     }
@@ -301,6 +313,8 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
     XCTAssertEqual(1, selectSecondary!.values.count)
+    XCTAssertNil(updateSecondarySyncable)
+    XCTAssertNil(selectSecondarySyncable)
   }
 
   func testCreateSaveStatement_replaceDuplicates() {
