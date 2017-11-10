@@ -311,7 +311,7 @@ public class DBManager: NSObject {
                 if localIsSyncedResult.next() { //object with this secondary key already exists and is in a synced state so perform update and return
                   try db.executeUpdate(update.sql, values: update.values)
                   results.append(nil)
-                  result.close()
+                  localIsSyncedResult.close()
                   continue
                 }
                 localIsSyncedResult.close()
