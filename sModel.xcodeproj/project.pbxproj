@@ -26,6 +26,7 @@
 		BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92961DDCF3C20089EBEA /* testBad1.badSql */; };
 		BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */; };
 		BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */; };
+		BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
 		BDB1ECC91FA3EE940004CAA5 /* LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */; };
 /* End PBXBuildFile section */
@@ -74,6 +75,7 @@
 		BD3E92961DDCF3C20089EBEA /* testBad1.badSql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testBad1.badSql; sourceTree = "<group>"; };
 		BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerUsageTests.swift; sourceTree = "<group>"; };
 		BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerMultiDBTests.swift; sourceTree = "<group>"; };
+		BD6081881FB62CFA0011A0D0 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
 		BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -103,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				BD3952081E6A2CD0001C6BB0 /* DBManager.swift */,
+				BD6081881FB62CFA0011A0D0 /* Log.swift */,
 				BD3952091E6A2CD0001C6BB0 /* Model.swift */,
 				BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */,
 			);
@@ -319,6 +322,7 @@
 			files = (
 				BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */,
 				BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */,
+				BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */,
 				BD39520B1E6A2CD0001C6BB0 /* Model.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -79,7 +79,7 @@ public class SQLEncoder: Encoder {
       let elements = SQLElements(tableName: type(of: value).tableName, syncable: syncable, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
       return elements
     } catch {
-      print("Error encoding sql: \(error)")
+      Log.error("Error encoding sql: \(error)")
       throw error
     }
   }
