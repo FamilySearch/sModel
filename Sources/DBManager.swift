@@ -77,7 +77,7 @@ public class DBManager: NSObject {
   
   public class func pop(deleteDB: Bool) throws {
     guard dbs.count > 1 else {
-      print("Can't pop a database if there isn't more than one db open.")
+      Log.error("Can't pop a database if there isn't more than one db open.")
       throw DBError.popFailed
     }
     
@@ -86,7 +86,7 @@ public class DBManager: NSObject {
 
   @discardableResult
   public class func open(_ dbPath: String?, dbDefFilePaths: Array<String>?, pushOnStack: Bool = true) throws -> DBMeta? {
-    print("Open database queue at: \(dbPath ?? "IN_MEMORY_DB")")
+    Log.info("Open database queue at: \(dbPath ?? "IN_MEMORY_DB")")
 
     guard let queue = FMDatabaseQueue(path: dbPath) else {
       throw DBError.dbPathInvalid
@@ -110,7 +110,7 @@ public class DBManager: NSObject {
               for (stmtCount, statement) in sqlStatements.enumerated() {
                 let trimmedStatement = statement.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                 if trimmedStatement.utf8.count > 0 {
-                  print("\nExecuting SQL Statement (\(fileName) : \(stmtCount))\n\(trimmedStatement)")
+                  Log.info("\nExecuting SQL Statement (\(fileName) : \(stmtCount))\n\(trimmedStatement)")
                   try db?.executeUpdate(trimmedStatement, values: nil)
                 }
               }
@@ -122,9 +122,9 @@ public class DBManager: NSObject {
             } catch {
               upgradeFailed = true
               if isRetry {
-                print("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
+                Log.error("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
               } else {
-                print("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
+                Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
               }
               return
             }
@@ -133,9 +133,9 @@ public class DBManager: NSObject {
       }
 
       if(startSchemaVersion != currentSchemaVersion) {
-        print("Successfully updated db schema to version v\(currentSchemaVersion)")
+        Log.info("Successfully updated db schema to version v\(currentSchemaVersion)")
       } else {
-        print("Database is current at version v\(startSchemaVersion)")
+        Log.info("Database is current at version v\(startSchemaVersion)")
       }
     })
 
@@ -145,21 +145,21 @@ public class DBManager: NSObject {
         throw DBError.restoreFailed
 
       } else {
-        print("Error upgrading db to latest version.  Removing database and reinitializing.")
+        Log.error("Error upgrading db to latest version.  Removing database and reinitializing.")
         self.close()
 
         if let dbPath = dbPath {
           do {
             try FileManager.default.removeItem(atPath: dbPath)
           } catch {
-            print("Error trying to remove main db: \(dbPath)")
+            Log.error("Error trying to remove main db: \(dbPath)")
           }
         }
         isRetry = true
         do {
           dbMeta = try self.open(dbPath, dbDefFilePaths: dbDefFilePaths, pushOnStack: pushOnStack)
         } catch {
-          print("Error trying to recreate main db: \(String(describing: dbPath))")
+          Log.error("Error trying to recreate main db: \(String(describing: dbPath))")
           throw DBError.recreateFailed
         }
         return dbMeta
@@ -186,7 +186,7 @@ public class DBManager: NSObject {
         do {
           try FileManager.default.removeItem(atPath: path)
         } catch {
-          print("Can't delete db file (\(path)): \(error)")
+          Log.warn("Can't delete db file (\(path)): \(error)")
         }
       }
     }
@@ -209,7 +209,7 @@ public class DBManager: NSObject {
 
   public class func getDBQueue() throws -> FMDatabaseQueue {
     guard let queue = currentQueue else {
-      print("DB Queue was not initialized so we can't return it")
+      Log.error("DB Queue was not initialized so we can't return it")
       throw DBError.missingDBQueue
     }
     return queue
@@ -225,9 +225,9 @@ public class DBManager: NSObject {
           if let tableName = result?.string(forColumn: "name"), !excludes.contains(tableName) {
             do {
               try db?.executeUpdate("DELETE FROM \(tableName)", values: nil)
-              print("Truncated data from the '\(tableName)' table.")
+              Log.debug("Truncated data from the '\(tableName)' table.")
             } catch {
-              print("Error truncating data in the '\(tableName)' table.")
+              Log.error("Error truncating data in the '\(tableName)' table.")
             }
           }
         }
@@ -239,7 +239,7 @@ public class DBManager: NSObject {
     do {
       try executeStatement(StatementParts(sql: query, values: params, type: .update), resultHandler: {_ in })
     } catch {
-      print("Failed to update db (query): \(error)")
+      Log.warn("Failed to update db (query): \(error)")
     }
   }
 
@@ -254,7 +254,7 @@ public class DBManager: NSObject {
         }
       })
     } catch {
-      print("Failed to query db (query): \(error)")
+      Log.warn("Failed to query db (query): \(error)")
     }
     return resultDicts
   }
@@ -376,7 +376,7 @@ public class DBManager: NSObject {
         }
 
       } catch {
-        print("Failed to query/update db: \(error)")
+        Log.warn("Failed to query/update db: \(error)")
         rollback?.initialize(to: true)
         transactionError = QueryError.failed(errorCode: Int((db?.lastErrorCode())!))
       }
@@ -385,32 +385,5 @@ public class DBManager: NSObject {
     if let transactionError = transactionError {
       throw transactionError
     }
-  }
-
-  //MARK: OBJC compatibility
-
-  public class func executeUpdateQuery_Objc(_ query: String, args:[Any])
-  {
-    do {
-      try executeStatement(StatementParts(sql: query, values: args, type: .update), resultHandler: {_ in })
-    } catch {
-      print("Failed to update db (query): \(error)")
-    }
-  }
-
-  public class func resultDictionariesFromQuery_Objc(_ query: String, args:[Any]) -> Array<NSDictionary> {
-    var resultDicts = [NSDictionary]()
-    do {
-      try executeStatement(StatementParts(sql: query, values: args, type: .query), resultHandler: { (result) in
-        while (result?.next())! {
-          if let resultDict = result?.resultDictionary() {
-            resultDicts.append(resultDict as NSDictionary)
-          }
-        }
-      })
-    } catch {
-      print("Failed to query db (query): \(error)")
-    }
-    return resultDicts
   }
 }

@@ -45,7 +45,7 @@ extension ModelDef {
       return nil
     }
     guard let a = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Array<Dictionary<String,Any>> else {
-      print("Error converting data to an array")
+      Log.error("Error converting data to an array")
       throw ModelError<ModelType>.invalidObject
     }
     return a
@@ -64,7 +64,7 @@ extension ModelDef {
       return nil
     }
     guard let d = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Dictionary<String,Any> else {
-      print("Error converting data to a dictionary")
+      Log.error("Error converting data to a dictionary")
       throw ModelError<ModelType>.invalidObject
     }
     return d
@@ -121,12 +121,12 @@ extension ModelDef {
             let newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
             instances.append(newInstance)
           } catch {
-            print("Error creating instance from db result: \(error)")
+            Log.error("Error creating instance from db result: \(error)")
           }
         }
       }
     } catch {
-      print("Error executing instances query (\(query)): \(error)")
+      Log.error("Error executing instances query (\(query)): \(error)")
     }
     return instances
   }
@@ -149,7 +149,7 @@ extension ModelDef {
         }
       }
     } catch {
-      print("Failed to get numberOfInstancesWhere: \(error)")
+      Log.error("Failed to get numberOfInstancesWhere: \(error)")
     }
     return count
   }
@@ -172,7 +172,7 @@ extension ModelDef {
     do {
       try DBManager.executeStatement(statement) { _ in }
     } catch {
-      print("Failed to delete objects from table \(tableName): \(error)")
+      Log.error("Failed to delete objects from table \(tableName): \(error)")
     }
   }
 
@@ -319,7 +319,7 @@ extension ModelDef {
       var updatedInstance: ModelType?
       try DBManager.executeStatements([statement]) { results in
         if let result = results[0] { //did an update
-          print("Updated row in db instead of insert: '\(elements.tableName)': primaryKeys=\(elements.primaryKeys): secondaryKeys=\(elements.secondaryKeys)')")
+          Log.debug("Updated row in db instead of insert: '\(elements.tableName)': primaryKeys=\(elements.primaryKeys): secondaryKeys=\(elements.secondaryKeys)')")
           while result.next() {
             updatedInstance = try? ModelType(fromSQL: SQLDecoder(result: result))
           }
@@ -358,7 +358,7 @@ extension ModelDef {
       try DBManager.executeStatement(statement, resultHandler: { (result) in
         do {
           guard let result = result else {
-            print("Failed to reload object from db cache")
+            Log.warn("Failed to reload object from db cache")
             return
           }
           
@@ -366,7 +366,7 @@ extension ModelDef {
             newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
           }
         } catch {
-          print("Unable to reload object: \(error)")
+          Log.warn("Unable to reload object: \(error)")
         }
       })
       return newInstance
@@ -404,7 +404,7 @@ extension ModelDef {
       preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).tableName)")
       
     } catch {
-      print("Failed to delete object from table \(type(of: self).tableName): \(error)")
+      Log.warn("Failed to delete object from table \(type(of: self).tableName): \(error)")
     }
   }
 
@@ -423,7 +423,7 @@ extension ModelDef {
     try DBManager.executeStatement(statement, resultHandler: { (result) in
       do {
         guard let result = result else {
-          print("Failed to reload object from db cache")
+          Log.warn("Failed to reload object from db cache")
           return
         }
         
@@ -431,7 +431,7 @@ extension ModelDef {
           newInstance = try ModelType(fromSQL: SQLDecoder(result: result))
         }
       } catch {
-        print("Unable to reload object: \(error)")
+        Log.warn("Unable to reload object: \(error)")
       }
     })
     
