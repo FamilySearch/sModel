@@ -151,6 +151,42 @@ class ModelTests: XCTestCase {
 
   //MARK: Statement Options
   
+  func testCreateReadFirstInstance() {
+    let statement = Thing.createReadFirstInstance(whereClause: "tid = ? AND name = ?", params: "tid1", "thing 1")
+    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ? LIMIT 1")
+    XCTAssertEqual(statement.values.count, 2)
+  }
+  
+  func testCreateReadInstancesFullQuery() {
+    let statement = Thing.createReadInstances(query: "SELECT * FROM Thing WHERE tid = ? AND name = ?", params: "tid1", "thing 1")
+    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ?")
+    XCTAssertEqual(statement.values.count, 2)
+  }
+  
+  func testCreateReadInstancesWhere() {
+    let statement = Thing.createReadInstances(whereClause: "tid = ? AND name = ?", params: "tid1", "thing 1")
+    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ?")
+    XCTAssertEqual(statement.values.count, 2)
+  }
+  
+  func testCreateReadInstancesWhere_arrayParams() {
+    let statement = Thing.createReadInstances(whereClause: "tid = ? AND name = ?", params: ["tid1", "thing 1"])
+    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ?")
+    XCTAssertEqual(statement.values.count, 2)
+  }
+  
+  func testCreateReadInstancesOrderedBy() {
+    let statement = Thing.createReadInstances(orderedBy: "tid, name")
+    XCTAssertEqual(statement.sql, "SELECT * FROM Thing ORDER BY tid, name")
+    XCTAssertEqual(statement.values.count, 0)
+  }
+  
+  func testCreateReadAllInstances() {
+    let statement = Thing.createReadAllInstances()
+    XCTAssertEqual(statement.sql, "SELECT * FROM Thing")
+    XCTAssertEqual(statement.values.count, 0)
+  }
+  
   func testCreateSaveStatement_insert() {
     let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
     
@@ -332,6 +368,22 @@ class ModelTests: XCTestCase {
     }
     XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
     DBManager.blindlyReplaceDuplicates = false
+  }
+  
+  func testCreateDeleteStatements() {
+    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    
+    var statement = Thing.createDeleteAllStatement()
+    XCTAssertEqual(statement.sql, "DELETE FROM Thing")
+    XCTAssertEqual(statement.values.count, 0)
+    
+    statement = Thing.createDeleteWhere("tid = ?", params: "tid1")
+    XCTAssertEqual(statement.sql, "DELETE FROM Thing WHERE tid = ?")
+    XCTAssertEqual(statement.values.count, 1)
+    
+    statement = try! thing.createDeleteStatement()
+    XCTAssertEqual(statement.sql, "DELETE FROM Thing WHERE localId = ?")
+    XCTAssertEqual(statement.values.count, 1)
   }
 
   //MARK: Edge cases

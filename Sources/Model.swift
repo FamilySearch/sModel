@@ -80,39 +80,30 @@ extension ModelDef {
 
   //MARK: Convenience methods for getting data out of db
   public static func firstInstanceWhere(_ whereClause: String, params: Any...) -> ModelType? {
-    let query = "SELECT * FROM \(tableName) WHERE \(whereClause) LIMIT 1"
-    let instances = fetchInstances(query: query, paramArray: params)
+    let statement = createReadFirstInstance(whereClause: whereClause, params: params)
+    let instances = fetchInstances(statement: statement)
     return instances.first
   }
-
+  
   public static func instances(_ query: String, params: Any...) -> Array<ModelType> {
-    return fetchInstances(query: query, paramArray: params)
+    return fetchInstances(statement: createReadInstances(query: query, params: params))
   }
-
+  
   public static func instancesWhere(_ whereClause: String, params: Any...) -> Array<ModelType> {
-    let query = "SELECT * FROM \(tableName) WHERE \(whereClause)"
-    return fetchInstances(query: query, paramArray: params)
+    return fetchInstances(statement: createReadInstances(whereClause: whereClause, params: params))
   }
-
+  
   public static func instancesOrderedBy(_ orderByClause: String) -> Array<ModelType> {
-    let query = "SELECT * FROM \(tableName) ORDER BY \(orderByClause)"
-    return fetchInstances(query: query, paramArray: [])
+    return fetchInstances(statement: createReadInstances(orderedBy: orderByClause))
   }
 
   public static func allInstances() -> Array<ModelType> {
-    let query = "SELECT * FROM \(tableName)"
-    return fetchInstances(query: query, paramArray: [])
+    return fetchInstances(statement: createReadAllInstances())
   }
-
-  private static func fetchInstances(query: String, paramArray: Array<Any>) -> Array<ModelType> {
+  
+  private static func fetchInstances(statement: StatementParts) -> Array<ModelType> {
     var instances = [ModelType]()
-    //Checking for an array in first element allows Obj-c code to pass an array of parameters since the variadic parameters don't map correctly from Obj-c to swift
-    var params = paramArray
-    if let firstElement = paramArray.first as? Array<Any> {
-      params = firstElement
-    }
-    let statement = StatementParts(sql: query, values: params, type: .query)
-
+    
     do {
       try DBManager.executeStatement(statement) { (result) in
         guard let result = result else { return }
@@ -126,9 +117,48 @@ extension ModelDef {
         }
       }
     } catch {
-      Log.error("Error executing instances query (\(query)): \(error)")
+      Log.error("Error executing instances query (\(statement.sql)): \(error)")
     }
     return instances
+  }
+  
+  public static func createReadFirstInstance(whereClause: String, params: Any...) -> StatementParts {
+    let query = "SELECT * FROM \(tableName) WHERE \(whereClause) LIMIT 1"
+    return createFetchInstances(query: query, paramArray: params)
+  }
+  
+  public static func createReadInstances(query: String, params: Any...) -> StatementParts {
+    return createFetchInstances(query: query, paramArray: params)
+  }
+  
+  public static func createReadInstances(whereClause: String, params: Any...) -> StatementParts {
+    let query = "SELECT * FROM \(tableName) WHERE \(whereClause)"
+    return createFetchInstances(query: query, paramArray: params)
+  }
+  
+  public static func createReadInstances(orderedBy: String) -> StatementParts {
+    let query = "SELECT * FROM \(tableName) ORDER BY \(orderedBy)"
+    return createFetchInstances(query: query, paramArray: [])
+  }
+  
+  public static func createReadAllInstances() -> StatementParts {
+    let query = "SELECT * FROM \(tableName)"
+    return createFetchInstances(query: query, paramArray: [])
+  }
+  
+  private static func createFetchInstances(query: String, paramArray: Array<Any>) -> StatementParts {
+    //Checking for an array in first element allows Obj-c code to pass an array of parameters since the variadic parameters don't map correctly from Obj-c to swift
+    //To allow both the instance* and create* methods to use variadic parameters, paramArray might be a doubly nested array we need to unwrap
+    var params = paramArray
+    if let firstElement = paramArray.first as? Array<Any> {
+      if let nextFirst = firstElement.first as? Array<Any> {
+        params = nextFirst
+      } else {
+        params = firstElement
+      }
+    }
+    let statement = StatementParts(sql: query, values: params, type: .query)
+    return statement
   }
 
   public static func numberOfInstancesWhere(_ whereClause: String?, params: Any...) -> Int {
@@ -157,23 +187,45 @@ extension ModelDef {
   public static func deleteAllInstances() {
     deleteInstances(whereClause: nil, params: [])
   }
+  
+  public static func createDeleteAllStatement() -> StatementParts {
+    return createDeleteStatement(whereClause: nil, params: [])
+  }
 
   public static func deleteWhere(_ whereClause: String, params: Any...) {
     deleteInstances(whereClause: whereClause, params: params)
   }
+  
+  public static func createDeleteWhere(_ whereClause: String, params: Any...) -> StatementParts {
+    return createDeleteStatement(whereClause: whereClause, params: params)
+  }
 
   private static func deleteInstances(whereClause: String? = nil, params: Array<Any>) {
+    do {
+      let statement = createDeleteStatement(whereClause: whereClause, params: params)
+      try DBManager.executeStatement(statement) { _ in }
+    } catch {
+      Log.error("Failed to delete objects from table \(tableName): \(error)")
+    }
+  }
+  
+  private static func createDeleteStatement(whereClause: String? = nil, params: Array<Any>) -> StatementParts {
     var query = "DELETE FROM \(tableName)"
     if let whereClause = whereClause {
       query += " WHERE \(whereClause)"
     }
     let statement = StatementParts(sql: query, values: params, type: .update)
-
-    do {
-      try DBManager.executeStatement(statement) { _ in }
-    } catch {
-      Log.error("Failed to delete objects from table \(tableName): \(error)")
+    return statement
+  }
+  
+  public func createDeleteStatement() throws -> StatementParts {
+    guard let elements = try? SQLEncoder.encode(self) else {
+      throw ModelError<ModelType>.invalidObject
     }
+    let values = elements.primaryKeys.flatMap { $0.value }
+    let clauses = elements.primaryKeys.map{ $0.clause }
+    let statement = type(of: self).createDeleteStatement(whereClause: clauses.joined(separator: " AND "), params: values)
+    return statement
   }
 
   //MARK: Instance level helpers
@@ -380,16 +432,6 @@ extension ModelDef {
     } catch {
       preconditionFailure("Failed to reload: \(error)")
     }
-  }
-
-  public func createDeleteStatement() throws -> StatementParts {
-    guard let elements = try? SQLEncoder.encode(self) else {
-      throw ModelError<ModelType>.invalidObject
-    }
-    let values = elements.primaryKeys.flatMap { $0.value }
-    let clauses = elements.primaryKeys.map{ $0.clause }
-    let statement = StatementParts(sql: "DELETE FROM \(elements.tableName) WHERE \(clauses.joined(separator: " AND "))", values: values, type: .update)
-    return statement
   }
 
   public func delete() {
