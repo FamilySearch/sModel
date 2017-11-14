@@ -104,6 +104,29 @@ class BatchTests: XCTestCase {
     XCTAssertEqual("B thing 1", thing1.name)
   }
   
+  func testBatchFailedTransaction() {
+    let sourceStatements = generateInsertStatements(count: 10, prefix: "A")
+    
+    try! DBManager.executeStatements(sourceStatements) { (results) in
+      XCTAssertEqual(10, results.count)
+    }
+    XCTAssertEqual(Thing.numberOfInstancesWhere(nil), 10)
+    
+    var statements = Array<StatementParts>()
+    statements.append(Thing.createDeleteAllStatement())
+    statements.append(StatementParts(sql: "SELECT FROM WHERE INVALID SQL STATEMENT", values: [], type: .query))
+    
+    do {
+      try DBManager.executeStatements(statements, resultsHandler: { (results) in
+        XCTFail("Should not have made it in here")
+      })
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "The operation couldn’t be completed. (sModel.QueryError error 0.)")
+    }
+    
+    XCTAssertEqual(Thing.numberOfInstancesWhere(nil), 10, "Failed transaction should have been rolled back")
+  }
+  
   func testBatchInsert_Performance_blindlyReplace() {
     DBManager.blindlyReplaceDuplicates = true
     let count = 10000
