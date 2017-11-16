@@ -81,7 +81,7 @@ class DBManagerUsageTests: XCTestCase {
     let statement2 = StatementParts(sql: "Select * from Thing", values: [], type: .query)
     let statements = [statement1, statement2]
 
-    try! DBManager.executeStatements(statements, resultsHandler: { (results) in
+    try! DBManager.executeStatements(statements, resultsHandler: { (results, _) in
       for result in results {
         guard let result = result else {
           XCTFail("Should have returned a result")
@@ -98,7 +98,7 @@ class DBManagerUsageTests: XCTestCase {
     let statement2 = StatementParts(sql: "INSERT INTO Thing (localId, tid, name) VALUES (?,?,?)", values: ["local2", "tid2", "thing 2"], type: .update)
     let statements = [statement1, statement2]
 
-    try! DBManager.executeStatements(statements, resultsHandler: { (results) in
+    try! DBManager.executeStatements(statements, resultsHandler: { (results, _) in
       XCTAssertEqual(2, results.count)
       for result in results {
         guard result == nil else {
@@ -118,7 +118,7 @@ class DBManagerUsageTests: XCTestCase {
     let statement4 = StatementParts(sql: "Select * from Thing ORDER BY tid", values: [], type: .query)
     let statements = [statement1, statement2, statement3, statement4]
 
-    try! DBManager.executeStatements(statements, resultsHandler: { (results) in
+    try! DBManager.executeStatements(statements, resultsHandler: { (results, _) in
       XCTAssertEqual(4, results.count)
       for (index, result) in results.enumerated() {
         switch index {

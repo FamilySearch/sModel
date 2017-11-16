@@ -24,6 +24,47 @@ class LifecycleTests: XCTestCase {
     super.tearDown()
   }
   
+  func testUpdateSecondaryKeyAfterInsertOfDuplicate() {
+    let origThing = SyncableThing(tid: nil, name: "thing1")
+    do {
+      try origThing.save()
+      
+      let serverThing = SyncableThing(tid: "tid1", name: "thing1Server")
+      try serverThing.save()
+    } catch {
+      XCTFail()
+    }
+    
+    origThing.tid = "tid1" //add secondary key value to object in db that will conflict with another object in db.
+    do {
+      try origThing.save()
+    } catch ModelError<SyncableThing>.wouldCreateDuplicate(let existingItem) {
+      XCTAssertEqual(existingItem.tid, "tid1")
+      XCTAssertEqual(existingItem.name, "thing1Server")
+    } catch {
+      XCTFail()
+    }
+  }
+  
+  func testSaveExistingSyncableShouldReturnExistingInstance() {
+    let thing = SyncableThing(tid: "tid1", name: "thing 1")
+    thing.syncStatus = .synced
+    thing.syncInFlightStatus = .synced
+    try? thing.save()
+    
+    let newThing = SyncableThing(tid: "tid1", name: "thing 1 new")
+    newThing.syncStatus = .synced
+    newThing.syncInFlightStatus = .synced
+    do {
+      try newThing.save()
+    } catch ModelError<SyncableThing>.duplicate(let existingItem) {
+      XCTAssertEqual(thing.localId, existingItem.localId)
+      XCTAssertEqual(newThing.name, existingItem.name)
+    } catch {
+      XCTFail()
+    }
+  }
+  
   func testNonSyncable_lastSaveWins_butPreserveOriginalPrimaryKeyValue() {
     let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
     try? thing.save()
@@ -85,8 +126,11 @@ class LifecycleTests: XCTestCase {
     let thingFromServer = SyncableThing(tid: "tid1", name: "serverThing")
     do {
       try thingFromServer.save()
+    } catch ModelError<SyncableThing>.duplicate(let existingItem) {
+      XCTAssertEqual(thing.localId, existingItem.localId)
+      XCTAssertEqual(thingFromServer.name, existingItem.name)
     } catch {
-      XCTFail("Should have been able to save thingFromServer without throwing an exception: \(error)")
+      XCTFail()
     }
     
     thingFromDB = SyncableThing.firstInstanceWhere("tid = ?", params: "tid1")

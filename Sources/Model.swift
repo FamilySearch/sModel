@@ -369,7 +369,12 @@ extension ModelDef {
     do {
       let statement = try createSaveStatement(elements)
       var updatedInstance: ModelType?
-      try DBManager.executeStatements([statement]) { results in
+      var resultState: ResultState = .failed
+      try DBManager.executeStatements([statement]) { results, states in
+        guard results.count == states.count else {
+          preconditionFailure("These counts should always be the same")
+        }
+        resultState = states[0]
         if let result = results[0] { //did an update
           Log.debug("Updated row in db instead of insert: '\(elements.tableName)': primaryKeys=\(elements.primaryKeys): secondaryKeys=\(elements.secondaryKeys)')")
           while result.next() {
@@ -379,7 +384,14 @@ extension ModelDef {
       }
       
       if let updatedInstance = updatedInstance {
-        throw ModelError<ModelType>.duplicate(existingItem: updatedInstance)
+        switch resultState {
+        case .wouldCreateDuplicate:
+          throw ModelError<ModelType>.wouldCreateDuplicate(existingItem: updatedInstance)
+        case .duplicateExists:
+          throw ModelError<ModelType>.duplicate(existingItem: updatedInstance)
+        case .failed: break
+        case .success: break
+        }
       }
 
     } catch QueryError.missingKey {

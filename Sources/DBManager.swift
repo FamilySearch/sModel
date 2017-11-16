@@ -8,6 +8,14 @@ public enum DBError: Error {
 public enum ModelError<T>: Error {
   case invalidObject
   case duplicate(existingItem: T)
+  case wouldCreateDuplicate(existingItem: T)
+}
+
+public enum ResultState {
+  case success
+  case failed
+  case wouldCreateDuplicate
+  case duplicateExists
 }
 
 enum QueryError: Error {
@@ -260,7 +268,7 @@ public class DBManager: NSObject {
   }
 
   public class func executeStatement(_ statement: StatementParts, resultHandler: @escaping (FMResultSet?) -> ()) throws -> Void {
-    try executeStatements([statement]) { (results) in
+    try executeStatements([statement]) { (results, _) in
       if let result = results.first {
         resultHandler(result)
       } else {
@@ -279,12 +287,13 @@ public class DBManager: NSObject {
    
    @return An `Array<FMResultSet?>` objects.  One for each statement that was run if there is a result for that statement.
    */
-  public class func executeStatements(_ statements: Array<StatementParts>, silentInserts: Bool = false, resultsHandler: @escaping (Array<FMResultSet?>) -> ()) throws -> Void {
+  public class func executeStatements(_ statements: Array<StatementParts>, silentInserts: Bool = false, resultsHandler: @escaping (Array<FMResultSet?>, Array<ResultState>) -> ()) throws -> Void {
     let queue = try getDBQueue()
     var transactionError: Error?
 
     queue.inTransaction { (db, rollback) in
       var results = [FMResultSet?]()
+      var resultStates = [ResultState]()
       do {
         guard let db = db else {
           throw DBError.missingDBQueue
@@ -295,9 +304,24 @@ public class DBManager: NSObject {
             if syncable { //syncable objects should perform update, if row already exists in db and isn't waiting for sync
               let result = try db.executeQuery(selectPrimary.sql, values: selectPrimary.values)
               if result.next() { //object with this primary key already exists so perform update and return
-                try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
-                results.append(nil)
-                result.close()
+                do {
+                  try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
+                  results.append(nil)
+                  resultStates.append(.success)
+                  result.close()
+                  
+                } catch { //Constraint violation on secondary key so statement is attempting to turn an existing row into a row that is a duplicate of another existing row
+                  guard let dbError = db.lastError(), (dbError as NSError).code == 19 else {//rethrow error if it wasn't a constraint violation (19)
+                    throw error
+                  }
+                  
+                  if let select = selectSecondary {
+                    let localResult = try db.executeQuery(select.sql, values: select.values)
+                    results.append(localResult)
+                    resultStates.append(.wouldCreateDuplicate)
+                  }
+                  result.close()
+                }
                 continue
               }
               result.close()
@@ -310,8 +334,11 @@ public class DBManager: NSObject {
                 let localIsSyncedResult = try db.executeQuery(select.sql, values: select.values)
                 if localIsSyncedResult.next() { //object with this secondary key already exists and is in a synced state so perform update and return
                   try db.executeUpdate(update.sql, values: update.values)
-                  results.append(nil)
                   localIsSyncedResult.close()
+
+                  let localResult = try db.executeQuery(select.sql, values: select.values)
+                  results.append(localResult)
+                  resultStates.append(.duplicateExists)
                   continue
                 }
                 localIsSyncedResult.close()
@@ -354,22 +381,27 @@ public class DBManager: NSObject {
               } else {
                 results.append(nil)
               }
+              resultStates.append(.duplicateExists)
             } else {
               results.append(nil)
+              resultStates.append(.success)
             }
             
           case .insert:
             try db.executeUpdate(statement.sql, values: statement.values)
             results.append(nil)
+            resultStates.append(.success)
           case .query:
             let result = try db.executeQuery(statement.sql, values: statement.values)
             results.append(result)
+            resultStates.append(.success)
           case .update:
             try db.executeUpdate(statement.sql, values: statement.values)
             results.append(nil)
+            resultStates.append(.success)
           }
         }
-        resultsHandler(results)
+        resultsHandler(results, resultStates)
 
         for result in results {
           result?.close()
