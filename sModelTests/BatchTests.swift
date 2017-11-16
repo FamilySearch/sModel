@@ -40,7 +40,7 @@ class BatchTests: XCTestCase {
       let t1DupStatement = try t1Dup.createSaveStatement()
       let t3Statement = try t3.createSaveStatement()
       
-      try DBManager.executeStatements([t1Statement, t2Statement, t1DupStatement, t3Statement], resultsHandler: { (results) in })
+      try DBManager.executeStatements([t1Statement, t2Statement, t1DupStatement, t3Statement], resultsHandler: { (results, _) in })
       
       guard
         let t3FromDB = t3.readFromDB(),
@@ -64,11 +64,11 @@ class BatchTests: XCTestCase {
     let statementsA = generateInsertStatements(count: 10, prefix: "A")
     let statementsB = generateInsertStatements(count: 10, prefix: "B")
     
-    try! DBManager.executeStatements(statementsA) { (results) in
+    try! DBManager.executeStatements(statementsA) { (results, _) in
       XCTAssertEqual(10, results.count)
     }
     
-    try! DBManager.executeStatements(statementsB) { (results) in
+    try! DBManager.executeStatements(statementsB) { (results, _) in
       XCTAssertEqual(10, results.count)
     }
     
@@ -88,11 +88,11 @@ class BatchTests: XCTestCase {
     let statementsA = generateInsertStatements(count: 10, prefix: "A")
     let statementsB = generateInsertStatements(count: 10, prefix: "B")
     
-    try! DBManager.executeStatements(statementsA) { (results) in
+    try! DBManager.executeStatements(statementsA) { (results, _) in
       XCTAssertEqual(10, results.count)
     }
     
-    try! DBManager.executeStatements(statementsB) { (results) in
+    try! DBManager.executeStatements(statementsB) { (results, _) in
       XCTAssertEqual(10, results.count)
     }
     
@@ -107,7 +107,7 @@ class BatchTests: XCTestCase {
   func testBatchFailedTransaction() {
     let sourceStatements = generateInsertStatements(count: 10, prefix: "A")
     
-    try! DBManager.executeStatements(sourceStatements) { (results) in
+    try! DBManager.executeStatements(sourceStatements) { (results, _) in
       XCTAssertEqual(10, results.count)
     }
     XCTAssertEqual(Thing.numberOfInstancesWhere(nil), 10)
@@ -117,7 +117,7 @@ class BatchTests: XCTestCase {
     statements.append(StatementParts(sql: "SELECT FROM WHERE INVALID SQL STATEMENT", values: [], type: .query))
     
     do {
-      try DBManager.executeStatements(statements, resultsHandler: { (results) in
+      try DBManager.executeStatements(statements, resultsHandler: { (results, _) in
         XCTFail("Should not have made it in here")
       })
     } catch {
@@ -135,10 +135,10 @@ class BatchTests: XCTestCase {
     let statementsB = generateInsertStatements(count: count, prefix: "B")
     
     self.measure {
-      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results) in
+      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results, _) in
         XCTAssertEqual(count, results.count)
       }
-      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results) in
+      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results, _) in
         XCTAssertEqual(count, results.count)
       }
       DBManager.truncateAllTables()
@@ -154,10 +154,10 @@ class BatchTests: XCTestCase {
     let statementsB = generateInsertStatements(count: count, prefix: "B")
     
     self.measure {
-      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results) in
+      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results, _) in
         XCTAssertEqual(count, results.count)
       }
-      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results) in
+      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results, _) in
         XCTAssertEqual(count, results.count)
       }
       DBManager.truncateAllTables()
@@ -172,10 +172,10 @@ class BatchTests: XCTestCase {
     let statementsB = generateSyncableInsertStatements(count: count, prefix: "B")
     
     self.measure {
-      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results) in
+      try! DBManager.executeStatements(statementsA, silentInserts: true) { (results, _) in
         XCTAssertEqual(count, results.count)
       }
-      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results) in
+      try! DBManager.executeStatements(statementsB, silentInserts: true) { (results, _) in
         XCTAssertEqual(count, results.count)
       }
       DBManager.truncateAllTables()
