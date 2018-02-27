@@ -374,7 +374,10 @@ public class SQLDecoder: Decoder {
     }
     
     public func decode(_ type: String.Type, forKey key: Key) throws -> String {
-      return decoder.result.string(forColumn: key.stringValue)
+      guard let stringValue = decoder.result.string(forColumn: key.stringValue) else {
+        throw SQLDecoderError.missingValue(key.stringValue)
+      }
+      return stringValue
     }
     
     public func decode<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T {

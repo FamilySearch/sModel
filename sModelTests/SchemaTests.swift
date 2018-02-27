@@ -20,10 +20,6 @@ class SchemaTests: XCTestCase {
     let queue = try! DBManager.getDBQueue()
 
     queue.inDatabase { (db) in
-      guard let db = db else {
-        XCTFail("Should have had a db")
-        return
-      }
       XCTAssertTrue(db.tableExists("Thing"))
       XCTAssertTrue(db.columnExists("tid", inTableWithName: "Thing"))
       XCTAssertTrue(db.columnExists("name", inTableWithName: "Thing"))
@@ -37,7 +33,7 @@ class SchemaTests: XCTestCase {
       XCTAssertTrue(db.columnExists("pid", inTableWithName: "Place"))
       XCTAssertTrue(db.columnExists("name", inTableWithName: "Place"))
 
-      XCTAssertEqual(db.userVersion(), 2)
+      XCTAssertEqual(db.userVersion, 2)
     }
   }
 

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "sModel"
-  s.version      = "1.0.10"
+  s.version      = "1.0.11"
   s.summary      = "sModel is a lightweight object mapper for sqlite."
 
   s.description  = <<-DESC
@@ -20,5 +20,5 @@ Pod::Spec.new do |s|
   s.requires_arc  = true
   s.module_name  = "sModel"
 
-  s.dependency "FMDB", "2.6"
+  s.dependency "FMDB", "2.7.4"
 end
