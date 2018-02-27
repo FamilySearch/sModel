@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */; };
 		BD297D671E200392003D2D29 /* BatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD297D661E200392003D2D29 /* BatchTests.swift */; };
-		BD2B586A204605DA009A9C12 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
+		BD2B586C204614F3009A9C12 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
 		BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952081E6A2CD0001C6BB0 /* DBManager.swift */; };
 		BD39520B1E6A2CD0001C6BB0 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952091E6A2CD0001C6BB0 /* Model.swift */; };
 		BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */; };
@@ -85,7 +85,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD2B586A204605DA009A9C12 /* FMDB.framework in Frameworks */,
+				BD2B586C204614F3009A9C12 /* FMDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
