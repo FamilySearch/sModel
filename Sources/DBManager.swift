@@ -102,7 +102,7 @@ public class DBManager: NSObject {
 
     var upgradeFailed = false
     queue.inDatabase({ (db) -> Void in
-      let startSchemaVersion = Int((db?.userVersion())!)
+      let startSchemaVersion = Int(db.userVersion)
       var currentSchemaVersion = startSchemaVersion
 
       if let defPaths = dbDefFilePaths {
@@ -110,7 +110,7 @@ public class DBManager: NSObject {
           let newVersionNum = fileCount + 1
           if currentSchemaVersion < newVersionNum { //un-processed def file
             do {
-              db?.beginTransaction()
+              db.beginTransaction()
               let sql = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
               let sqlStatements = sql.components(separatedBy: ";")
               let fileName = NSString(string: path).lastPathComponent
@@ -119,13 +119,13 @@ public class DBManager: NSObject {
                 let trimmedStatement = statement.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                 if trimmedStatement.utf8.count > 0 {
                   Log.info("\nExecuting SQL Statement (\(fileName) : \(stmtCount))\n\(trimmedStatement)")
-                  try db?.executeUpdate(trimmedStatement, values: nil)
+                  try db.executeUpdate(trimmedStatement, values: nil)
                 }
               }
 
-              db?.commit()
+              db.commit()
               currentSchemaVersion = newVersionNum
-              db?.setUserVersion(UInt32(currentSchemaVersion))
+              db.userVersion = UInt32(currentSchemaVersion)
 
             } catch {
               upgradeFailed = true
@@ -227,12 +227,12 @@ public class DBManager: NSObject {
     guard let queue = try? getDBQueue() else { return }
 
     queue.inDatabase { (db) in
-      let result = db?.getSchema()
-      while (result?.next())! {
-        if let type = result?.string(forColumn: "type") , type == "table" {
-          if let tableName = result?.string(forColumn: "name"), !excludes.contains(tableName) {
+      let result = db.getSchema()
+      while result.next() {
+        if let type = result.string(forColumn: "type") , type == "table" {
+          if let tableName = result.string(forColumn: "name"), !excludes.contains(tableName) {
             do {
-              try db?.executeUpdate("DELETE FROM \(tableName)", values: nil)
+              try db.executeUpdate("DELETE FROM \(tableName)", values: nil)
               Log.debug("Truncated data from the '\(tableName)' table.")
             } catch {
               Log.error("Error truncating data in the '\(tableName)' table.")
@@ -256,7 +256,7 @@ public class DBManager: NSObject {
     do {
       try executeStatement(StatementParts(sql: query, values: params, type: .query), resultHandler: { (result) in
         while (result?.next())! {
-          if let resultDict = result?.resultDictionary() {
+          if let resultDict = result?.resultDictionary {
             resultDicts.append(resultDict as NSDictionary)
           }
         }
@@ -295,9 +295,6 @@ public class DBManager: NSObject {
       var results = [FMResultSet?]()
       var resultStates = [ResultState]()
       do {
-        guard let db = db else {
-          throw DBError.missingDBQueue
-        }
         for statement in statements {
           switch statement.type {
           case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable):
@@ -311,7 +308,7 @@ public class DBManager: NSObject {
                   result.close()
                   
                 } catch { //Constraint violation on secondary key so statement is attempting to turn an existing row into a row that is a duplicate of another existing row
-                  guard let dbError = db.lastError(), (dbError as NSError).code == 19 else {//rethrow error if it wasn't a constraint violation (19)
+                  guard (db.lastError() as NSError).code == 19 else {//rethrow error if it wasn't a constraint violation (19)
                     throw error
                   }
                   
@@ -346,7 +343,7 @@ public class DBManager: NSObject {
             }
             
             try db.executeUpdate(statement.sql, values: statement.values) //attempt an Insert into the database first
-            if db.changes() == 0 { //insert failed so attempt update
+            if db.changes == 0 { //insert failed so attempt update
               let update: StatementParts
               var select: StatementParts
               let usingSecondary: Bool
@@ -365,11 +362,11 @@ public class DBManager: NSObject {
               
               if !syncable {
                 try db.executeUpdate(update.sql, values: update.values)
-                if db.changes() == 0 && usingSecondary { //update on the secondary key failed so try on the primary key
+                if db.changes == 0 && usingSecondary { //update on the secondary key failed so try on the primary key
                   try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
                   select = selectPrimary
                   
-                  if db.changes() == 0 {
+                  if db.changes == 0 {
                     throw QueryError.insertUpdateFailed
                   }
                 }
@@ -409,8 +406,8 @@ public class DBManager: NSObject {
 
       } catch {
         Log.warn("Failed to query/update db: \(error)")
-        rollback?.initialize(to: true)
-        transactionError = QueryError.failed(errorCode: Int((db?.lastErrorCode())!))
+        rollback.initialize(to: true)
+        transactionError = QueryError.failed(errorCode: Int(db.lastErrorCode()))
       }
     }
 

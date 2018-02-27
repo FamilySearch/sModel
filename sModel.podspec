@@ -20,5 +20,5 @@ Pod::Spec.new do |s|
   s.requires_arc  = true
   s.module_name  = "sModel"
 
-  s.dependency "FMDB", "2.6"
+  s.dependency "FMDB", "2.7.4"
 end
