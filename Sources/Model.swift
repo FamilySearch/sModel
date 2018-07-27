@@ -442,7 +442,8 @@ extension ModelDef {
       preconditionFailure("Primary key field '\(name)' must contain a value: \(type(of: self).tableName)")
       
     } catch {
-      preconditionFailure("Failed to reload: \(error)")
+      Log.error("Failed to reload: \(error)")
+      return nil
     }
   }
 
