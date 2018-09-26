@@ -18,7 +18,7 @@ class DBManagerSetupTests: XCTestCase {
     let dbMeta = try! DBManager.open(nil, dbDefFilePaths: paths, pushOnStack: false)
     dbMeta?.queue.inDatabase({ (db) in
       let result = db.getSchema()
-      XCTAssertTrue(result.next())
+      XCTAssertTrue(result!.next())
     })
     
     do {

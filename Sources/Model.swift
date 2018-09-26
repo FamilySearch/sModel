@@ -222,7 +222,7 @@ extension ModelDef {
     guard let elements = try? SQLEncoder.encode(self) else {
       throw ModelError<ModelType>.invalidObject
     }
-    let values = elements.primaryKeys.flatMap { $0.value }
+    let values = elements.primaryKeys.compactMap { $0.value }
     let clauses = elements.primaryKeys.map{ $0.clause }
     let statement = type(of: self).createDeleteStatement(whereClause: clauses.joined(separator: " AND "), params: values)
     return statement
@@ -411,7 +411,7 @@ extension ModelDef {
     do {
       let elements = try SQLEncoder.encode(self)
       var newInstance: ModelType? = nil
-      let values = elements.primaryKeys.flatMap { $0.value }
+      let values = elements.primaryKeys.compactMap { $0.value }
       let clauses = elements.primaryKeys.map{ $0.clause }
       
       let statement = StatementParts(
@@ -467,7 +467,7 @@ extension ModelDef {
   
   fileprivate func readFromDB(_ keyColumns: Array<SQLColumn>) throws -> ModelType? {
     var newInstance: ModelType? = nil
-    let values = keyColumns.flatMap { $0.value }
+    let values = keyColumns.compactMap { $0.value }
     let clauses = keyColumns.map{ $0.clause }
     
     let statement = StatementParts(

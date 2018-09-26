@@ -227,7 +227,10 @@ public class DBManager: NSObject {
     guard let queue = try? getDBQueue() else { return }
 
     queue.inDatabase { (db) in
-      let result = db.getSchema()
+      guard let result = db.getSchema() else {
+        Log.error("Error getting db schema")
+        return
+      }
       while result.next() {
         if let type = result.string(forColumn: "type") , type == "table" {
           if let tableName = result.string(forColumn: "name"), !excludes.contains(tableName) {

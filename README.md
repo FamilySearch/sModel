@@ -82,3 +82,10 @@ let things = Thing.allInstances() //Returns Array<Thing> that holds every instan
 let thing = Thing.firstInstanceWhere("tid = ?", "tid1") //Returns a Thing?
 let someThings = Thing.instancesWhere("tid in (?, ?)", "tid1", "tid2") //Return Array<Thing> for each `Thing` that matches the where clause
 ```
+
+## Running Locally
+
+To run the tests locally:
+ - Install Carthage
+ - In the root folder of the project, run `carthage update --platform ios`
+ - Run the unit tests from XCode
