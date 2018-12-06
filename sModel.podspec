@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "sModel"
-  s.version      = "1.0.13"
+  s.version      = "1.0.14"
   s.summary      = "sModel is a lightweight object mapper for sqlite."
 
   s.description  = <<-DESC
