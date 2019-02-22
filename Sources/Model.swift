@@ -225,7 +225,7 @@ extension ModelDef {
       throw ModelError<ModelType>.invalidObject
     }
     let values = elements.primaryKeys.compactMap { $0.value }
-    let clauses = elements.primaryKeys.map{ $0.clause }
+    let clauses = elements.primaryKeys.map{ $0.predicate }
     let statement = type(of: self).createDeleteStatement(whereClause: clauses.joined(separator: " AND "), params: values)
     return statement
   }
@@ -238,84 +238,61 @@ extension ModelDef {
     }
     return try createSaveStatement(elements)
   }
+  
+  private func computeParts(_ elements: SQLElements) throws -> Parts {
+    guard primaryKeys.count > 0 else {
+      throw QueryError.missingKey
+    }
+    
+    var parts = Parts()
+    
+    for column in elements.columns {
+      if let value = column.value {
+        parts.insertNames.append(column.name)
+        parts.insertPlaceholders.append("?")
+        parts.insertValues.append(value)
+      }
+      
+      if column.isPrimaryKey {
+        parts.primaryKeyPredicates.append(column.predicate)
+        guard let value = column.value else {
+          throw QueryError.keyIsNull(fieldName: column.name)
+        }
+        parts.primaryKeyValues.append(value)
+        
+      } else if column.isSecondaryKey {
+        parts.primaryUpdatePredicates.append(column.predicate)
+        guard let value = column.value else {
+          parts.canDoSecondary = false
+          continue
+        }
+        parts.primaryUpdateValues.append(value)
+        
+        parts.secondaryKeyPredicates.append(column.predicate)
+        parts.secondaryKeyValues.append(value)
+        
+      } else { //non key column
+        parts.primaryUpdatePredicates.append(column.predicate)
+        if let value = column.value {
+          parts.primaryUpdateValues.append(value)
+        }
+        parts.secondaryUpdatePredicates.append(column.predicate)
+        if let value = column.value {
+          parts.secondaryUpdateValues.append(value)
+        }
+        if elements.syncable && column.name != "syncStatus" && column.name != "syncInFlightStatus" {
+          parts.secondarySyncableUpdatePredicates.append(column.predicate)
+          if let value = column.value {
+            parts.secondarySyncableUpdateValues.append(value)
+          }
+        }
+      }
+    }
+    
+    return parts
+  }
 
   private func createSaveStatement(_ elements: SQLElements) throws -> StatementParts {
-    func computeParts() throws -> (insertNames: [String], insertPlaceholders: [String], insertValues: [Any],
-                                   primaryUpdateSets: [String], primaryUpdateValues: [Any], primaryKeySets: [String], primaryKeyValues: [Any],
-                                   canDoSecondary: Bool, secondaryUpdateSets: [String], secondaryUpdateValues: [Any], secondaryKeySets: [String], secondaryKeyValues: [Any],
-                                   secondaryUpdateSetsSyncable: [String], secondaryUpdateValuesSyncable: [Any])
-    {
-      var insertNames = [String]()
-      var insertPlaceholders = [String]()
-      var insertValues = [Any]()
-      
-      var primaryUpdateSets = [String]()
-      var primaryUpdateValues = [Any]()
-      var primaryKeySets = [String]()
-      var primaryKeyValues = [Any]()
-      
-      var canDoSecondary = true
-      var secondaryUpdateSets = [String]()
-      var secondaryUpdateValues = [Any]()
-      var secondaryKeySets = [String]()
-      var secondaryKeyValues = [Any]()
-      
-      var secondaryUpdateSetsSyncable = [String]()
-      var secondaryUpdateValuesSyncable = [Any]()
-
-      for column in elements.columns {
-        if let value = column.value {
-          insertNames.append(column.name)
-          insertPlaceholders.append("?")
-          insertValues.append(value)
-        }
-        
-        if column.isPrimaryKey {
-          primaryKeySets.append(column.clause)
-          guard let value = column.value else {
-            throw QueryError.keyIsNull(fieldName: column.name)
-          }
-          primaryKeyValues.append(value)
-          
-        } else if column.isSecondaryKey {
-          primaryUpdateSets.append(column.clause)
-          guard let value = column.value else {
-            canDoSecondary = false
-            continue
-          }
-          primaryUpdateValues.append(value)
-          
-          secondaryKeySets.append(column.clause)
-          secondaryKeyValues.append(value)
-
-        } else { //non key column
-          primaryUpdateSets.append(column.clause)
-          if let value = column.value {
-            primaryUpdateValues.append(value)
-          }
-          secondaryUpdateSets.append(column.clause)
-          if let value = column.value {
-            secondaryUpdateValues.append(value)
-          }
-          if elements.syncable && column.name != "syncStatus" && column.name != "syncInFlightStatus" {
-            secondaryUpdateSetsSyncable.append(column.clause)
-            if let value = column.value {
-              secondaryUpdateValuesSyncable.append(value)
-            }
-          }
-        }
-      }
-      
-      guard primaryKeys.count > 0 else {
-        throw QueryError.missingKey
-      }
-      
-      return (insertNames, insertPlaceholders, insertValues,
-              primaryUpdateSets, primaryUpdateValues, primaryKeySets, primaryKeyValues,
-              canDoSecondary, secondaryUpdateSets, secondaryUpdateValues, secondaryKeySets, secondaryKeyValues,
-              secondaryUpdateSetsSyncable, secondaryUpdateValuesSyncable)
-    }
-
     do {
       guard elements.primaryKeys.count > 0 else {
         throw QueryError.missingKey
@@ -323,34 +300,34 @@ extension ModelDef {
       guard !elements.syncable || elements.secondaryKeys.count > 0 else {
         throw QueryError.syncableRequiresSecondaryKey
       }
-      let parts = try computeParts()
+      let parts = try computeParts(elements)
       
+      //Generate all the SQL statements that might be used by the DBManager
       if DBManager.blindlyReplaceDuplicates {
         let insertStatement = StatementParts(sql: "INSERT OR REPLACE INTO \(elements.tableName) (\(parts.insertNames.joined(separator: ","))) VALUES (\(parts.insertPlaceholders.joined(separator: ",")))", values: parts.insertValues, type: .insert)
         return insertStatement
         
       } else {
-        let updateByPrimaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.primaryUpdateSets.joined(separator: ",")) WHERE \(parts.primaryKeySets.joined(separator: " AND "))", values: parts.primaryUpdateValues + parts.primaryKeyValues, type: .update)
-        let selectByPrimaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.primaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.primaryKeyValues, type: .query)
+        let updateByPrimaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.primaryUpdatePredicates.joined(separator: ",")) WHERE \(parts.primaryKeyPredicates.joined(separator: " AND "))", values: parts.primaryUpdateValues + parts.primaryKeyValues, type: .update)
+        let selectByPrimaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.primaryKeyPredicates.joined(separator: " AND ")) LIMIT 1", values: parts.primaryKeyValues, type: .query)
         
         var updateBySecondaryKey: StatementParts? = nil
         var selectBySecondaryKey: StatementParts? = nil
         if parts.canDoSecondary && elements.secondaryKeys.count > 0 {
-          updateBySecondaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSets.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
-          selectBySecondaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
+          updateBySecondaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdatePredicates.joined(separator: ",")) WHERE \(parts.secondaryKeyPredicates.joined(separator: " AND "))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
+          selectBySecondaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeyPredicates.joined(separator: " AND ")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
         }
         var updateSyncableBySecondaryKey: StatementParts? = nil
         var selectSyncableBySecondaryKey: StatementParts? = nil
         if elements.syncable && parts.canDoSecondary && elements.secondaryKeys.count > 0 {
-          updateSyncableBySecondaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSetsSyncable.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValuesSyncable + parts.secondaryKeyValues, type: .update)
-          selectSyncableBySecondaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1", values: parts.secondaryKeyValues + [DataStatus.synced.rawValue, DataStatus.synced.rawValue], type: .query)
+          updateSyncableBySecondaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondarySyncableUpdatePredicates.joined(separator: ",")) WHERE \(parts.secondaryKeyPredicates.joined(separator: " AND "))", values: parts.secondarySyncableUpdateValues + parts.secondaryKeyValues, type: .update)
+          selectSyncableBySecondaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeyPredicates.joined(separator: " AND ")) AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1", values: parts.secondaryKeyValues + [DataStatus.synced.rawValue, DataStatus.synced.rawValue], type: .query)
         }
         
         let type = StatementType.save(syncable: elements.syncable, updateByPrimaryKey: updateByPrimaryKey, selectByPrimaryKey: selectByPrimaryKey, updateBySecondaryKey: updateBySecondaryKey, selectBySecondaryKey: selectBySecondaryKey, updateSyncableBySecondaryKey: updateSyncableBySecondaryKey, selectSyncableBySecondaryKey: selectSyncableBySecondaryKey)
         let insertStatement = StatementParts(sql: "INSERT OR IGNORE INTO \(elements.tableName) (\(parts.insertNames.joined(separator: ","))) VALUES (\(parts.insertPlaceholders.joined(separator: ",")))", values: parts.insertValues, type: type)
         return insertStatement
       }
-      
 
     } catch QueryError.keyIsNull(let name) {
       preconditionFailure("Primary key field '\(name)' must contain a value: \(elements.tableName)")
@@ -377,7 +354,7 @@ extension ModelDef {
           preconditionFailure("These counts should always be the same")
         }
         resultState = states[0]
-        if let result = results[0] { //did an update
+        if let result = results[0] { //did an update so parse out the database instance
           Log.debug("Updated row in db instead of insert: '\(elements.tableName)': primaryKeys=\(elements.primaryKeys): secondaryKeys=\(elements.secondaryKeys)')")
           while result.next() {
             updatedInstance = try? ModelType(fromSQL: SQLDecoder(result: result))
@@ -414,7 +391,7 @@ extension ModelDef {
       let elements = try SQLEncoder.encode(self)
       var newInstance: ModelType? = nil
       let values = elements.primaryKeys.compactMap { $0.value }
-      let clauses = elements.primaryKeys.map{ $0.clause }
+      let clauses = elements.primaryKeys.map{ $0.predicate }
       
       let statement = StatementParts(
         sql: "SELECT * FROM \(type(of: self).tableName) WHERE \(clauses.joined(separator: " AND ")) LIMIT 1",
@@ -470,7 +447,7 @@ extension ModelDef {
   fileprivate func readFromDB(_ keyColumns: Array<SQLColumn>) throws -> ModelType? {
     var newInstance: ModelType? = nil
     let values = keyColumns.compactMap { $0.value }
-    let clauses = keyColumns.map{ $0.clause }
+    let clauses = keyColumns.map{ $0.predicate }
     
     let statement = StatementParts(
           sql: "SELECT * FROM \(type(of: self).tableName) WHERE \(clauses.joined(separator: " AND ")) LIMIT 1",
@@ -494,4 +471,24 @@ extension ModelDef {
     
     return newInstance
   }
+}
+
+fileprivate struct Parts {
+  var insertNames = [String]()
+  var insertPlaceholders = [String]()
+  var insertValues = [Any]()
+  
+  var primaryUpdatePredicates = [String]()
+  var primaryUpdateValues = [Any]()
+  var primaryKeyPredicates = [String]()
+  var primaryKeyValues = [Any]()
+  
+  var canDoSecondary = true
+  var secondaryUpdatePredicates = [String]()
+  var secondaryUpdateValues = [Any]()
+  var secondaryKeyPredicates = [String]()
+  var secondaryKeyValues = [Any]()
+  
+  var secondarySyncableUpdatePredicates = [String]()
+  var secondarySyncableUpdateValues = [Any]()
 }

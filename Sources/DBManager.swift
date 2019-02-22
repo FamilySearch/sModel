@@ -31,8 +31,8 @@ public indirect enum StatementType {
   case insert
   case update
   case save(syncable: Bool, updateByPrimaryKey: StatementParts, selectByPrimaryKey: StatementParts,
-    updateBySecondaryKey: StatementParts?, selectBySecondaryKey: StatementParts?,
-    updateSyncableBySecondaryKey: StatementParts?, selectSyncableBySecondaryKey: StatementParts?)
+            updateBySecondaryKey: StatementParts?, selectBySecondaryKey: StatementParts?,
+            updateSyncableBySecondaryKey: StatementParts?, selectSyncableBySecondaryKey: StatementParts?)
 }
 
 public struct StatementParts {
@@ -309,6 +309,21 @@ public class DBManager: NSObject {
       do {
         for statement in statements {
           switch statement.type {
+          case .insert:
+            try db.executeUpdate(statement.sql, values: statement.values)
+            results.append(nil)
+            resultStates.append(.success)
+            
+          case .query:
+            let result = try db.executeQuery(statement.sql, values: statement.values)
+            results.append(result)
+            resultStates.append(.success)
+            
+          case .update:
+            try db.executeUpdate(statement.sql, values: statement.values)
+            results.append(nil)
+            resultStates.append(.success)
+            
           case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable):
             if syncable { //syncable objects should perform update, if row already exists in db and isn't waiting for sync
               let result = try db.executeQuery(selectPrimary.sql, values: selectPrimary.values)
@@ -395,19 +410,6 @@ public class DBManager: NSObject {
               results.append(nil)
               resultStates.append(.success)
             }
-            
-          case .insert:
-            try db.executeUpdate(statement.sql, values: statement.values)
-            results.append(nil)
-            resultStates.append(.success)
-          case .query:
-            let result = try db.executeQuery(statement.sql, values: statement.values)
-            results.append(result)
-            resultStates.append(.success)
-          case .update:
-            try db.executeUpdate(statement.sql, values: statement.values)
-            results.append(nil)
-            resultStates.append(.success)
           }
         }
         resultsHandler(results, resultStates)
