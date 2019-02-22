@@ -1,15 +1,15 @@
 //
-//  LifecycleTests.swift
+//  SyncableModelTests.swift
 //  sModelTests
 //
-//  Created by Stephen Lynn on 10/27/17.
-//  Copyright © 2017 FamilySearch. All rights reserved.
+//  Created by Stephen Lynn on 2/22/19.
+//  Copyright © 2019 FamilySearch. All rights reserved.
 //
 
 import XCTest
 @testable import sModel
 
-class LifecycleTests: XCTestCase {
+class SyncableModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
     
@@ -22,6 +22,39 @@ class LifecycleTests: XCTestCase {
   override func tearDown() {
     DBManager.close()
     super.tearDown()
+  }
+  
+  func testInsertDuplicateSyncableObject_doNotOverwriteExistingDBRowWithLatest() {
+    let originalThing = SyncableThing(tid: "tid1", name: "thing 1")
+    try? originalThing.save()
+    
+    var newThing = SyncableThing(tid: "tid1", name: "otherthing 1")
+    
+    XCTAssertNotEqual(originalThing.name, newThing.name)
+    
+    do {
+      try newThing.save()
+    } catch ModelError<SyncableThing>.duplicate(let existingItem) {
+      newThing = existingItem
+    } catch {
+      XCTFail()
+    }
+    
+    XCTAssertEqual(originalThing.tid, newThing.tid)
+    XCTAssertEqual(originalThing.name, newThing.name)
+    XCTAssertEqual(newThing.name, "thing 1")
+    
+    let thingCount = SyncableThing.numberOfInstancesWhere("tid = ?", params: "tid1")
+    XCTAssertEqual(thingCount, 1)
+  }
+  
+  func testInsertSyncableWithNullSecondaryKey() {
+    let thing = SyncableThing(tid: nil, name: "thing1")
+    try? thing.save()
+    
+    let thingFromDB = thing.readFromDB()
+    
+    XCTAssertEqual(thingFromDB!.name, "thing1")
   }
   
   func testUpdateSecondaryKeyAfterInsertOfDuplicate() {
@@ -136,5 +169,4 @@ class LifecycleTests: XCTestCase {
     thingFromDB = SyncableThing.firstInstanceWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingFromDB!.name, "serverThing")
   }
-  
 }

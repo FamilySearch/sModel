@@ -13,7 +13,7 @@ public struct SQLElements {
 
 public struct SQLColumn {
   let name: String
-  let clause: String
+  let predicate: String
   let value: Any?
   let isPrimaryKey: Bool
   let isSecondaryKey: Bool
@@ -120,7 +120,7 @@ public class SQLEncoder: Encoder {
       return
     }
     
-    let column = SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = ?", value: value, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
+    let column = SQLColumn(name: key.stringValue, predicate: "\(key.stringValue) = ?", value: value, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
     if column.isPrimaryKey {
       primaryKeys.append(column)
     }
@@ -139,7 +139,7 @@ public class SQLEncoder: Encoder {
   func encode(_ value: Data?, key: CodingKey) { _encode(value, key: key)}
   
   func encodeNil(_ key: CodingKey) {
-    let column = SQLColumn(name: key.stringValue, clause: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
+    let column = SQLColumn(name: key.stringValue, predicate: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
     columns.append(column)
     if column.isPrimaryKey {
       primaryKeys.append(column)

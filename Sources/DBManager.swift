@@ -30,9 +30,9 @@ public indirect enum StatementType {
   case query
   case insert
   case update
-  case save(syncable: Bool, updatePrimary: StatementParts, selectPrimary: StatementParts,
-    updateSecondary: StatementParts?, selectSecondary: StatementParts?,
-    updateSecondarySyncable: StatementParts?, selectSecondarySyncable: StatementParts?)
+  case save(syncable: Bool, updateByPrimaryKey: StatementParts, selectByPrimaryKey: StatementParts,
+            updateBySecondaryKey: StatementParts?, selectBySecondaryKey: StatementParts?,
+            updateSyncableBySecondaryKey: StatementParts?, selectSyncableBySecondaryKey: StatementParts?)
 }
 
 public struct StatementParts {
@@ -55,17 +55,26 @@ public struct DBMeta {
 @objc
 public class DBManager: NSObject {
   /**
-   Defines how the system will handle database inserts.  If false, the system will use `INSERT OR IGNORE` statements when inserting.
-   If an insert failes because of a constraint violation, then the system will attempt to recover according to the object's `syncable`
-   property.  This option has slight performance hit but is safe for cases where the local database might contain changes that only
-   exist in the local database and should not be overwritten by data being loaded from other sources (i.e., a network response). 
+   Defines how the system will handle database inserts.
+   
+   If false, the system will use `INSERT OR IGNORE` statements when inserting.
+   If an insert fails because of a constraint violation, then the system will attempt to recover using 1 of 2 different
+   approaches:
+   
+   1. If the object implements the `SyncableModel` protocol, the system will check the existing database row and
+   if the row has no local changes (syncStatus == syncInFlightStatus == .synced) then it will update the existing row
+   with non-key data from the new object. If there are local changes then no update will be performed.
+   This option has a slight performance hit but is safe for cases where the local database might contain changes that only
+   exist in the local database and should not be overwritten by data being loaded from other sources (i.e., a network response).
+   
+   2. If the object is not a `SyncableModel`, then the system will attempt to update the existing row using secondary keys if they
+   exist and falling back to the primary key.  If the update fails, then an error is returned.
+   
    If this is true, then the system will use `INSERT OR REPLACE` statements which will blindly replace any existing rows in
    the database that trigger a constraint violation.  This is the fastest option and is suitable if the database won't ever contain
    data locally that is newer than data you will load from other sources (i.e., a network response).
    */
   public static var blindlyReplaceDuplicates = false
-  @available(*, unavailable, message: "The `shouldReplaceDuplicates` property has been replaced by the `blindlyReplaceDuplicates` property.")
-  public static var shouldReplaceDuplicates = false
   private static var dbs: Array<DBMeta> = []
   private static var isRetry: Bool = false
 
@@ -223,6 +232,12 @@ public class DBManager: NSObject {
     return queue
   }
 
+  /**
+   Delete all the rows in all the tables.  If there are tables you want to be left alone, include the
+   table names in the `excludes` array.
+   
+   @param excludes Array of table names to not truncate.
+   */
   public class func truncateAllTables(excludes: Array<String> = []) {
     guard let queue = try? getDBQueue() else { return }
 
@@ -280,13 +295,14 @@ public class DBManager: NSObject {
     }
   }
 
-  /** Execute statements
-   
+  /**
    Executes an array of statements in order as part of a single transaction.  An array of result objects is generated from each statement and passed to the `resultsHandler`.
    
    @param statements The statements to be executed.
    
-   @param silentInserts Defaults to `false`.  By default, when an insert statement fails because of a constraint violation, this function will instead execute an update on that conflicting row in the database and perform a select on that object to get the latest data from the db.  Setting this parameter to `true` will skip the step of querying the object from the db.
+   @param silentInserts Defaults to `false`.  By default, when an insert statement fails because of a constraint violation, this function will instead execute an update on
+   that conflicting row in the database and perform a select on that object to get the latest data from the db.  Setting this parameter to `true` will skip the step of querying
+   the object from the db.
    
    @return An `Array<FMResultSet?>` objects.  One for each statement that was run if there is a result for that statement.
    */
@@ -300,78 +316,50 @@ public class DBManager: NSObject {
       do {
         for statement in statements {
           switch statement.type {
-          case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable):
-            if syncable { //syncable objects should perform update, if row already exists in db and isn't waiting for sync
-              let result = try db.executeQuery(selectPrimary.sql, values: selectPrimary.values)
-              if result.next() { //object with this primary key already exists so perform update and return
-                do {
-                  try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
-                  results.append(nil)
-                  resultStates.append(.success)
-                  result.close()
-                  
-                } catch { //Constraint violation on secondary key so statement is attempting to turn an existing row into a row that is a duplicate of another existing row
-                  guard (db.lastError() as NSError).code == 19 else {//rethrow error if it wasn't a constraint violation (19)
-                    throw error
-                  }
-                  
-                  if let select = selectSecondary {
-                    let localResult = try db.executeQuery(select.sql, values: select.values)
-                    results.append(localResult)
-                    resultStates.append(.wouldCreateDuplicate)
-                  }
-                  result.close()
-                }
-                continue
-              }
-              result.close()
-              
-              //allow update based on secondaryKey if the existing row doesn't have any local changes to sync
-              if
-                let update = updateSecondarySyncable,
-                let select = selectSecondarySyncable
-              {
-                let localIsSyncedResult = try db.executeQuery(select.sql, values: select.values)
-                if localIsSyncedResult.next() { //object with this secondary key already exists and is in a synced state so perform update and return
-                  try db.executeUpdate(update.sql, values: update.values)
-                  localIsSyncedResult.close()
-
-                  let localResult = try db.executeQuery(select.sql, values: select.values)
-                  results.append(localResult)
-                  resultStates.append(.duplicateExists)
-                  continue
-                }
-                localIsSyncedResult.close()
-              }
-            }
+          case .insert:
+            try db.executeUpdate(statement.sql, values: statement.values)
+            results.append(nil)
+            resultStates.append(.success)
             
+          case .query:
+            let result = try db.executeQuery(statement.sql, values: statement.values)
+            results.append(result)
+            resultStates.append(.success)
+            
+          case .update:
+            try db.executeUpdate(statement.sql, values: statement.values)
+            results.append(nil)
+            resultStates.append(.success)
+          
+          //Handle non-syncable statements
+          case let .save(syncable, updateByPrimaryKey, selectByPrimaryKey, updateBySecondaryKey, selectBySecondaryKey, _, _) where !syncable:
             try db.executeUpdate(statement.sql, values: statement.values) //attempt an Insert into the database first
-            if db.changes == 0 { //insert failed so attempt update
-              let update: StatementParts
-              var select: StatementParts
-              let usingSecondary: Bool
-              if //Favor an update on a secondary key. Common case is we are trying to save an object from a network response that already is in the db but we didn't want to check for it's existence before the save.
-                let secondaryUpdate = updateSecondary,
-                let secondarySelect = selectSecondary
+            if db.changes > 0 { //successful insert
+              results.append(nil)
+              resultStates.append(.success)
+              
+            } else { //insert failed so attempt an update
+              var update = updateByPrimaryKey // default to primary key
+              var select = selectByPrimaryKey
+              var usingSecondary = false
+              //Favor an update on a secondary key if those values exist. Common case is we are trying to save an object from a
+              //network response that already is in the db but we didn't want to check for it's existence before the save.
+              if
+                let secondaryUpdate = updateBySecondaryKey,
+                let secondarySelect = selectBySecondaryKey
               {
                 update = secondaryUpdate
                 select = secondarySelect
                 usingSecondary = true
-              } else { //Fall back to the primary key in cases where the secondary key values were null.
-                update = updatePrimary
-                select = selectPrimary
-                usingSecondary = false
               }
               
-              if !syncable {
-                try db.executeUpdate(update.sql, values: update.values)
-                if db.changes == 0 && usingSecondary { //update on the secondary key failed so try on the primary key
-                  try db.executeUpdate(updatePrimary.sql, values: updatePrimary.values)
-                  select = selectPrimary
-                  
-                  if db.changes == 0 {
-                    throw QueryError.insertUpdateFailed
-                  }
+              try db.executeUpdate(update.sql, values: update.values)
+              if db.changes == 0 && usingSecondary { //update on the secondary key failed so try on the primary key
+                try db.executeUpdate(updateByPrimaryKey.sql, values: updateByPrimaryKey.values)
+                select = selectByPrimaryKey
+                
+                if db.changes == 0 {
+                  throw QueryError.insertUpdateFailed
                 }
               }
               
@@ -382,23 +370,75 @@ public class DBManager: NSObject {
                 results.append(nil)
               }
               resultStates.append(.duplicateExists)
-            } else {
+            }
+          
+          //Handle syncable statements
+          case let .save(syncable, updateByPrimaryKey, selectByPrimaryKey, _, selectBySecondaryKey, updateSyncableBySecondaryKey, selectSyncableBySecondaryKey) where syncable:
+            //syncable objects should perform update, if row already exists in db and isn't waiting for sync
+            let result = try db.executeQuery(selectByPrimaryKey.sql, values: selectByPrimaryKey.values)
+            if result.next() {
+              //Row with this primary key already exists so perform update and return
+              //Allow this regardless of the sync flag states. If we don't, then there is no way to update the sync flag state values when they aren't all `synced`.
+              do {
+                try db.executeUpdate(updateByPrimaryKey.sql, values: updateByPrimaryKey.values)
+                results.append(nil)
+                resultStates.append(.success)
+                result.close()
+                
+              } catch {
+                guard (db.lastError() as NSError).code == 19 else {//rethrow error if it wasn't a constraint violation (19)
+                  throw error
+                }
+                //Constraint violation on secondary key so statement is attempting to turn an existing row into a row that is a duplicate of another existing row
+                //Fetch the existing row and return it as the result
+                if let select = selectBySecondaryKey {
+                  let localResult = try db.executeQuery(select.sql, values: select.values)
+                  results.append(localResult)
+                  resultStates.append(.wouldCreateDuplicate)
+                }
+                result.close()
+              }
+              continue
+            }
+            result.close()
+            
+            //allow update based on secondaryKey if the existing row doesn't have any local changes to sync
+            if
+              let update = updateSyncableBySecondaryKey,
+              let select = selectSyncableBySecondaryKey
+            {
+              let localIsSyncedResult = try db.executeQuery(select.sql, values: select.values)
+              if localIsSyncedResult.next() { //object with this secondary key already exists and is in a synced state so perform update and return
+                localIsSyncedResult.close()
+                try db.executeUpdate(update.sql, values: update.values)
+
+                //read the existing row that was updated so we can return it
+                let localResult = try db.executeQuery(select.sql, values: select.values)
+                results.append(localResult)
+                resultStates.append(.duplicateExists)
+                continue
+              }
+              localIsSyncedResult.close()
+            }
+
+            //The object doesn't exist in the db in a synced state, attempt an Insert into the database
+            try db.executeUpdate(statement.sql, values: statement.values)
+            if db.changes > 0 { //successful insert
               results.append(nil)
               resultStates.append(.success)
+              
+            } else { //insert failed so object must be unsynced so read existing unsynced row.
+              let select = selectBySecondaryKey ?? selectByPrimaryKey
+              if !silentInserts { //read the entry from the database so we have the latest values for this row
+                let result = try db.executeQuery(select.sql, values: select.values)
+                results.append(result)
+              } else {
+                results.append(nil)
+              }
+              resultStates.append(.duplicateExists)
             }
             
-          case .insert:
-            try db.executeUpdate(statement.sql, values: statement.values)
-            results.append(nil)
-            resultStates.append(.success)
-          case .query:
-            let result = try db.executeQuery(statement.sql, values: statement.values)
-            results.append(result)
-            resultStates.append(.success)
-          case .update:
-            try db.executeUpdate(statement.sql, values: statement.values)
-            results.append(nil)
-            resultStates.append(.success)
+          case .save: preconditionFailure("Previous two cases should handle all .save possibilities but the compiler doesn't recognize it.")
           }
         }
         resultsHandler(results, resultStates)

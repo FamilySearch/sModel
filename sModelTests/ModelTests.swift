@@ -46,7 +46,7 @@ class ModelTests: XCTestCase {
   
   
   func testInstancesWhere_arrayOfParams() {
-    insertABunchOfThings(10)
+    TestHelper.insertABunchOfThings(10)
 
     let things = Thing.instancesWhere("tid = ? AND name = ?", params: ["tid1", "thing 1"])
 
@@ -56,7 +56,7 @@ class ModelTests: XCTestCase {
   }
 
   func testInstancesWhere_nomatches() {
-    insertABunchOfThings(10)
+    TestHelper.insertABunchOfThings(10)
 
     let things = Thing.instancesWhere("tid in (?)", params: "nomatch")
 
@@ -65,7 +65,7 @@ class ModelTests: XCTestCase {
   }
 
   func testDoubleProperties() {
-    let thing = insertThing("tid1", name: "thing1")
+    let thing = TestHelper.insertThing("tid1", name: "thing1")
     thing.other = 23
     thing.otherDouble = 0.23
     try? thing.save()
@@ -93,7 +93,7 @@ class ModelTests: XCTestCase {
   //MARK: Dealing with null properties
 
   func testNullPropertyOnUpdate() {
-    let thing = insertThing("tid1", name: "thing 1")
+    let thing = TestHelper.insertThing("tid1", name: "thing 1")
 
     thing.name = nil
 
@@ -149,247 +149,10 @@ class ModelTests: XCTestCase {
     XCTAssertNil(dbAnimal.ids)
   }
 
-  //MARK: Statement Options
-  
-  func testCreateReadFirstInstance() {
-    let statement = Thing.createReadFirstInstance(whereClause: "tid = ? AND name = ?", params: "tid1", "thing 1")
-    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ? LIMIT 1")
-    XCTAssertEqual(statement.values.count, 2)
-  }
-  
-  func testCreateReadInstancesFullQuery() {
-    let statement = Thing.createReadInstances(query: "SELECT * FROM Thing WHERE tid = ? AND name = ?", params: "tid1", "thing 1")
-    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ?")
-    XCTAssertEqual(statement.values.count, 2)
-  }
-  
-  func testCreateReadInstancesWhere() {
-    let statement = Thing.createReadInstances(whereClause: "tid = ? AND name = ?", params: "tid1", "thing 1")
-    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ?")
-    XCTAssertEqual(statement.values.count, 2)
-  }
-  
-  func testCreateReadInstancesWhere_arrayParams() {
-    let statement = Thing.createReadInstances(whereClause: "tid = ? AND name = ?", params: ["tid1", "thing 1"])
-    XCTAssertEqual(statement.sql, "SELECT * FROM Thing WHERE tid = ? AND name = ?")
-    XCTAssertEqual(statement.values.count, 2)
-  }
-  
-  func testCreateReadInstancesOrderedBy() {
-    let statement = Thing.createReadInstances(orderedBy: "tid, name")
-    XCTAssertEqual(statement.sql, "SELECT * FROM Thing ORDER BY tid, name")
-    XCTAssertEqual(statement.values.count, 0)
-  }
-  
-  func testCreateReadAllInstances() {
-    let statement = Thing.createReadAllInstances()
-    XCTAssertEqual(statement.sql, "SELECT * FROM Thing")
-    XCTAssertEqual(statement.values.count, 0)
-  }
-  
-  func testCreateSaveStatement_insert() {
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
-    
-    guard let statement = try? thing.createSaveStatement() else {
-      XCTFail()
-      return
-    }
-    
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
-      XCTFail()
-      return
-    }
-    
-    XCTAssertFalse(syncable)
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
-    XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE Thing SET tid = ?,name = ?,other = ?,otherDouble = ? WHERE localId = ?")
-    XCTAssertEqual(5, updatePrimary.values.count)
-    XCTAssertEqual(selectPrimary.sql, "SELECT * FROM Thing WHERE localId = ? LIMIT 1")
-    XCTAssertEqual(1, selectPrimary.values.count)
-    XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
-    XCTAssertEqual(4, updateSecondary!.values.count)
-    XCTAssertNotNil(selectSecondary)
-    XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
-    XCTAssertEqual(1, selectSecondary!.values.count)
-    XCTAssertNil(updateSecondarySyncable)
-    XCTAssertNil(selectSecondarySyncable)
-  }
-  
-  func testCreateSaveStatement_insert_syncable() {
-    let thing = SyncableThing(tid: "tid1", name: "thing 1")
-
-    guard let statement = try? thing.createSaveStatement() else {
-      XCTFail()
-      return
-    }
-    
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
-      XCTFail()
-      return
-    }
-
-    XCTAssertTrue(syncable)
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO SyncableThing (localId,tid,name,syncStatus,syncInFlightStatus) VALUES (?,?,?,?,?)")
-    XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE SyncableThing SET tid = ?,name = ?,syncStatus = ?,syncInFlightStatus = ? WHERE localId = ?")
-    XCTAssertEqual(5, updatePrimary.values.count)
-    XCTAssertEqual(selectPrimary.sql, "SELECT * FROM SyncableThing WHERE localId = ? LIMIT 1")
-    XCTAssertEqual(1, selectPrimary.values.count)
-    XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE SyncableThing SET name = ?,syncStatus = ?,syncInFlightStatus = ? WHERE tid = ?")
-    XCTAssertEqual(4, updateSecondary!.values.count)
-    XCTAssertNotNil(selectSecondary)
-    XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM SyncableThing WHERE tid = ? LIMIT 1")
-    XCTAssertEqual(1, selectSecondary!.values.count)
-    XCTAssertNotNil(updateSecondarySyncable)
-    XCTAssertEqual(updateSecondarySyncable!.sql, "UPDATE SyncableThing SET name = ? WHERE tid = ?")
-    XCTAssertEqual(2, updateSecondarySyncable!.values.count)
-    XCTAssertNotNil(selectSecondarySyncable)
-    XCTAssertEqual(selectSecondarySyncable!.sql, "SELECT * FROM SyncableThing WHERE tid = ? AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1")
-    XCTAssertEqual(3, selectSecondarySyncable!.values.count)
-  }
-  
-  func testCreateSaveStatement_insertOptionalSecondaryKey() {
-    var tree = Tree(name: "tree 1")
-    tree.serverId = "serverId"
-    
-    guard let statement = try? tree.createSaveStatement() else {
-      XCTFail()
-      return
-    }
-    
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
-      XCTFail()
-      return
-    }
-    
-    XCTAssertFalse(syncable)
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name,status,serverId) VALUES (?,?,?,?)")
-    XCTAssertEqual(4, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE Tree SET name = ?,status = ?,serverId = ? WHERE localId = ?")
-    XCTAssertEqual(4, updatePrimary.values.count)
-    XCTAssertEqual(selectPrimary.sql, "SELECT * FROM Tree WHERE localId = ? LIMIT 1")
-    XCTAssertEqual(1, selectPrimary.values.count)
-    XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE Tree SET name = ?,status = ? WHERE serverId = ?")
-    XCTAssertEqual(3, updateSecondary!.values.count)
-    XCTAssertNotNil(selectSecondary)
-    XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Tree WHERE serverId = ? LIMIT 1")
-    XCTAssertEqual(1, selectSecondary!.values.count)
-    XCTAssertNil(updateSecondarySyncable)
-    XCTAssertNil(selectSecondarySyncable)
-  }
-  
-  func testCreateSaveStatement_updateOptionalSecondaryKey() {
-    let tree = Tree(name: "tree 1")
-    try? tree.save()
-    
-    guard let treeFromDB = tree.readFromDB() else {
-      XCTFail()
-      return
-    }
-    
-    var updateTree = treeFromDB
-    updateTree.serverId = "serverId"
-    
-    guard let statement = try? updateTree.createSaveStatement() else {
-      XCTFail()
-      return
-    }
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
-      XCTFail()
-      return
-    }
-    
-    XCTAssertFalse(syncable)
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Tree (localId,name,status,serverId) VALUES (?,?,?,?)")
-    XCTAssertEqual(4, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE Tree SET name = ?,status = ?,serverId = ? WHERE localId = ?")
-    XCTAssertEqual(4, updatePrimary.values.count)
-    XCTAssertEqual(selectPrimary.sql, "SELECT * FROM Tree WHERE localId = ? LIMIT 1")
-    XCTAssertEqual(1, selectPrimary.values.count)
-    XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE Tree SET name = ?,status = ? WHERE serverId = ?")
-    XCTAssertEqual(3, updateSecondary!.values.count)
-    XCTAssertNotNil(selectSecondary)
-    XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Tree WHERE serverId = ? LIMIT 1")
-    XCTAssertEqual(1, selectSecondary!.values.count)
-    XCTAssertNil(updateSecondarySyncable)
-    XCTAssertNil(selectSecondarySyncable)
-  }
-  
-  func testCreateSaveStatement_update() {
-    insertThing("tid1", name: "thing 1")
-    guard let thing = Thing.firstInstanceWhere("tid = ?", params: "tid1") else {
-      XCTFail("should be able read object")
-      return
-    }
-    
-    guard let statement = try? thing.createSaveStatement() else {
-      XCTFail()
-      return
-    }
-    guard case .save(let syncable, let updatePrimary, let selectPrimary, let updateSecondary, let selectSecondary, let updateSecondarySyncable, let selectSecondarySyncable) = statement.type else {
-      XCTFail()
-      return
-    }
-    
-    XCTAssertFalse(syncable)
-    XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
-    XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE Thing SET tid = ?,name = ?,other = ?,otherDouble = ? WHERE localId = ?")
-    XCTAssertEqual(5, updatePrimary.values.count)
-    XCTAssertEqual(selectPrimary.sql, "SELECT * FROM Thing WHERE localId = ? LIMIT 1")
-    XCTAssertEqual(1, selectPrimary.values.count)
-    XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
-    XCTAssertEqual(4, updateSecondary!.values.count)
-    XCTAssertNotNil(selectSecondary)
-    XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
-    XCTAssertEqual(1, selectSecondary!.values.count)
-    XCTAssertNil(updateSecondarySyncable)
-    XCTAssertNil(selectSecondarySyncable)
-  }
-
-  func testCreateSaveStatement_replaceDuplicates() {
-    DBManager.blindlyReplaceDuplicates = true
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
-    
-    guard let statement = try? thing.createSaveStatement() else {
-      XCTFail()
-      return
-    }
-
-    guard case .insert = statement.type else {
-      XCTFail()
-      return
-    }
-    XCTAssertEqual(statement.sql, "INSERT OR REPLACE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
-    DBManager.blindlyReplaceDuplicates = false
-  }
-  
-  func testCreateDeleteStatements() {
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
-    
-    var statement = Thing.createDeleteAllStatement()
-    XCTAssertEqual(statement.sql, "DELETE FROM Thing")
-    XCTAssertEqual(statement.values.count, 0)
-    
-    statement = Thing.createDeleteWhere("tid = ?", params: "tid1")
-    XCTAssertEqual(statement.sql, "DELETE FROM Thing WHERE tid = ?")
-    XCTAssertEqual(statement.values.count, 1)
-    
-    statement = try! thing.createDeleteStatement()
-    XCTAssertEqual(statement.sql, "DELETE FROM Thing WHERE localId = ?")
-    XCTAssertEqual(statement.values.count, 1)
-  }
-
   //MARK: Edge cases
   
   func testInsertDuplicateObject_overwriteExistingDBRowWithLatest() {
-    let originalThing = insertThing("tid1", name: "thing 1")
+    let originalThing = TestHelper.insertThing("tid1", name: "thing 1")
     
     var newThing = Thing(tid: "tid1", name: "otherThing1", other: 0, otherDouble: 0)
     
@@ -411,39 +174,6 @@ class ModelTests: XCTestCase {
     XCTAssertEqual(thingCount, 1)
   }
   
-  func testInsertDuplicateSyncableObject_doNotOverwriteExistingDBRowWithLatest() {
-    let originalThing = SyncableThing(tid: "tid1", name: "thing 1")
-    try? originalThing.save()
-    
-    var newThing = SyncableThing(tid: "tid1", name: "otherthing 1")
-    
-    XCTAssertNotEqual(originalThing.name, newThing.name)
-    
-    do {
-      try newThing.save()
-    } catch ModelError<SyncableThing>.duplicate(let existingItem) {
-      newThing = existingItem
-    } catch {
-      XCTFail()
-    }
-    
-    XCTAssertEqual(originalThing.tid, newThing.tid)
-    XCTAssertEqual(originalThing.name, newThing.name)
-    XCTAssertEqual(newThing.name, "thing 1")
-    
-    let thingCount = SyncableThing.numberOfInstancesWhere("tid = ?", params: "tid1")
-    XCTAssertEqual(thingCount, 1)
-  }
-  
-  func testInsertSyncableWithNullSecondaryKey() {
-    let thing = SyncableThing(tid: nil, name: "thing1")
-    try? thing.save()
-    
-    let thingFromDB = thing.readFromDB()
-    
-    XCTAssertEqual(thingFromDB!.name, "thing1")
-  }
-
   func testGetNonExistentInstance_returnNil() {
     let nonExistentThing = Thing.firstInstanceWhere("tid = ?", params: "blah")
 
@@ -464,7 +194,7 @@ class ModelTests: XCTestCase {
   }
 
   func testReloadInstance() {
-    let thing = insertThing("tid1", name: "thing 1")
+    let thing = TestHelper.insertThing("tid1", name: "thing 1")
 
     guard let dbThing = thing.readFromDB() else {
       XCTFail("Can't read object we just inserted")
@@ -493,7 +223,7 @@ class ModelTests: XCTestCase {
 
   func testPerformanceLotsOfInserts() {
     self.measure {
-      self.insertABunchOfThings(1_000)
+      TestHelper.insertABunchOfThings(1_000)
       Thing.deleteAllInstances()
     }
   }
@@ -501,25 +231,10 @@ class ModelTests: XCTestCase {
   func testPerformanceLotsOfInsertsReads() {
     self.measure {
       for i in 0..<250 {
-        self.insertThing("tid\(i)", name: "thing \(i)")
+        TestHelper.insertThing("tid\(i)", name: "thing \(i)")
         _ = Thing.allInstances()
       }
       Thing.deleteAllInstances()
     }
-  }
-
-  //MARK: Helpers
-
-  private func insertABunchOfThings(_ count: Int) {
-    for i in 0..<count {
-      insertThing("tid\(i)", name: "thing \(i)")
-    }
-  }
-  
-  @discardableResult
-  private func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
-    try? newThing.save()
-    return newThing
   }
 }
