@@ -29,7 +29,9 @@
 		BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
 		BDA25FCE215BFAD900808883 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BDA25FCD215BFAD900808883 /* README.md */; };
-		BDB1ECC91FA3EE940004CAA5 /* LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */; };
+		BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C22220641D008393D6 /* CreateStatementTests.swift */; };
+		BDA541C52220649F008393D6 /* TestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C42220649F008393D6 /* TestHelper.swift */; };
+		BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C6222067A5008393D6 /* SyncableModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,7 +81,9 @@
 		BD6081881FB62CFA0011A0D0 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
 		BDA25FCD215BFAD900808883 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
+		BDA541C22220641D008393D6 /* CreateStatementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateStatementTests.swift; sourceTree = "<group>"; };
+		BDA541C42220649F008393D6 /* TestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelper.swift; sourceTree = "<group>"; };
+		BDA541C6222067A5008393D6 /* SyncableModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncableModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,17 +152,19 @@
 			isa = PBXGroup;
 			children = (
 				BD297D661E200392003D2D29 /* BatchTests.swift */,
+				BDA541C22220641D008393D6 /* CreateStatementTests.swift */,
 				BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */,
 				BD3E92941DDCF0EE0089EBEA /* DBManagerSetupTests.swift */,
 				BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */,
 				BD3E92821DDCCBB90089EBEA /* defs */,
 				BD3E926E1DDCCB900089EBEA /* Info.plist */,
-				BDB1ECC81FA3EE940004CAA5 /* LifecycleTests.swift */,
 				BD3E92831DDCCBBE0089EBEA /* model */,
 				BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */,
 				BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */,
 				BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */,
 				BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */,
+				BDA541C6222067A5008393D6 /* SyncableModelTests.swift */,
+				BDA541C42220649F008393D6 /* TestHelper.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";
@@ -335,11 +341,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */,
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
-				BDB1ECC91FA3EE940004CAA5 /* LifecycleTests.swift in Sources */,
+				BDA541C52220649F008393D6 /* TestHelper.swift in Sources */,
 				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
 				BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */,
+				BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,
 				BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */,
 				BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */,

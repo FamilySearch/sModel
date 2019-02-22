@@ -30,9 +30,9 @@ public indirect enum StatementType {
   case query
   case insert
   case update
-  case save(syncable: Bool, updatePrimary: StatementParts, selectPrimary: StatementParts,
-    updateSecondary: StatementParts?, selectSecondary: StatementParts?,
-    updateSecondarySyncable: StatementParts?, selectSecondarySyncable: StatementParts?)
+  case save(syncable: Bool, updateByPrimaryKey: StatementParts, selectByPrimaryKey: StatementParts,
+    updateBySecondaryKey: StatementParts?, selectBySecondaryKey: StatementParts?,
+    updateSyncableBySecondaryKey: StatementParts?, selectSyncableBySecondaryKey: StatementParts?)
 }
 
 public struct StatementParts {
@@ -55,17 +55,26 @@ public struct DBMeta {
 @objc
 public class DBManager: NSObject {
   /**
-   Defines how the system will handle database inserts.  If false, the system will use `INSERT OR IGNORE` statements when inserting.
-   If an insert failes because of a constraint violation, then the system will attempt to recover according to the object's `syncable`
-   property.  This option has slight performance hit but is safe for cases where the local database might contain changes that only
-   exist in the local database and should not be overwritten by data being loaded from other sources (i.e., a network response). 
+   Defines how the system will handle database inserts.
+   
+   If false, the system will use `INSERT OR IGNORE` statements when inserting.
+   If an insert fails because of a constraint violation, then the system will attempt to recover using 1 of 2 different
+   approaches:
+   
+   1. If the object implements the `SyncableModel` protocol, the system will check the existing database row and
+   if the row has no local changes (syncStatus == syncInFlightStatus == .synced) then it will update the existing row
+   with non-key data from the new object. If there are local changes then no update will be performed.
+   This option has a slight performance hit but is safe for cases where the local database might contain changes that only
+   exist in the local database and should not be overwritten by data being loaded from other sources (i.e., a network response).
+   
+   2. If the object is not a `SyncableModel`, then the system will attempt to update the existing row using secondary keys if they
+   exist and falling back to the primary key.  If the update fails, then an error is returned.
+   
    If this is true, then the system will use `INSERT OR REPLACE` statements which will blindly replace any existing rows in
    the database that trigger a constraint violation.  This is the fastest option and is suitable if the database won't ever contain
    data locally that is newer than data you will load from other sources (i.e., a network response).
    */
   public static var blindlyReplaceDuplicates = false
-  @available(*, unavailable, message: "The `shouldReplaceDuplicates` property has been replaced by the `blindlyReplaceDuplicates` property.")
-  public static var shouldReplaceDuplicates = false
   private static var dbs: Array<DBMeta> = []
   private static var isRetry: Bool = false
 

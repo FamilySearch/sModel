@@ -10,19 +10,22 @@ public protocol ModelDef: SQLCodable {
    */
   static var tableName: String { get }
   /**
-   The `primaryKeys` are required to contain one or more columns that are used to uniquely identify an object in the database table and are required to have values.
+   The `primaryKeys` are required to contain one or more columns that are used to uniquely
+   identify an object in the database table and are required to have values.
    */
   var primaryKeys: Array<CodingKey> { get }
   /**
-   The `secondaryKeys` define set of columns that can be used to uniquely identify a row in the table but columns may contain null values. Server generated keys are often used as `secondaryKeys` to avoid duplicate database entries, but still allow for
-   objects to be created locally without a server generated id value.
+   The `secondaryKeys` define set of columns that can be used to uniquely identify a row in the table but
+   columns may contain null values. Server generated keys are often used as `secondaryKeys` to avoid
+   duplicate database entries, but still allow for objects to be created locally without a server generated id value.
    */
   var secondaryKeys: Array<CodingKey> { get }
-  static func isSyncable() -> Bool
 }
 
 /**
- Adopting this protocol will ensure that local changes to an object are not overwritten by attempted inserts that result in secondary key violations.  If the object is showing as synced (no local changes) then it will still be updated with the data from the insert.
+ Adopting this protocol will ensure that local changes to an object are not overwritten by attempted
+ inserts that result in secondary key violations.  If the object is showing as synced
+ (syncStatus == syncInFlightStatus == .synced) then it will still be updated with the data from the insert.
  */
 public protocol SyncableModel {
   var syncStatus: DataStatus { get set }
@@ -34,12 +37,11 @@ public enum DataStatus: Int, Codable {
 }
 
 extension ModelDef {
-  public static func isSyncable() -> Bool { return false }
-
   public static func generateUUID() -> String {
     return UUID().uuidString
   }
   
+  //MARK: Helper methods for storing arrays/dictionary values to the database.  This allows a ModelDef object to have properties of type Array/Dictionary.
   public static func dataToArray(_ data: Data?) throws -> Array<Dictionary<String,Any>>? {
     guard let data = data else {
       return nil
@@ -328,23 +330,23 @@ extension ModelDef {
         return insertStatement
         
       } else {
-        let updatePrimary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.primaryUpdateSets.joined(separator: ",")) WHERE \(parts.primaryKeySets.joined(separator: " AND "))", values: parts.primaryUpdateValues + parts.primaryKeyValues, type: .update)
-        let selectPrimary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.primaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.primaryKeyValues, type: .query)
+        let updateByPrimaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.primaryUpdateSets.joined(separator: ",")) WHERE \(parts.primaryKeySets.joined(separator: " AND "))", values: parts.primaryUpdateValues + parts.primaryKeyValues, type: .update)
+        let selectByPrimaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.primaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.primaryKeyValues, type: .query)
         
-        var updateSecondary: StatementParts? = nil
-        var selectSecondary: StatementParts? = nil
+        var updateBySecondaryKey: StatementParts? = nil
+        var selectBySecondaryKey: StatementParts? = nil
         if parts.canDoSecondary && elements.secondaryKeys.count > 0 {
-          updateSecondary = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSets.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
-          selectSecondary = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
+          updateBySecondaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSets.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValues + parts.secondaryKeyValues, type: .update)
+          selectBySecondaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) LIMIT 1", values: parts.secondaryKeyValues, type: .query)
         }
-        var updateSecondarySyncable: StatementParts? = nil
-        var selectSecondarySyncable: StatementParts? = nil
+        var updateSyncableBySecondaryKey: StatementParts? = nil
+        var selectSyncableBySecondaryKey: StatementParts? = nil
         if elements.syncable && parts.canDoSecondary && elements.secondaryKeys.count > 0 {
-          updateSecondarySyncable = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSetsSyncable.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValuesSyncable + parts.secondaryKeyValues, type: .update)
-          selectSecondarySyncable = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1", values: parts.secondaryKeyValues + [DataStatus.synced.rawValue, DataStatus.synced.rawValue], type: .query)
+          updateSyncableBySecondaryKey = StatementParts(sql: "UPDATE \(elements.tableName) SET \(parts.secondaryUpdateSetsSyncable.joined(separator: ",")) WHERE \(parts.secondaryKeySets.joined(separator: " AND "))", values: parts.secondaryUpdateValuesSyncable + parts.secondaryKeyValues, type: .update)
+          selectSyncableBySecondaryKey = StatementParts(sql: "SELECT * FROM \(elements.tableName) WHERE \(parts.secondaryKeySets.joined(separator: " AND ")) AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1", values: parts.secondaryKeyValues + [DataStatus.synced.rawValue, DataStatus.synced.rawValue], type: .query)
         }
         
-        let type = StatementType.save(syncable: elements.syncable, updatePrimary: updatePrimary, selectPrimary: selectPrimary, updateSecondary: updateSecondary, selectSecondary: selectSecondary, updateSecondarySyncable: updateSecondarySyncable, selectSecondarySyncable: selectSecondarySyncable)
+        let type = StatementType.save(syncable: elements.syncable, updateByPrimaryKey: updateByPrimaryKey, selectByPrimaryKey: selectByPrimaryKey, updateBySecondaryKey: updateBySecondaryKey, selectBySecondaryKey: selectBySecondaryKey, updateSyncableBySecondaryKey: updateSyncableBySecondaryKey, selectSyncableBySecondaryKey: selectSyncableBySecondaryKey)
         let insertStatement = StatementParts(sql: "INSERT OR IGNORE INTO \(elements.tableName) (\(parts.insertNames.joined(separator: ","))) VALUES (\(parts.insertPlaceholders.joined(separator: ",")))", values: parts.insertValues, type: type)
         return insertStatement
       }

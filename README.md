@@ -1,19 +1,25 @@
 # sModel
 
 sModel is a Swift framework written on top of FMDB to provide:
-  - Simple management of your database schema (including database updates)
+  - Simple management of your database schema (including schema updates)
   - Simple mapping of database rows to Swift objects
   - Batch updates for improved performance on large updates
+  - Easier handling of local data that gets synchronized with the server
 
 The included test project has examples of how to use all of the different features
 of sModel.  Compatible with Swift 4.
 
 ## DB Schema Management
 
-sModel will take a list of `sql` files (sorted alphabetically) and execute them against your
-db.  Each `sql` file is guaranteed to run once and only once for the lifetime of your app's
+sModel will take a list of `sql` files and execute them against your
+db.  The order in which these `sql` files are executed matters so we recommend following a naming
+scheme that make it easy consistently sort them in the same order each time and will result in new files
+sorting to the end of the list.  Each `sql` file is guaranteed to run once and only once for the lifetime of your app's
 installation on a device.  Simply add a new `sql` file to adjust your schema as your app requires
 and the next time the app runs, sModel will update your db schema.
+
+NOTE: Never remove old schema files.  These files will be executed for new installs and will ensure that the database
+schema is consistently constructed on all devices.
 
 sModel comes with a set of helpers to open/close your database and to load your `sql` files.
 
@@ -24,7 +30,7 @@ paths.sort() //You can sort the files however you would like, just stay consiste
 try? DBManager.open(nil, dbDefFilePaths: paths)
 ```
 
-### Example SQL files
+### Example SQL Schema Definition file
 
 ```sql
 CREATE TABLE "Thing" (
@@ -64,11 +70,22 @@ try? thing.save()
 
 To update an existing object, just modify it's properties and call `save`.
 
-Note: If a call to `save` results in a constraint violation, by default the system will throw a `ModelError.duplicate` error that contains the current model object from the database. Handling of constraint violations can be changed table by table via the `ModelDef.syncable` property or globably via the `DBManager.blindlyReplaceDuplicates` flag.  See comments on those properties for details.
+Note: If a call to `save` results in a constraint violation, by default the system will throw
+a `ModelError.duplicate` error that contains the existing model object from the database. 
+Handling of constraint violations can be changed table by table via the `ModelDef.syncable` 
+property or globably via the `DBManager.blindlyReplaceDuplicates` flag.  See comments 
+on those properties for details.
 
 ## Batch Processing
 
-Managing objects using the `save` or `delete` methods works great with smaller sets of data but has a noticable performance hit when dealing with large amounts of data.  The `DBManager.executeStatements` method will take an array of statements and execute them all as part of a single database transaction.  That means one statement fails all of the changes are rolled back which prevents your database from getting into a corrupted state.  It also dramatically improves the speed in which data can be added/updated/removed from the database. Database statements can either be generated manually or via a `ModelDef` object's `createSaveStatement` and `createDeleteStatement` methods.
+Managing objects using the `save` or `delete` methods works great with smaller sets of data 
+but has a noticable performance hit when dealing with large amounts of data.  The 
+`DBManager.executeStatements` method will take an array of statements and execute them 
+all as part of a single database transaction.  That means if one statement fails all of the changes 
+are rolled back which prevents your database from getting into a corrupted state.  It also 
+dramatically improves the speed in which data can be added/updated/removed from the database. 
+Database statements can either be generated manually or via a `ModelDef` object's 
+`createSaveStatement` and `createDeleteStatement` methods.
 
 ## Queries
 
