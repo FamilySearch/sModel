@@ -39,6 +39,11 @@ CREATE TABLE "Thing" (
 );
 ```
 
+### Bad Upgrade Recovery
+
+If a database file is corrupted or can't be updated for some reason, the system will try and recover
+by deleting the existing database and initializing fresh.   
+
 ## Object Mapping
 
 sModel will read data out of your database and map it into your models. For this to
@@ -72,9 +77,26 @@ To update an existing object, just modify it's properties and call `save`.
 
 Note: If a call to `save` results in a constraint violation, by default the system will throw
 a `ModelError.duplicate` error that contains the existing model object from the database. 
-Handling of constraint violations can be changed table by table via the `ModelDef.syncable` 
-property or globably via the `DBManager.blindlyReplaceDuplicates` flag.  See comments 
+Handling of constraint violations can be changed table by table by adopting the `SyncableModel` protocol
+or globably via the `DBManager.blindlyReplaceDuplicates` flag.  See comments 
 on those properties for details.
+
+## Handling Syncable Data
+
+`ModelDef`s can be flagged as syncable by implementing the `SyncableModel` protocol.  This is helpful
+when you have data in your database that might be changed locally while you are getting updates from
+an external source (e.g., updates from a server).  A `SyncableModel` will prevent local changes from being
+overwritten by server updates.  This is accomplished by using the `syncStatus` and  `syncInFlightStatus` fields to
+track the current sync state of the row.  The system will not allow rows that are not currently synced to be updated
+using only a secondary key.  This assumes that your table's primary key is a local only value and server updates will only
+be providing a value for the secondary key.
+
+### Sync States
+
+Correctly handling sync states is important if you are using `SyncableModel`s.  Row updates will only occur if:
+
+1. You provide the primary key for the row
+2. You provide the secondary key for the row and the `syncStatus` and `syncInFlightStatus` properties are both set to `.synced`
 
 ## Batch Processing
 
