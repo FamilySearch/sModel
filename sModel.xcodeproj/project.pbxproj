@@ -17,8 +17,8 @@
 		BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */; };
 		BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */; };
 		BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */; };
-		BD3E92861DDCCBCC0089EBEA /* 0001.sql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92841DDCCBCC0089EBEA /* 0001.sql */; };
-		BD3E92871DDCCBCC0089EBEA /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92851DDCCBCC0089EBEA /* 0002.sql */; };
+		BD3E92861DDCCBCC0089EBEA /* 0001.sqlTest in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92841DDCCBCC0089EBEA /* 0001.sqlTest */; };
+		BD3E92871DDCCBCC0089EBEA /* 0002.sqlTest in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92851DDCCBCC0089EBEA /* 0002.sqlTest */; };
 		BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92881DDCCBD20089EBEA /* TestModels.swift */; };
 		BD3E928E1DDCD7F30089EBEA /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
 		BD3E92931DDCDC5B0089EBEA /* FMDB.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -32,6 +32,10 @@
 		BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C22220641D008393D6 /* CreateStatementTests.swift */; };
 		BDA541C52220649F008393D6 /* TestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C42220649F008393D6 /* TestHelper.swift */; };
 		BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C6222067A5008393D6 /* SyncableModelTests.swift */; };
+		BDA541C92221025C008393D6 /* ExampleUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C82221025C008393D6 /* ExampleUsage.swift */; };
+		BDA541D122210667008393D6 /* 0001.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D022210667008393D6 /* 0001.sql */; };
+		BDA541D3222106A9008393D6 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541D2222106A9008393D6 /* Person.swift */; };
+		BDA541D522210A39008393D6 /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D422210A39008393D6 /* 0002.sql */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,8 +74,8 @@
 		BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
 		BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiThreadTests.swift; sourceTree = "<group>"; };
 		BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchemaTests.swift; sourceTree = "<group>"; };
-		BD3E92841DDCCBCC0089EBEA /* 0001.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0001.sql; sourceTree = "<group>"; };
-		BD3E92851DDCCBCC0089EBEA /* 0002.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0002.sql; sourceTree = "<group>"; };
+		BD3E92841DDCCBCC0089EBEA /* 0001.sqlTest */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0001.sqlTest; sourceTree = "<group>"; };
+		BD3E92851DDCCBCC0089EBEA /* 0002.sqlTest */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0002.sqlTest; sourceTree = "<group>"; };
 		BD3E92881DDCCBD20089EBEA /* TestModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestModels.swift; sourceTree = "<group>"; };
 		BD3E928B1DDCD4240089EBEA /* FMDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FMDB.framework; path = Carthage/Build/iOS/FMDB.framework; sourceTree = "<group>"; };
 		BD3E92941DDCF0EE0089EBEA /* DBManagerSetupTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerSetupTests.swift; sourceTree = "<group>"; };
@@ -84,6 +88,10 @@
 		BDA541C22220641D008393D6 /* CreateStatementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateStatementTests.swift; sourceTree = "<group>"; };
 		BDA541C42220649F008393D6 /* TestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelper.swift; sourceTree = "<group>"; };
 		BDA541C6222067A5008393D6 /* SyncableModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncableModelTests.swift; sourceTree = "<group>"; };
+		BDA541C82221025C008393D6 /* ExampleUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUsage.swift; sourceTree = "<group>"; };
+		BDA541D022210667008393D6 /* 0001.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0001.sql; sourceTree = "<group>"; };
+		BDA541D2222106A9008393D6 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+		BDA541D422210A39008393D6 /* 0002.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0002.sql; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +159,7 @@
 		BD3E926B1DDCCB900089EBEA /* sModelTests */ = {
 			isa = PBXGroup;
 			children = (
+				BDA541CC2221038B008393D6 /* example */,
 				BD297D661E200392003D2D29 /* BatchTests.swift */,
 				BDA541C22220641D008393D6 /* CreateStatementTests.swift */,
 				BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */,
@@ -172,8 +181,8 @@
 		BD3E92821DDCCBB90089EBEA /* defs */ = {
 			isa = PBXGroup;
 			children = (
-				BD3E92841DDCCBCC0089EBEA /* 0001.sql */,
-				BD3E92851DDCCBCC0089EBEA /* 0002.sql */,
+				BD3E92841DDCCBCC0089EBEA /* 0001.sqlTest */,
+				BD3E92851DDCCBCC0089EBEA /* 0002.sqlTest */,
 				BD3E92961DDCF3C20089EBEA /* testBad1.badSql */,
 			);
 			name = defs;
@@ -193,6 +202,33 @@
 				BD3E928B1DDCD4240089EBEA /* FMDB.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		BDA541CC2221038B008393D6 /* example */ = {
+			isa = PBXGroup;
+			children = (
+				BDA541CD222103A7008393D6 /* defs */,
+				BDA541C82221025C008393D6 /* ExampleUsage.swift */,
+				BDA541CF22210637008393D6 /* model */,
+			);
+			path = example;
+			sourceTree = "<group>";
+		};
+		BDA541CD222103A7008393D6 /* defs */ = {
+			isa = PBXGroup;
+			children = (
+				BDA541D022210667008393D6 /* 0001.sql */,
+				BDA541D422210A39008393D6 /* 0002.sql */,
+			);
+			path = defs;
+			sourceTree = "<group>";
+		};
+		BDA541CF22210637008393D6 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				BDA541D2222106A9008393D6 /* Person.swift */,
+			);
+			path = model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,8 +336,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD3E92861DDCCBCC0089EBEA /* 0001.sql in Resources */,
-				BD3E92871DDCCBCC0089EBEA /* 0002.sql in Resources */,
+				BDA541D122210667008393D6 /* 0001.sql in Resources */,
+				BD3E92861DDCCBCC0089EBEA /* 0001.sqlTest in Resources */,
+				BD3E92871DDCCBCC0089EBEA /* 0002.sqlTest in Resources */,
+				BDA541D522210A39008393D6 /* 0002.sql in Resources */,
 				BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -344,8 +382,10 @@
 				BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */,
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
+				BDA541C92221025C008393D6 /* ExampleUsage.swift in Sources */,
 				BDA541C52220649F008393D6 /* TestHelper.swift in Sources */,
 				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
+				BDA541D3222106A9008393D6 /* Person.swift in Sources */,
 				BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */,
 				BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,
