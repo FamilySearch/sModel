@@ -32,6 +32,13 @@ struct Message: ModelDef, SyncableModel {
   var syncStatus: DataStatus = .localOnly
   var syncInFlightStatus: DataStatus = .synced
   
+  init(messageId: String, content: String, createdOn: Date, ownerPersonId: String) {
+    self.messageId = messageId
+    self.content = content
+    self.createdOn = createdOn
+    self.ownerPersonId = ownerPersonId
+  }
+  
   typealias ModelType = Message
   static let tableName = "Message"
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
