@@ -13,11 +13,7 @@ class sModelPublicInterfaceTests: XCTestCase {
   
   override func setUp() {
     super.setUp()
-    
-    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
-    paths.sort()
-    
-    try! DBManager.open(nil, dbDefFilePaths: paths)
+    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
   }
   
   override func tearDown() {
@@ -26,11 +22,7 @@ class sModelPublicInterfaceTests: XCTestCase {
   }
   
   func testGetDBDefFiles() {
-    guard let paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self))) else {
-      XCTFail("Should have found .sql files in test project")
-      return
-    }
-    
+    let paths = TestHelper.getTestSQLPaths()
     XCTAssertEqual(2, paths.count)
   }
   

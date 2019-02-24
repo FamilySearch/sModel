@@ -14,17 +14,11 @@ class DBManagerMultiDBTests: XCTestCase {
   }
 
   private func openDB() {
-    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
-    paths.sort()
-
-    try! DBManager.open(nil, dbDefFilePaths: paths)
+    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
   }
   
   private func pushDB() {
-    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
-    paths.sort()
-
-    try! DBManager.push(nil, dbDefFilePaths: paths)
+    try! DBManager.push(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
   }
   
   func testCascadeClose() {

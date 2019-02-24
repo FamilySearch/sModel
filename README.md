@@ -122,6 +122,12 @@ let thing = Thing.firstInstanceWhere("tid = ?", "tid1") //Returns a Thing?
 let someThings = Thing.instancesWhere("tid in (?, ?)", "tid1", "tid2") //Return Array<Thing> for each `Thing` that matches the where clause
 ```
 
+## Full Working Example
+
+To see how all the parts work together, a full working example is available in the `sModelTests/example` folder.  This includes schema
+definition files, model examples, and code exercising all of the CRUD operations available in sModel.  The other unit tests can also be
+used to see how each of the public apis can be used.
+
 ## Running Locally
 
 To run the tests locally:

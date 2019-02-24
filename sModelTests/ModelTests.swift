@@ -4,11 +4,7 @@ import XCTest
 class ModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
-
-    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
-    paths.sort()
-
-    try! DBManager.open(nil, dbDefFilePaths: paths)
+    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
   }
 
   override func tearDown() {

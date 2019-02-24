@@ -12,10 +12,7 @@ class DBManagerSetupTests: XCTestCase {
   }
   
   func testDBOpen_notOnStack() {
-    var paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self)))!
-    paths.sort()
-
-    let dbMeta = try! DBManager.open(nil, dbDefFilePaths: paths, pushOnStack: false)
+    let dbMeta = try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths(), pushOnStack: false)
     dbMeta?.queue.inDatabase({ (db) in
       let result = db.getSchema()
       XCTAssertTrue(result!.next())
@@ -64,10 +61,7 @@ class DBManagerSetupTests: XCTestCase {
   }
 
   func testGetDBDefFiles() {
-    guard let paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self))) else {
-      XCTFail("Should have found sql files in test bundle")
-      return
-    }
+    let paths = TestHelper.getTestSQLPaths()
     XCTAssertEqual(paths.count, 2)
   }
 
