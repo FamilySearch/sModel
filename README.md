@@ -4,19 +4,18 @@ sModel is a Swift framework written on top of FMDB to provide:
   - Simple management of your database schema (including schema updates)
   - Simple mapping of database rows to Swift objects
   - Batch updates for improved performance on large updates
-  - Easier handling of local data that gets synchronized with the server
+  - Simplified handling of local data that gets synchronized with external data
 
-The included test project has examples of how to use all of the different features
-of sModel.  Compatible with Swift 4.
+The sModel library has been used for many years on multiple apps found in the AppStore.  This code is production ready and  has been battle tested by millions of
+users across multiple apps. Compatible with Swift 4.
 
 ## DB Schema Management
 
-sModel will take a list of `sql` files and execute them against your
-db.  The order in which these `sql` files are executed matters so we recommend following a naming
-scheme that make it easy consistently sort them in the same order each time and will result in new files
-sorting to the end of the list.  Each `sql` file is guaranteed to run once and only once for the lifetime of your app's
-installation on a device.  Simply add a new `sql` file to adjust your schema as your app requires
-and the next time the app runs, sModel will update your db schema.
+sModel will take a list of `sql` files and execute them against your database.  The order in which these `sql` files 
+are executed matters so we recommend following a naming scheme that makes it easy to consistently sort these files in 
+the same order each time and will result in new files sorting to the end of the list.  Each `sql` file is guaranteed 
+to run once and only once for the lifetime of your app's installation on a device.  Simply add a new `sql` file to
+adjust your schema as your app requires and the next time the app runs, sModel will update your db schema.
 
 NOTE: Never remove old schema files.  These files will be executed for new installs and will ensure that the database
 schema is consistently constructed on all devices.
@@ -25,7 +24,7 @@ sModel comes with a set of helpers to open/close your database and to load your 
 
 ```swift
 var paths = DBManager.getDBDefFiles(bundle: nil)!
-paths.sort() //You can sort the files however you would like, just stay consistent.
+//By default, the `getDBDefFiles` call will sort the paths alphabetically. You can sort the files however you would like, just stay consistent.
 
 try? DBManager.open(nil, dbDefFilePaths: paths)
 ```
@@ -59,13 +58,18 @@ struct Thing: ModelDef {
   static let tableName = "Thing"
   var primaryKeys: Array<CodingKey> { return [CodingKeys.tid] }
   var secondaryKeys: Array<CodingKey> { return [] }
-  static let syncable = false
 }
 ```
+sModel favors being explicit rather than infering information about your configuration.  That is why you will need
+to specify the name of the database table your model object will be stored in.  This explicitness avoids any "magic" and
+provides you flexibility to configure things however makes sense for your project.
+
+`ModelDef`s can safely use properties of type Int, Double, Bool, String, and Date.  You can even have properties that are 
+enums as long as the enum conforms to the `Codable` protocol. 
 
 ## Inserts/Updates
 
-Inserting an object into the database is as simple as creating an instance, populating
+Inserting an object into the database is as simple as creating an instance of that object, populating
 it with data, and calling `save`.
 
 ```swift
@@ -73,10 +77,10 @@ let thing = Thing(tid: "tid1", name: "thing 1")
 try? thing.save()
 ```
 
-To update an existing object, just modify it's properties and call `save`.
+To update an existing object, just modify its properties and call `save`.
 
 Note: If a call to `save` results in a constraint violation, by default the system will throw
-a `ModelError.duplicate` error that contains the existing model object from the database. 
+a `ModelError.duplicate` error that contains the existing model object from the database that caused the constraint violation. 
 Handling of constraint violations can be changed table by table by adopting the `SyncableModel` protocol
 or globably via the `DBManager.blindlyReplaceDuplicates` flag.  See comments 
 on those properties for details.
@@ -96,7 +100,8 @@ be providing a value for the secondary key.
 Correctly handling sync states is important if you are using `SyncableModel`s.  Row updates will only occur if:
 
 1. You provide the primary key for the row
-2. You provide the secondary key for the row and the `syncStatus` and `syncInFlightStatus` properties are both set to `.synced`
+OR
+2. You provide the secondary key for the row and the `syncStatus` and `syncInFlightStatus` properties are both set to `.synced` in the database.
 
 ## Batch Processing
 
