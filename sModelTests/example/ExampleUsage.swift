@@ -14,10 +14,17 @@ class ExampleUsage: XCTestCase {
   override func setUp() {
     super.setUp()
     
+    //This code would generally live in your app delegate's `didFinishLaunchingWithOptions` or somewhere that will
+    //run before you try and access the database.
     guard let paths = DBManager.getDBDefFiles(bundle: Bundle(for: type(of: self))) else {
       XCTFail()
       return
     }
+    
+    //You can control what logging is output by setting a different `logLevel` or by providing your own custom
+    //`Logger` by implementing the `Logger` protocol and setting the `Log.logger` property to an instances of your
+    //custom `Logger`.
+    Log.logLevel = .error
     
     try! DBManager.open(nil, dbDefFilePaths: paths)
   }
