@@ -12,8 +12,9 @@ Pod::Spec.new do |s|
 
   s.homepage     = "https://github.com/FamilySearch/sModel"
   s.license      = { :type => "Apache License, Version 2.0", :file => "LICENSE" }
-  s.author             = { "Stephen Lynn" => "slynn@familysearch.org" }
+  s.author       = { "Stephen Lynn" => "slynn@familysearch.org" }
 
+  s.swift_version = "4.0"
   s.ios.deployment_target		= "9.0"
   s.source       = { :git => "https://github.com/FamilySearch/sModel.git", :tag => "v#{s.version.to_s}" }
   s.source_files  = "Sources/*.swift"
