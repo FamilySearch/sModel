@@ -190,6 +190,29 @@ public class DBManager: NSObject {
     return dbMeta
   }
   
+  public class func clone(destinationPath: String, callback:(Bool)->()) {
+    guard let dbMeta = dbs.last else {
+      Log.error("There is no database currently open.")
+      callback(false)
+      return
+    }
+    
+    guard let dbPath = dbMeta.path else {
+      Log.error("Current database is an in-memory db and cannot be cloned.")
+      callback(false)
+      return
+    }
+    dbMeta.queue.inExclusiveTransaction { (db, rollback) in //need to lock the database from any writes while we copy it
+      do {
+        try FileManager.default.copyItem(atPath: dbPath, toPath: destinationPath)
+        callback(true)
+      } catch {
+        Log.error("Unable to clone database: \(error)")
+        callback(false)
+      }
+    }
+  }
+  
   public class func close() {
     while dbs.count > 0 {
       close(deleteDB: dbs.count > 1)

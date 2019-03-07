@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "sModel"
-  s.version      = "1.0.15"
+  s.version      = "1.1.0"
   s.summary      = "sModel is a lightweight Swift ORM backed by sqlite."
 
   s.description  = <<-DESC
