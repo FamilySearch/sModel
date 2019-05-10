@@ -36,6 +36,7 @@
 		BDA541D122210667008393D6 /* 0001.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D022210667008393D6 /* 0001.sql */; };
 		BDA541D3222106A9008393D6 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541D2222106A9008393D6 /* Person.swift */; };
 		BDA541D522210A39008393D6 /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D422210A39008393D6 /* 0002.sql */; };
+		E880490722851B6500D588B2 /* sModel_watchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = E880490522851B6500D588B2 /* sModel_watchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,9 @@
 		BDA541D022210667008393D6 /* 0001.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0001.sql; sourceTree = "<group>"; };
 		BDA541D2222106A9008393D6 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		BDA541D422210A39008393D6 /* 0002.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0002.sql; sourceTree = "<group>"; };
+		E880490322851B6500D588B2 /* sModel_watchOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel_watchOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E880490522851B6500D588B2 /* sModel_watchOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel_watchOS.h; sourceTree = "<group>"; };
+		E880490622851B6500D588B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +113,13 @@
 			files = (
 				BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */,
 				BD3E928E1DDCD7F30089EBEA /* FMDB.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E880490022851B6500D588B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +141,7 @@
 			isa = PBXGroup;
 			children = (
 				BDA25FCD215BFAD900808883 /* README.md */,
+				E880490422851B6500D588B2 /* sModel watchOS */,
 				BD3E928A1DDCD4240089EBEA /* Frameworks */,
 				BD3E925F1DDCCB8F0089EBEA /* Products */,
 				BD3E92601DDCCB8F0089EBEA /* sModel */,
@@ -143,6 +155,7 @@
 			children = (
 				BD3E925E1DDCCB8F0089EBEA /* sModel.framework */,
 				BD3E92671DDCCB900089EBEA /* sModelTests.xctest */,
+				E880490322851B6500D588B2 /* sModel_watchOS.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -231,6 +244,15 @@
 			path = model;
 			sourceTree = "<group>";
 		};
+		E880490422851B6500D588B2 /* sModel watchOS */ = {
+			isa = PBXGroup;
+			children = (
+				E880490522851B6500D588B2 /* sModel_watchOS.h */,
+				E880490622851B6500D588B2 /* Info.plist */,
+			);
+			path = "sModel watchOS";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -239,6 +261,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				BD3E926F1DDCCB900089EBEA /* sModel.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E88048FE22851B6500D588B2 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E880490722851B6500D588B2 /* sModel_watchOS.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,6 +313,24 @@
 			productReference = BD3E92671DDCCB900089EBEA /* sModelTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		E880490222851B6500D588B2 /* sModel watchOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E880490A22851B6500D588B2 /* Build configuration list for PBXNativeTarget "sModel watchOS" */;
+			buildPhases = (
+				E88048FE22851B6500D588B2 /* Headers */,
+				E88048FF22851B6500D588B2 /* Sources */,
+				E880490022851B6500D588B2 /* Frameworks */,
+				E880490122851B6500D588B2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "sModel watchOS";
+			productName = "sModel watchOS";
+			productReference = E880490322851B6500D588B2 /* sModel_watchOS.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -303,6 +351,10 @@
 						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
+					E880490222851B6500D588B2 = {
+						CreatedOnToolsVersion = 10.2.1;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = BD3E92581DDCCB8F0089EBEA /* Build configuration list for PBXProject "sModel" */;
@@ -310,6 +362,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = BD3E92541DDCCB8F0089EBEA;
@@ -319,6 +372,7 @@
 			targets = (
 				BD3E925D1DDCCB8F0089EBEA /* sModel */,
 				BD3E92661DDCCB900089EBEA /* sModelTests */,
+				E880490222851B6500D588B2 /* sModel watchOS */,
 			);
 		};
 /* End PBXProject section */
@@ -341,6 +395,13 @@
 				BD3E92871DDCCBCC0089EBEA /* 0002.sqlTest in Resources */,
 				BDA541D522210A39008393D6 /* 0002.sql in Resources */,
 				BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E880490122851B6500D588B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +454,13 @@
 				BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */,
 				BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */,
 				BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E88048FF22851B6500D588B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -607,6 +675,67 @@
 			};
 			name = Release;
 		};
+		E880490822851B6500D588B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "sModel watchOS/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.familysearch.sModel-watchOS";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 5.0;
+			};
+			name = Debug;
+		};
+		E880490922851B6500D588B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "sModel watchOS/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.familysearch.sModel-watchOS";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -633,6 +762,15 @@
 			buildConfigurations = (
 				BD3E92761DDCCB900089EBEA /* Debug */,
 				BD3E92771DDCCB900089EBEA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E880490A22851B6500D588B2 /* Build configuration list for PBXNativeTarget "sModel watchOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E880490822851B6500D588B2 /* Debug */,
+				E880490922851B6500D588B2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

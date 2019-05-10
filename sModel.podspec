@@ -20,6 +20,7 @@ Pod::Spec.new do |s|
 
   s.swift_version = "4.0"
   s.ios.deployment_target		= "9.0"
+  s.watchos.deployment_target = "2.0"
   s.source       = { :git => "https://github.com/FamilySearch/sModel.git", :tag => "v#{s.version.to_s}" }
   s.source_files  = "Sources/*.swift"
   s.requires_arc  = true
