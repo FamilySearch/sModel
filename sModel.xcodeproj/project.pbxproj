@@ -37,6 +37,11 @@
 		BDA541D3222106A9008393D6 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541D2222106A9008393D6 /* Person.swift */; };
 		BDA541D522210A39008393D6 /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D422210A39008393D6 /* 0002.sql */; };
 		E880490722851B6500D588B2 /* sModel_watchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = E880490522851B6500D588B2 /* sModel_watchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E8BBFA14228F65F8009EA196 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952081E6A2CD0001C6BB0 /* DBManager.swift */; };
+		E8BBFA15228F65FB009EA196 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
+		E8BBFA16228F65FE009EA196 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952091E6A2CD0001C6BB0 /* Model.swift */; };
+		E8BBFA17228F6601009EA196 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
+		E8BBFA1A228F693F009EA196 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E8BBFA19228F693F009EA196 /* FMDB.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +101,7 @@
 		E880490322851B6500D588B2 /* sModel_watchOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel_watchOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E880490522851B6500D588B2 /* sModel_watchOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel_watchOS.h; sourceTree = "<group>"; };
 		E880490622851B6500D588B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E8BBFA19228F693F009EA196 /* FMDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FMDB.framework; path = ../../../Carthage/Build/watchOS/FMDB.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +126,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E8BBFA1A228F693F009EA196 /* FMDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,6 +219,7 @@
 		BD3E928A1DDCD4240089EBEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E8BBFA19228F693F009EA196 /* FMDB.framework */,
 				BD3E928B1DDCD4240089EBEA /* FMDB.framework */,
 			);
 			name = Frameworks;
@@ -321,6 +329,7 @@
 				E88048FF22851B6500D588B2 /* Sources */,
 				E880490022851B6500D588B2 /* Frameworks */,
 				E880490122851B6500D588B2 /* Resources */,
+				E8BBFA18228F6721009EA196 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -422,6 +431,25 @@
 			shellPath = /bin/sh;
 			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
 		};
+		E8BBFA18228F6721009EA196 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/watchOS/FMDB.framework",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/FMDB.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks\n\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -461,6 +489,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E8BBFA16228F65FE009EA196 /* Model.swift in Sources */,
+				E8BBFA15228F65FB009EA196 /* Log.swift in Sources */,
+				E8BBFA14228F65F8009EA196 /* DBManager.swift in Sources */,
+				E8BBFA17228F6601009EA196 /* SQLCodeable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -690,6 +722,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage/Build/iOS";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "sModel watchOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -700,8 +733,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos iphonesimulator iphoneos";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
+				VALID_ARCHS = "arm64_32 armv7k i386 arm64 x86_64 armv7s";
 				WATCHOS_DEPLOYMENT_TARGET = 5.0;
 			};
 			name = Debug;
@@ -721,6 +756,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage/Build/iOS";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "sModel watchOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -730,8 +766,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos iphonesimulator iphoneos";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
+				VALID_ARCHS = "arm64_32 armv7k i386 arm64 x86_64 armv7s";
 				WATCHOS_DEPLOYMENT_TARGET = 5.0;
 			};
 			name = Release;
