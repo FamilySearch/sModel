@@ -12,7 +12,7 @@
 		BD2B586C204614F3009A9C12 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
 		BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952081E6A2CD0001C6BB0 /* DBManager.swift */; };
 		BD39520B1E6A2CD0001C6BB0 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952091E6A2CD0001C6BB0 /* Model.swift */; };
-		BD3E92681DDCCB900089EBEA /* sModel iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E925E1DDCCB8F0089EBEA /* sModel iOS.framework */; };
+		BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */; };
 		BD3E926F1DDCCB900089EBEA /* sModel.h in Headers */ = {isa = PBXBuildFile; fileRef = BD3E92611DDCCB8F0089EBEA /* sModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */; };
 		BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */; };
@@ -72,7 +72,7 @@
 		BD297D661E200392003D2D29 /* BatchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchTests.swift; sourceTree = "<group>"; };
 		BD3952081E6A2CD0001C6BB0 /* DBManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManager.swift; sourceTree = "<group>"; };
 		BD3952091E6A2CD0001C6BB0 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
-		BD3E925E1DDCCB8F0089EBEA /* sModel iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = "sModel iOS.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD3E925E1DDCCB8F0089EBEA /* sModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD3E92611DDCCB8F0089EBEA /* sModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel.h; sourceTree = "<group>"; };
 		BD3E92621DDCCB8F0089EBEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BD3E92671DDCCB900089EBEA /* sModelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sModelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,7 +98,7 @@
 		BDA541D022210667008393D6 /* 0001.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0001.sql; sourceTree = "<group>"; };
 		BDA541D2222106A9008393D6 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		BDA541D422210A39008393D6 /* 0002.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0002.sql; sourceTree = "<group>"; };
-		E880490322851B6500D588B2 /* sModel_watchOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel_watchOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E880490322851B6500D588B2 /* sModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E880490522851B6500D588B2 /* sModel_watchOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel_watchOS.h; sourceTree = "<group>"; };
 		E880490622851B6500D588B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E8BBFA19228F693F009EA196 /* FMDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FMDB.framework; path = ../../../Carthage/Build/watchOS/FMDB.framework; sourceTree = "<group>"; };
@@ -117,7 +117,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD3E92681DDCCB900089EBEA /* sModel iOS.framework in Frameworks */,
+				BD3E92681DDCCB900089EBEA /* sModel.framework in Frameworks */,
 				BD3E928E1DDCD7F30089EBEA /* FMDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -160,9 +160,9 @@
 		BD3E925F1DDCCB8F0089EBEA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BD3E925E1DDCCB8F0089EBEA /* sModel iOS.framework */,
+				BD3E925E1DDCCB8F0089EBEA /* sModel.framework */,
 				BD3E92671DDCCB900089EBEA /* sModelTests.xctest */,
-				E880490322851B6500D588B2 /* sModel_watchOS.framework */,
+				E880490322851B6500D588B2 /* sModel.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -299,7 +299,7 @@
 			);
 			name = "sModel iOS";
 			productName = sModel;
-			productReference = BD3E925E1DDCCB8F0089EBEA /* sModel iOS.framework */;
+			productReference = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		BD3E92661DDCCB900089EBEA /* sModelTests */ = {
@@ -337,7 +337,7 @@
 			);
 			name = "sModel watchOS";
 			productName = "sModel watchOS";
-			productReference = E880490322851B6500D588B2 /* sModel_watchOS.framework */;
+			productReference = E880490322851B6500D588B2 /* sModel.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -640,7 +640,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -665,7 +665,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
@@ -730,7 +730,7 @@
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.familysearch.sModel-watchOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = sModel;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "watchsimulator watchos";
@@ -764,7 +764,7 @@
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.familysearch.sModel-watchOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = sModel;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "watchsimulator watchos";
