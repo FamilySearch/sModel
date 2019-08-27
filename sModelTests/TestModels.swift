@@ -66,7 +66,7 @@ class Animal: ModelDef {
   var props: ResultDictionary {
     get {
       if
-        let dictResult = try? Animal.dataToDictionary(propsData),
+        let dictResult = ((try? Animal.dataToDictionary(propsData)) as Dictionary<String, Any>??),
         let dict = dictResult
       {
         return dict
@@ -75,7 +75,7 @@ class Animal: ModelDef {
     }
     set {
       if
-        let dataResult = try? Animal.dictionaryToData(newValue),
+        let dataResult = ((try? Animal.dictionaryToData(newValue)) as Data??),
         let data = dataResult
       {
         propsData = data

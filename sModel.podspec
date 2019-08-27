@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "sModel"
-  s.version      = "1.1.0"
+  s.version      = "1.1.1"
   s.summary      = "sModel is a lightweight Swift ORM backed by sqlite."
 
   s.description  = <<-DESC
@@ -18,8 +18,8 @@ Pod::Spec.new do |s|
   s.license      = { :type => "Apache License, Version 2.0", :file => "LICENSE" }
   s.author       = { "Stephen Lynn" => "slynn@familysearch.org" }
 
-  s.swift_version = "4.0"
-  s.ios.deployment_target		= "9.0"
+  s.swift_version = "5.0"
+  s.ios.deployment_target		= "12.0"
   s.source       = { :git => "https://github.com/FamilySearch/sModel.git", :tag => "v#{s.version.to_s}" }
   s.source_files  = "Sources/*.swift"
   s.requires_arc  = true

@@ -52,7 +52,7 @@ public protocol SQLDecodable: Decodable {
   init(fromSQL decoder: SQLDecoder) throws
 }
 public extension SQLDecodable {
-  public init(fromSQL decoder: SQLDecoder) throws {
+  init(fromSQL decoder: SQLDecoder) throws {
     try self.init(from: decoder)
   }
 }
