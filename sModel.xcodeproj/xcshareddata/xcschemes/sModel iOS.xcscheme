@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
                BuildableName = "sModel.framework"
-               BlueprintName = "sModel"
+               BlueprintName = "sModel iOS"
                ReferencedContainer = "container:sModel.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -44,7 +44,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
             BuildableName = "sModel.framework"
-            BlueprintName = "sModel"
+            BlueprintName = "sModel iOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -66,7 +66,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
             BuildableName = "sModel.framework"
-            BlueprintName = "sModel"
+            BlueprintName = "sModel iOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -84,7 +84,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
             BuildableName = "sModel.framework"
-            BlueprintName = "sModel"
+            BlueprintName = "sModel iOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

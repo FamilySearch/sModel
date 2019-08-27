@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>sModel</string>
 	<key>CFBundleExecutable</key>
@@ -17,10 +17,8 @@
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.1</string>
+	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1.2.1</string>
-	<key>NSPrincipalClass</key>
-	<string></string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 </dict>
 </plist>
