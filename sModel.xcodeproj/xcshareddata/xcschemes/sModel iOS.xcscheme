@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
-               BuildableName = "sModel iOS.framework"
+               BuildableName = "sModel.framework"
                BlueprintName = "sModel iOS"
                ReferencedContainer = "container:sModel.xcodeproj">
             </BuildableReference>
@@ -27,6 +27,15 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
+            BuildableName = "sModel.framework"
+            BlueprintName = "sModel iOS"
+            ReferencedContainer = "container:sModel.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -39,20 +48,9 @@
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
-            BuildableName = "sModel iOS.framework"
-            BlueprintName = "sModel iOS"
-            ReferencedContainer = "container:sModel.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -65,13 +63,11 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
-            BuildableName = "sModel iOS.framework"
+            BuildableName = "sModel.framework"
             BlueprintName = "sModel iOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -83,7 +79,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BD3E925D1DDCCB8F0089EBEA"
-            BuildableName = "sModel iOS.framework"
+            BuildableName = "sModel.framework"
             BlueprintName = "sModel iOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>

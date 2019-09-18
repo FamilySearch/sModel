@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E880490222851B6500D588B2"
-               BuildableName = "sModel_watchOS.framework"
+               BuildableName = "sModel.framework"
                BlueprintName = "sModel watchOS"
                ReferencedContainer = "container:sModel.xcodeproj">
             </BuildableReference>
@@ -29,11 +29,9 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -46,13 +44,11 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E880490222851B6500D588B2"
-            BuildableName = "sModel_watchOS.framework"
+            BuildableName = "sModel.framework"
             BlueprintName = "sModel watchOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -64,7 +60,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E880490222851B6500D588B2"
-            BuildableName = "sModel_watchOS.framework"
+            BuildableName = "sModel.framework"
             BlueprintName = "sModel watchOS"
             ReferencedContainer = "container:sModel.xcodeproj">
          </BuildableReference>
