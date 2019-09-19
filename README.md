@@ -139,3 +139,4 @@ To run the tests locally:
  - Install Carthage
  - In the root folder of the project, run `carthage update --platform ios`
  - Run the unit tests from XCode
+
