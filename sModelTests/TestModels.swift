@@ -105,3 +105,21 @@ class Animal: ModelDef {
   var primaryKeys: Array<CodingKey> { return [CodingKeys.aid] }
   var secondaryKeys: Array<CodingKey> { return [] }
 }
+
+struct Place: ModelDef, StickyProperties {
+  var localId = UUID().uuidString
+  var name: String
+  var placeId: String?
+  var isHot: Bool?
+  var isWet: Bool?
+  
+  init(name: String) {
+    self.name = name
+  }
+  
+  typealias ModelType = Place
+  static let tableName = "Place"
+  var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
+  var secondaryKeys: Array<CodingKey> { return [CodingKeys.placeId] }
+  var stickyProperties: Array<CodingKey> { return [CodingKeys.isHot] }
+}

@@ -1,7 +1,12 @@
 CREATE TABLE "Place" (
-  "pid" TEXT PRIMARY KEY,
-  "name" TEXT
+  "localId" TEXT PRIMARY KEY,
+  "placeId" TEXT,
+  "name" TEXT,
+  "isHot" INTEGER,
+  "isWet" INTEGER
 );
+
+CREATE UNIQUE INDEX "main"."INDEX_placeId" ON Place ("placeId");
 
 ALTER TABLE Thing ADD other INTEGER;
 ALTER TABLE Thing ADD otherDouble REAL;

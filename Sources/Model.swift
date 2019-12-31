@@ -32,6 +32,17 @@ public protocol SyncableModel {
   var syncInFlightStatus: DataStatus { get set }
 }
 
+/**
+ Adopting this protocol will allow you to define properties that are "sticky".  A
+ sticky property is one that retains it's value even when it's being updated by an object
+ that contains a null for that property.  This is useful for properties that contain values
+ that are expensive to compute and so aren't always available with every write of that object.
+ Sticky properties must be optionals.
+ */
+public protocol StickyProperties {
+  var stickyProperties: Array<CodingKey> { get }
+}
+
 public enum DataStatus: Int, Codable {
   case localOnly = 1, dirty, synced, deleted, temporary, ignore
 }
@@ -272,6 +283,11 @@ extension ModelDef {
         parts.secondaryKeyValues.append(value)
         
       } else { //non key column
+        //don't include this column if it's sticky and there is no value
+        guard !elements.stickyProps || !column.isStickyProp || column.value != nil else {
+          continue
+        }
+        
         parts.primaryUpdatePredicates.append(column.predicate)
         if let value = column.value {
           parts.primaryUpdateValues.append(value)

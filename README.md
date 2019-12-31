@@ -6,8 +6,8 @@ sModel is a Swift framework written on top of FMDB to provide:
   - Batch updates for improved performance on large updates
   - Simplified handling of local data that gets synchronized with external data
 
-The sModel library has been used for many years on multiple apps found in the AppStore.  This code is production ready and  has been battle tested by millions of
-users across multiple apps. Compatible with Swift 4.
+The sModel library has been used for many years on multiple apps found in the AppStore.  This code is production ready and has been battle tested by millions of
+users across multiple apps. Compatible with Swift 5.
 
 ## DB Schema Management
 
@@ -102,6 +102,14 @@ Correctly handling sync states is important if you are using `SyncableModel`s.  
 1. You provide the primary key for the row
 OR
 2. You provide the secondary key for the row and the `syncStatus` and `syncInFlightStatus` properties are both set to `.synced` in the database.
+
+
+## Sticky Properties
+
+A sticky property is a nullable property that cannot be set to null once it's been given a value. This is helpful
+for properties that are expensive to compute but are nice to retain across object updates.  `ModelDef`s can be flagged as 
+containing sticky properties by implementing the `StickyProperties` protocol.
+
 
 ## Batch Processing
 

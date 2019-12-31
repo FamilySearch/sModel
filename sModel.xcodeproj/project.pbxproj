@@ -28,6 +28,7 @@
 		BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */; };
 		BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
+		BD95430A23BBD38900301BAD /* StickyModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD95430923BBD38900301BAD /* StickyModelTests.swift */; };
 		BDA25FCE215BFAD900808883 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BDA25FCD215BFAD900808883 /* README.md */; };
 		BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C22220641D008393D6 /* CreateStatementTests.swift */; };
 		BDA541C52220649F008393D6 /* TestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C42220649F008393D6 /* TestHelper.swift */; };
@@ -90,6 +91,7 @@
 		BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerMultiDBTests.swift; sourceTree = "<group>"; };
 		BD6081881FB62CFA0011A0D0 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
+		BD95430923BBD38900301BAD /* StickyModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyModelTests.swift; sourceTree = "<group>"; };
 		BDA25FCD215BFAD900808883 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BDA541C22220641D008393D6 /* CreateStatementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateStatementTests.swift; sourceTree = "<group>"; };
 		BDA541C42220649F008393D6 /* TestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelper.swift; sourceTree = "<group>"; };
@@ -194,6 +196,7 @@
 				BD1737801DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift */,
 				BDA541C6222067A5008393D6 /* SyncableModelTests.swift */,
 				BDA541C42220649F008393D6 /* TestHelper.swift */,
+				BD95430923BBD38900301BAD /* StickyModelTests.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";
@@ -477,6 +480,7 @@
 				BDA541D3222106A9008393D6 /* Person.swift in Sources */,
 				BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */,
 				BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */,
+				BD95430A23BBD38900301BAD /* StickyModelTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,
 				BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */,
 				BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */,
@@ -631,6 +635,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1.3.0;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -643,6 +648,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;
@@ -657,6 +663,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1.3.0;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -669,6 +676,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;

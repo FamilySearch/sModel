@@ -28,7 +28,7 @@ class SchemaTests: XCTestCase {
       XCTAssertTrue(db.columnExists("name", inTableWithName: "Animal"))
 
       XCTAssertTrue(db.tableExists("Place"))
-      XCTAssertTrue(db.columnExists("pid", inTableWithName: "Place"))
+      XCTAssertTrue(db.columnExists("placeId", inTableWithName: "Place"))
       XCTAssertTrue(db.columnExists("name", inTableWithName: "Place"))
 
       XCTAssertEqual(db.userVersion, 2)

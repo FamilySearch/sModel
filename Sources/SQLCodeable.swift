@@ -6,6 +6,7 @@ public typealias SQLArrayOfStrings = Array<String>
 public struct SQLElements {
   let tableName: String
   let syncable: Bool
+  let stickyProps: Bool
   let primaryKeys: Array<SQLColumn>
   let secondaryKeys: Array<SQLColumn>
   let columns: Array<SQLColumn>
@@ -17,6 +18,7 @@ public struct SQLColumn {
   let value: Any?
   let isPrimaryKey: Bool
   let isSecondaryKey: Bool
+  let isStickyProp: Bool
 }
 
 extension SQLColumn: CustomDebugStringConvertible {
@@ -76,7 +78,8 @@ public class SQLEncoder: Encoder {
       let encoder = SQLEncoder(rootValue: value)
       try value.encode(to: encoder)
       let syncable = value is SyncableModel
-      let elements = SQLElements(tableName: type(of: value).tableName, syncable: syncable, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
+      let stickyProps = value is StickyProperties
+      let elements = SQLElements(tableName: type(of: value).tableName, syncable: syncable, stickyProps: stickyProps, primaryKeys: encoder.primaryKeys, secondaryKeys: encoder.secondaryKeys, columns: encoder.columns)
       return elements
     } catch {
       Log.error("Error encoding sql: \(error)")
@@ -114,13 +117,25 @@ public class SQLEncoder: Encoder {
     return false
   }
   
+  private func isSticky(key: CodingKey) -> Bool {
+    guard let rootValue = rootValue as? StickyProperties else { return false }
+    
+    let keyString = key.stringValue
+    for k in rootValue.stickyProperties {
+      if k.stringValue == keyString {
+        return true
+      }
+    }
+    return false
+  }
+  
   private func _encode(_ value: Any?, key: CodingKey) {
     guard let value = value else {
       encodeNil(key)
       return
     }
     
-    let column = SQLColumn(name: key.stringValue, predicate: "\(key.stringValue) = ?", value: value, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
+    let column = SQLColumn(name: key.stringValue, predicate: "\(key.stringValue) = ?", value: value, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key), isStickyProp: isSticky(key: key))
     if column.isPrimaryKey {
       primaryKeys.append(column)
     }
@@ -139,7 +154,7 @@ public class SQLEncoder: Encoder {
   func encode(_ value: Data?, key: CodingKey) { _encode(value, key: key)}
   
   func encodeNil(_ key: CodingKey) {
-    let column = SQLColumn(name: key.stringValue, predicate: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key))
+    let column = SQLColumn(name: key.stringValue, predicate: "\(key.stringValue) = NULL", value: nil, isPrimaryKey: isPrimary(key: key), isSecondaryKey: isSecondary(key: key), isStickyProp: isSticky(key: key))
     columns.append(column)
     if column.isPrimaryKey {
       primaryKeys.append(column)
