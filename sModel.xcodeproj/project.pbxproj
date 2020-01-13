@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -36,6 +36,7 @@
 		BDA541D122210667008393D6 /* 0001.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D022210667008393D6 /* 0001.sql */; };
 		BDA541D3222106A9008393D6 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541D2222106A9008393D6 /* Person.swift */; };
 		BDA541D522210A39008393D6 /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D422210A39008393D6 /* 0002.sql */; };
+		E80465B023CD287E00D9DC9C /* FMDB in Frameworks */ = {isa = PBXBuildFile; productRef = E80465AF23CD287E00D9DC9C /* FMDB */; };
 		E880490722851B6500D588B2 /* sModel_watchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = E880490522851B6500D588B2 /* sModel_watchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E8BBFA14228F65F8009EA196 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952081E6A2CD0001C6BB0 /* DBManager.swift */; };
 		E8BBFA15228F65FB009EA196 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
@@ -110,6 +111,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BD2B586C204614F3009A9C12 /* FMDB.framework in Frameworks */,
+				E80465B023CD287E00D9DC9C /* FMDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,6 +300,9 @@
 			dependencies = (
 			);
 			name = "sModel iOS";
+			packageProductDependencies = (
+				E80465AF23CD287E00D9DC9C /* FMDB */,
+			);
 			productName = sModel;
 			productReference = BD3E925E1DDCCB8F0089EBEA /* sModel.framework */;
 			productType = "com.apple.product-type.framework";
@@ -375,6 +380,9 @@
 				en,
 			);
 			mainGroup = BD3E92541DDCCB8F0089EBEA;
+			packageReferences = (
+				E80465AE23CD287E00D9DC9C /* XCRemoteSwiftPackageReference "fmdb" */,
+			);
 			productRefGroup = BD3E925F1DDCCB8F0089EBEA /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -615,7 +623,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -638,7 +647,11 @@
 				);
 				INFOPLIST_FILE = sModel/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;
@@ -663,7 +676,11 @@
 				);
 				INFOPLIST_FILE = sModel/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;
@@ -681,7 +698,11 @@
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = sModelTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -698,7 +719,11 @@
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = sModelTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -725,7 +750,11 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "sModel watchOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
@@ -760,7 +789,11 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "sModel watchOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.familysearch.sModel-watchOS";
@@ -815,6 +848,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E80465AE23CD287E00D9DC9C /* XCRemoteSwiftPackageReference "fmdb" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ccgus/fmdb";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E80465AF23CD287E00D9DC9C /* FMDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E80465AE23CD287E00D9DC9C /* XCRemoteSwiftPackageReference "fmdb" */;
+			productName = FMDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BD3E92551DDCCB8F0089EBEA /* Project object */;
 }

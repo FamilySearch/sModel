@@ -22,6 +22,7 @@ let package = Package(
     targets: [
         .target(
             name: "sModel",
+            dependencies: ["FMDB"],
             path: "Sources")
     ],
     swiftLanguageVersions: [.v5]
