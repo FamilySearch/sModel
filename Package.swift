@@ -13,6 +13,12 @@ let package = Package(
             name: "sModel",
             targets: ["sModel"])
     ],
+    dependencies: [
+        .package(
+            url: "https://github.com/ccgus/fmdb",
+            .branch("master")
+        )
+    ],
     targets: [
         .target(
             name: "sModel",
