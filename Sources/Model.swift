@@ -52,43 +52,40 @@ extension ModelDef {
     return UUID().uuidString
   }
   
-  //MARK: Helper methods for storing arrays/dictionary values to the database.  This allows a ModelDef object to have properties of type Array/Dictionary.
-  public static func dataToArray(_ data: Data?) throws -> Array<Dictionary<String,Any>>? {
+  //MARK: Helper methods for storing arrays/dictionary/object values to the database.  This allows a ModelDef object to have properties of type Array/Dictionary/Object.
+  public static func dataTo<T>(_ data: Data?) throws -> T? {
     guard let data = data else {
       return nil
     }
-    guard let a = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Array<Dictionary<String,Any>> else {
+    guard let o = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? T else {
       Log.error("Error converting data to an array")
       throw ModelError<ModelType>.invalidObject
     }
-    return a
+    return o
+  }
+  
+  public static func toData<T>(_ obj: T?) throws -> Data? {
+    guard let obj = obj else {
+      return nil
+    }
+    let data = try PropertyListSerialization.data(fromPropertyList: obj, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
+    return data
+  }
+  
+  public static func dataToArray(_ data: Data?) throws -> Array<Dictionary<String,Any>>? {
+    return try dataTo(data)
   }
   
   public static func arrayToData(_ array: Array<Dictionary<String,Any>>?) throws -> Data? {
-    guard let array = array else {
-      return nil
-    }
-    let data = try PropertyListSerialization.data(fromPropertyList: array, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
-    return data
+    try toData(array)
   }
   
   public static func dataToDictionary(_ data: Data?) throws -> Dictionary<String,Any>? {
-    guard let data = data else {
-      return nil
-    }
-    guard let d = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions(), format: nil) as? Dictionary<String,Any> else {
-      Log.error("Error converting data to a dictionary")
-      throw ModelError<ModelType>.invalidObject
-    }
-    return d
+    return try dataTo(data)
   }
   
   public static func dictionaryToData(_ dictionary: Dictionary<String,Any>?) throws -> Data? {
-    guard let dictionary = dictionary else {
-      return nil
-    }
-    let data = try PropertyListSerialization.data(fromPropertyList: dictionary, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
-    return data
+    try toData(dictionary)
   }
 
   //MARK: Convenience methods for getting data out of db

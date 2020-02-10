@@ -144,6 +144,25 @@ class ModelTests: XCTestCase {
     
     XCTAssertNil(dbAnimal.ids)
   }
+  
+  func testGenericDataTo_toData() {
+    do {
+      let names = ["Fido", "Rover", "Mutt"]
+      let data = try Animal.toData(names)
+      guard let restoredNames: Array<String> = try Animal.dataTo(data) else {
+        XCTFail()
+        return
+      }
+      
+      XCTAssertEqual(names.count, restoredNames.count)
+      XCTAssertEqual(names[0], restoredNames[0])
+      XCTAssertEqual(names[1], restoredNames[1])
+      XCTAssertEqual(names[2], restoredNames[2])
+      
+    } catch {
+      XCTFail("\(error)")
+    }
+  }
 
   //MARK: Edge cases
   
