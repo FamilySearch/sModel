@@ -27,6 +27,8 @@
 		BD4A96F3246CAB3B003CAFA4 /* DBBadTestDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F2246CAB3B003CAFA4 /* DBBadTestDefs.swift */; };
 		BD4A96F5246CD358003CAFA4 /* ExampleDBDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F4246CD358003CAFA4 /* ExampleDBDefs.swift */; };
 		BD4A96F7246CD82E003CAFA4 /* DBLoadTestDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F6246CD82E003CAFA4 /* DBLoadTestDefs.swift */; };
+		BD4A9708246DA4AA003CAFA4 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A9707246DA4AA003CAFA4 /* Utils.swift */; };
+		BD4A970A246DA521003CAFA4 /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A9709246DA521003CAFA4 /* UtilsTests.swift */; };
 		BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
 		BD95430A23BBD38900301BAD /* StickyModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD95430923BBD38900301BAD /* StickyModelTests.swift */; };
@@ -89,6 +91,8 @@
 		BD4A96F2246CAB3B003CAFA4 /* DBBadTestDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBBadTestDefs.swift; sourceTree = "<group>"; };
 		BD4A96F4246CD358003CAFA4 /* ExampleDBDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleDBDefs.swift; sourceTree = "<group>"; };
 		BD4A96F6246CD82E003CAFA4 /* DBLoadTestDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBLoadTestDefs.swift; sourceTree = "<group>"; };
+		BD4A9707246DA4AA003CAFA4 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		BD4A9709246DA521003CAFA4 /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 		BD6081881FB62CFA0011A0D0 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
 		BD95430923BBD38900301BAD /* StickyModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyModelTests.swift; sourceTree = "<group>"; };
@@ -140,6 +144,7 @@
 				BD6081881FB62CFA0011A0D0 /* Log.swift */,
 				BD3952091E6A2CD0001C6BB0 /* Model.swift */,
 				BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */,
+				BD4A9707246DA4AA003CAFA4 /* Utils.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -195,6 +200,7 @@
 				BDA541C6222067A5008393D6 /* SyncableModelTests.swift */,
 				BDA541C42220649F008393D6 /* TestHelper.swift */,
 				BD95430923BBD38900301BAD /* StickyModelTests.swift */,
+				BD4A9709246DA521003CAFA4 /* UtilsTests.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";
@@ -452,6 +458,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD4A9708246DA4AA003CAFA4 /* Utils.swift in Sources */,
 				BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */,
 				BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */,
 				BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */,
@@ -466,6 +473,7 @@
 				BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */,
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
+				BD4A970A246DA521003CAFA4 /* UtilsTests.swift in Sources */,
 				BD4A96F3246CAB3B003CAFA4 /* DBBadTestDefs.swift in Sources */,
 				BDA541C92221025C008393D6 /* ExampleUsage.swift in Sources */,
 				BDA541C52220649F008393D6 /* TestHelper.swift in Sources */,

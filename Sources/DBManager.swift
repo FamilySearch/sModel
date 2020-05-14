@@ -112,43 +112,30 @@ public class DBManager: NSObject {
     var upgradeFailed = false
     queue.inDatabase({ (db) -> Void in
       let startSchemaVersion = Int(db.userVersion)
-      var currentSchemaVersion = startSchemaVersion
+      let endSchemaVersion = dbDefs.count
+      
+      if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: dbDefs) {
+        let defRange = "\(startSchemaVersion + 1)-\(endSchemaVersion)"
+        Log.info("\nExecuting SQL Statements (\(defRange))\n\(unProcessedDefs)")
+        
+        db.beginTransaction()
+        if db.executeStatements(unProcessedDefs) {
+          db.commit()
+          db.userVersion = UInt32(endSchemaVersion)
 
-      for (defCount, def) in dbDefs.enumerated() {
-        let newVersionNum = defCount + 1
-        if currentSchemaVersion < newVersionNum { //unprocessed def string
-          do {
-            db.beginTransaction()
-            let sql = def
-            let sqlStatements = sql.components(separatedBy: ";")
+          Log.info("Successfully updated db schema to version v\(endSchemaVersion)")
 
-            for (stmtCount, statement) in sqlStatements.enumerated() {
-              let trimmedStatement = statement.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-              if trimmedStatement.utf8.count > 0 {
-                Log.info("\nExecuting SQL Statement (dbDef[\(newVersionNum)] : \(stmtCount))\n\(trimmedStatement)")
-                try db.executeUpdate(trimmedStatement, values: nil)
-              }
-            }
-
-            db.commit()
-            currentSchemaVersion = newVersionNum
-            db.userVersion = UInt32(currentSchemaVersion)
-
-          } catch {
-            upgradeFailed = true
-            if isRetry {
-              Log.error("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
-            } else {
-              Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
-            }
-            return
+        } else {
+          upgradeFailed = true
+          if isRetry {
+            Log.error("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
+          } else {
+            Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
           }
+          return
         }
-      }
-
-      if(startSchemaVersion != currentSchemaVersion) {
-        Log.info("Successfully updated db schema to version v\(currentSchemaVersion)")
-      } else {
+      
+      } else { //already current
         Log.info("Database is current at version v\(startSchemaVersion)")
       }
     })
