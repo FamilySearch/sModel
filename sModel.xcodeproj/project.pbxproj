@@ -17,15 +17,18 @@
 		BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */; };
 		BD3E92801DDCCBB40089EBEA /* MultiThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */; };
 		BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */; };
-		BD3E92861DDCCBCC0089EBEA /* 0001.sqlTest in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92841DDCCBCC0089EBEA /* 0001.sqlTest */; };
-		BD3E92871DDCCBCC0089EBEA /* 0002.sqlTest in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92851DDCCBCC0089EBEA /* 0002.sqlTest */; };
 		BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92881DDCCBD20089EBEA /* TestModels.swift */; };
 		BD3E928E1DDCD7F30089EBEA /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; };
 		BD3E92931DDCDC5B0089EBEA /* FMDB.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD3E928B1DDCD4240089EBEA /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92941DDCF0EE0089EBEA /* DBManagerSetupTests.swift */; };
-		BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */ = {isa = PBXBuildFile; fileRef = BD3E92961DDCF3C20089EBEA /* testBad1.badSql */; };
 		BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */; };
 		BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */; };
+		BD4A96F1246CA262003CAFA4 /* DBTestDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F0246CA262003CAFA4 /* DBTestDefs.swift */; };
+		BD4A96F3246CAB3B003CAFA4 /* DBBadTestDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F2246CAB3B003CAFA4 /* DBBadTestDefs.swift */; };
+		BD4A96F5246CD358003CAFA4 /* ExampleDBDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F4246CD358003CAFA4 /* ExampleDBDefs.swift */; };
+		BD4A96F7246CD82E003CAFA4 /* DBLoadTestDefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A96F6246CD82E003CAFA4 /* DBLoadTestDefs.swift */; };
+		BD4A9708246DA4AA003CAFA4 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A9707246DA4AA003CAFA4 /* Utils.swift */; };
+		BD4A970A246DA521003CAFA4 /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A9709246DA521003CAFA4 /* UtilsTests.swift */; };
 		BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
 		BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */; };
 		BD95430A23BBD38900301BAD /* StickyModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD95430923BBD38900301BAD /* StickyModelTests.swift */; };
@@ -34,9 +37,7 @@
 		BDA541C52220649F008393D6 /* TestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C42220649F008393D6 /* TestHelper.swift */; };
 		BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C6222067A5008393D6 /* SyncableModelTests.swift */; };
 		BDA541C92221025C008393D6 /* ExampleUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541C82221025C008393D6 /* ExampleUsage.swift */; };
-		BDA541D122210667008393D6 /* 0001.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D022210667008393D6 /* 0001.sql */; };
 		BDA541D3222106A9008393D6 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA541D2222106A9008393D6 /* Person.swift */; };
-		BDA541D522210A39008393D6 /* 0002.sql in Resources */ = {isa = PBXBuildFile; fileRef = BDA541D422210A39008393D6 /* 0002.sql */; };
 		E880490722851B6500D588B2 /* sModel_watchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = E880490522851B6500D588B2 /* sModel_watchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E8BBFA14228F65F8009EA196 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3952081E6A2CD0001C6BB0 /* DBManager.swift */; };
 		E8BBFA15228F65FB009EA196 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6081881FB62CFA0011A0D0 /* Log.swift */; };
@@ -81,14 +82,17 @@
 		BD3E927C1DDCCBB40089EBEA /* ModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
 		BD3E927D1DDCCBB40089EBEA /* MultiThreadTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiThreadTests.swift; sourceTree = "<group>"; };
 		BD3E927E1DDCCBB40089EBEA /* SchemaTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchemaTests.swift; sourceTree = "<group>"; };
-		BD3E92841DDCCBCC0089EBEA /* 0001.sqlTest */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0001.sqlTest; sourceTree = "<group>"; };
-		BD3E92851DDCCBCC0089EBEA /* 0002.sqlTest */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 0002.sqlTest; sourceTree = "<group>"; };
 		BD3E92881DDCCBD20089EBEA /* TestModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestModels.swift; sourceTree = "<group>"; };
 		BD3E928B1DDCD4240089EBEA /* FMDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FMDB.framework; path = Carthage/Build/iOS/FMDB.framework; sourceTree = "<group>"; };
 		BD3E92941DDCF0EE0089EBEA /* DBManagerSetupTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerSetupTests.swift; sourceTree = "<group>"; };
-		BD3E92961DDCF3C20089EBEA /* testBad1.badSql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testBad1.badSql; sourceTree = "<group>"; };
 		BD3E92981DDCF79A0089EBEA /* DBManagerUsageTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerUsageTests.swift; sourceTree = "<group>"; };
 		BD3E929A1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBManagerMultiDBTests.swift; sourceTree = "<group>"; };
+		BD4A96F0246CA262003CAFA4 /* DBTestDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBTestDefs.swift; sourceTree = "<group>"; };
+		BD4A96F2246CAB3B003CAFA4 /* DBBadTestDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBBadTestDefs.swift; sourceTree = "<group>"; };
+		BD4A96F4246CD358003CAFA4 /* ExampleDBDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleDBDefs.swift; sourceTree = "<group>"; };
+		BD4A96F6246CD82E003CAFA4 /* DBLoadTestDefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBLoadTestDefs.swift; sourceTree = "<group>"; };
+		BD4A9707246DA4AA003CAFA4 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		BD4A9709246DA521003CAFA4 /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 		BD6081881FB62CFA0011A0D0 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLCodeable.swift; sourceTree = "<group>"; };
 		BD95430923BBD38900301BAD /* StickyModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyModelTests.swift; sourceTree = "<group>"; };
@@ -97,9 +101,7 @@
 		BDA541C42220649F008393D6 /* TestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelper.swift; sourceTree = "<group>"; };
 		BDA541C6222067A5008393D6 /* SyncableModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncableModelTests.swift; sourceTree = "<group>"; };
 		BDA541C82221025C008393D6 /* ExampleUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUsage.swift; sourceTree = "<group>"; };
-		BDA541D022210667008393D6 /* 0001.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0001.sql; sourceTree = "<group>"; };
 		BDA541D2222106A9008393D6 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
-		BDA541D422210A39008393D6 /* 0002.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = 0002.sql; sourceTree = "<group>"; };
 		E880490322851B6500D588B2 /* sModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = sModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E880490522851B6500D588B2 /* sModel_watchOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sModel_watchOS.h; sourceTree = "<group>"; };
 		E880490622851B6500D588B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 				BD6081881FB62CFA0011A0D0 /* Log.swift */,
 				BD3952091E6A2CD0001C6BB0 /* Model.swift */,
 				BD7AABE11F730CF6008EEF47 /* SQLCodeable.swift */,
+				BD4A9707246DA4AA003CAFA4 /* Utils.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -197,6 +200,7 @@
 				BDA541C6222067A5008393D6 /* SyncableModelTests.swift */,
 				BDA541C42220649F008393D6 /* TestHelper.swift */,
 				BD95430923BBD38900301BAD /* StickyModelTests.swift */,
+				BD4A9709246DA521003CAFA4 /* UtilsTests.swift */,
 			);
 			path = sModelTests;
 			sourceTree = "<group>";
@@ -204,9 +208,9 @@
 		BD3E92821DDCCBB90089EBEA /* defs */ = {
 			isa = PBXGroup;
 			children = (
-				BD3E92841DDCCBCC0089EBEA /* 0001.sqlTest */,
-				BD3E92851DDCCBCC0089EBEA /* 0002.sqlTest */,
-				BD3E92961DDCF3C20089EBEA /* testBad1.badSql */,
+				BD4A96F2246CAB3B003CAFA4 /* DBBadTestDefs.swift */,
+				BD4A96F6246CD82E003CAFA4 /* DBLoadTestDefs.swift */,
+				BD4A96F0246CA262003CAFA4 /* DBTestDefs.swift */,
 			);
 			name = defs;
 			sourceTree = "<group>";
@@ -241,8 +245,7 @@
 		BDA541CD222103A7008393D6 /* defs */ = {
 			isa = PBXGroup;
 			children = (
-				BDA541D022210667008393D6 /* 0001.sql */,
-				BDA541D422210A39008393D6 /* 0002.sql */,
+				BD4A96F4246CD358003CAFA4 /* ExampleDBDefs.swift */,
 			);
 			path = defs;
 			sourceTree = "<group>";
@@ -403,11 +406,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BDA541D122210667008393D6 /* 0001.sql in Resources */,
-				BD3E92861DDCCBCC0089EBEA /* 0001.sqlTest in Resources */,
-				BD3E92871DDCCBCC0089EBEA /* 0002.sqlTest in Resources */,
-				BDA541D522210A39008393D6 /* 0002.sql in Resources */,
-				BD3E92971DDCF3C20089EBEA /* testBad1.badSql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -460,6 +458,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD4A9708246DA4AA003CAFA4 /* Utils.swift in Sources */,
 				BD7AABE21F730CF6008EEF47 /* SQLCodeable.swift in Sources */,
 				BD39520A1E6A2CD0001C6BB0 /* DBManager.swift in Sources */,
 				BD6081891FB62CFA0011A0D0 /* Log.swift in Sources */,
@@ -474,6 +473,8 @@
 				BDA541C7222067A5008393D6 /* SyncableModelTests.swift in Sources */,
 				BD3E927F1DDCCBB40089EBEA /* ModelTests.swift in Sources */,
 				BD3E929B1DDE18BA0089EBEA /* DBManagerMultiDBTests.swift in Sources */,
+				BD4A970A246DA521003CAFA4 /* UtilsTests.swift in Sources */,
+				BD4A96F3246CAB3B003CAFA4 /* DBBadTestDefs.swift in Sources */,
 				BDA541C92221025C008393D6 /* ExampleUsage.swift in Sources */,
 				BDA541C52220649F008393D6 /* TestHelper.swift in Sources */,
 				BD297D671E200392003D2D29 /* BatchTests.swift in Sources */,
@@ -482,10 +483,13 @@
 				BDA541C32220641D008393D6 /* CreateStatementTests.swift in Sources */,
 				BD95430A23BBD38900301BAD /* StickyModelTests.swift in Sources */,
 				BD3E92951DDCF0EE0089EBEA /* DBManagerSetupTests.swift in Sources */,
+				BD4A96F7246CD82E003CAFA4 /* DBLoadTestDefs.swift in Sources */,
 				BD1737811DE4BA5E007171D0 /* sModelPublicInterfaceTests.swift in Sources */,
 				BD3E92891DDCCBD20089EBEA /* TestModels.swift in Sources */,
 				BD3E92811DDCCBB40089EBEA /* SchemaTests.swift in Sources */,
 				BD3E92991DDCF79A0089EBEA /* DBManagerUsageTests.swift in Sources */,
+				BD4A96F5246CD358003CAFA4 /* ExampleDBDefs.swift in Sources */,
+				BD4A96F1246CA262003CAFA4 /* DBTestDefs.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -635,7 +639,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
-				CURRENT_PROJECT_VERSION = 1.4.0;
+				CURRENT_PROJECT_VERSION = 2.0.0;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -648,7 +652,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;
@@ -663,7 +667,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
-				CURRENT_PROJECT_VERSION = 1.4.0;
+				CURRENT_PROJECT_VERSION = 2.0.0;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -676,7 +680,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.familysearch.sModel;
 				PRODUCT_NAME = sModel;
 				SKIP_INSTALL = YES;

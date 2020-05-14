@@ -5,7 +5,7 @@ class MultiThreadTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
 
   override func tearDown() {
@@ -19,7 +19,7 @@ class MultiThreadTests: XCTestCase {
 
     @discardableResult
     func insertThing(_ tid: String, name: String) -> Thing {
-      let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+      let newThing = Thing(tid: tid, name: name, place: nil, other: 0, otherDouble: 0)
       try? newThing.save()
       return newThing
     }

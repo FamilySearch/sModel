@@ -12,7 +12,7 @@ import XCTest
 class SyncableModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
   
   override func tearDown() {
@@ -21,10 +21,10 @@ class SyncableModelTests: XCTestCase {
   }
   
   func testInsertDuplicateSyncableObject_doNotOverwriteExistingDBRowWithLatest() {
-    let originalThing = SyncableThing(tid: "tid1", name: "thing 1")
+    let originalThing = SyncableThing(tid: "tid1", name: "thing 1", place: nil)
     try? originalThing.save()
     
-    var newThing = SyncableThing(tid: "tid1", name: "otherthing 1")
+    var newThing = SyncableThing(tid: "tid1", name: "otherthing 1", place: nil)
     
     XCTAssertNotEqual(originalThing.name, newThing.name)
     
@@ -45,7 +45,7 @@ class SyncableModelTests: XCTestCase {
   }
   
   func testInsertSyncableWithNullSecondaryKey() {
-    let thing = SyncableThing(tid: nil, name: "thing1")
+    let thing = SyncableThing(tid: nil, name: "thing1", place: nil)
     try? thing.save()
     
     let thingFromDB = thing.readFromDB()
@@ -54,11 +54,11 @@ class SyncableModelTests: XCTestCase {
   }
   
   func testUpdateSecondaryKeyAfterInsertOfDuplicate() {
-    let origThing = SyncableThing(tid: nil, name: "thing1")
+    let origThing = SyncableThing(tid: nil, name: "thing1", place: nil)
     do {
       try origThing.save()
       
-      let serverThing = SyncableThing(tid: "tid1", name: "thing1Server")
+      let serverThing = SyncableThing(tid: "tid1", name: "thing1Server", place: nil)
       try serverThing.save()
     } catch {
       XCTFail()
@@ -76,29 +76,31 @@ class SyncableModelTests: XCTestCase {
   }
   
   func testSaveExistingSyncableShouldReturnExistingInstance() {
-    let thing = SyncableThing(tid: "tid1", name: "thing 1")
+    let thing = SyncableThing(tid: "tid1", name: "thing 1", place: "place 1")
     thing.syncStatus = .synced
     thing.syncInFlightStatus = .synced
     try? thing.save()
     
-    let newThing = SyncableThing(tid: "tid1", name: "thing 1 new")
+    let newThing = SyncableThing(tid: "tid1", name: "thing 1 new", place: nil)
     newThing.syncStatus = .synced
     newThing.syncInFlightStatus = .synced
     do {
       try newThing.save()
+      XCTFail()
     } catch ModelError<SyncableThing>.duplicate(let existingItem) {
       XCTAssertEqual(thing.localId, existingItem.localId)
       XCTAssertEqual(newThing.name, existingItem.name)
+      XCTAssertNil(existingItem.place)
     } catch {
       XCTFail()
     }
   }
   
   func testNonSyncable_lastSaveWins_butPreserveOriginalPrimaryKeyValue() {
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    let thing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
     try? thing.save()
     
-    let newThing = Thing(tid: "tid1", name: "newThing 1", other: 0, otherDouble: 0)
+    let newThing = Thing(tid: "tid1", name: "newThing 1", place: nil, other: 0, otherDouble: 0)
     
     do {
       try newThing.save()
@@ -115,11 +117,11 @@ class SyncableModelTests: XCTestCase {
   }
   
   func testSyncable_firstSaveWins_PreserveUpdatesToFirstWhenNotSynced() {
-    let thing = SyncableThing(tid: "tid1", name: "thing 1")
+    let thing = SyncableThing(tid: "tid1", name: "thing 1", place: nil)
     thing.syncStatus = .dirty
     try? thing.save()
     
-    let newThing = SyncableThing(tid: "tid1", name: "newThing 1")
+    let newThing = SyncableThing(tid: "tid1", name: "newThing 1", place: nil)
     
     //can't save newThing because thing has non-synced status
     do {
@@ -152,7 +154,7 @@ class SyncableModelTests: XCTestCase {
     //allow updates from server if there are no local changes
     thing.syncStatus = .synced
     try? thing.save()
-    let thingFromServer = SyncableThing(tid: "tid1", name: "serverThing")
+    let thingFromServer = SyncableThing(tid: "tid1", name: "serverThing", place: nil)
     do {
       try thingFromServer.save()
     } catch ModelError<SyncableThing>.duplicate(let existingItem) {

@@ -11,31 +11,17 @@ users across multiple apps. Compatible with Swift 5.
 
 ## DB Schema Management
 
-sModel will take a list of `sql` files and execute them against your database.  The order in which these `sql` files 
-are executed matters so we recommend following a naming scheme that makes it easy to consistently sort these files in 
-the same order each time and will result in new files sorting to the end of the list.  Each `sql` file is guaranteed 
-to run once and only once for the lifetime of your app's installation on a device.  Simply add a new `sql` file to
+sModel will take an array of `sql` strings and execute them against your database.  The order in which these `sql` strings 
+are executed matters so we recommend storing them in an array.  Each `sql` string is guaranteed to run once and only once for the 
+lifetime of your app's installation on a device.  Simply add a new `sql` string to the end of your array to
 adjust your schema as your app requires and the next time the app runs, sModel will update your db schema.
 
-NOTE: Never remove old schema files.  These files will be executed for new installs and will ensure that the database
+NOTE: Never remove old `sql` strings.  These strings will be executed for new installs and will ensure that the database
 schema is consistently constructed on all devices.
 
-sModel comes with a set of helpers to open/close your database and to load your `sql` files.
-
 ```swift
-var paths = DBManager.getDBDefFiles(bundle: nil)!
-//By default, the `getDBDefFiles` call will sort the paths alphabetically. You can sort the files however you would like, just stay consistent.
-
-try? DBManager.open(nil, dbDefFilePaths: paths)
-```
-
-### Example SQL Schema Definition file
-
-```sql
-CREATE TABLE "Thing" (
-  "tid" TEXT PRIMARY KEY,
-  "name" TEXT
-);
+let defs: [String] = ["CREATE TABLE \"Thing\" (\"tid\" TEXT PRIMARY KEY, \"name\" TEXT);"]
+try? DBManager.open(nil, dbDefs: defs)
 ```
 
 ### Bad Upgrade Recovery

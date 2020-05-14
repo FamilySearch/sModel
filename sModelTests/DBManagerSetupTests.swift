@@ -12,7 +12,7 @@ class DBManagerSetupTests: XCTestCase {
   }
   
   func testDBOpen_notOnStack() {
-    let dbMeta = try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths(), pushOnStack: false)
+    let dbMeta = try! DBManager.open(nil, dbDefs: DBTestDefs.defs, pushOnStack: false)
     dbMeta?.queue.inDatabase({ (db) in
       let result = db.getSchema()
       XCTAssertTrue(result!.next())
@@ -30,7 +30,7 @@ class DBManagerSetupTests: XCTestCase {
 
   func testBadDBPath() {
     do {
-      try DBManager.open("/badPath/bob.sqlite3", dbDefFilePaths: ["badSqlFilePath"])
+      try DBManager.open("/badPath/bob.sqlite3", dbDefs: DBBadTestDefs.defs)
       XCTFail("DBManager should have thrown an error when given a bad path")
     } catch DBError.dbPathInvalid {
 
@@ -40,10 +40,8 @@ class DBManagerSetupTests: XCTestCase {
   }
 
   func testFailedDBUpgrade_Creation() {
-    let paths = Bundle(for: type(of: self)).paths(forResourcesOfType: "badSql", inDirectory: nil)
-
     do {
-      try DBManager.open(nil, dbDefFilePaths: paths)
+      try DBManager.open(nil, dbDefs: DBBadTestDefs.defs)
       XCTFail("DBManager should have thrown an error when given a bad path")
     } catch DBError.recreateFailed {
       print("Threw error when trying to create db with bad schema def.")
@@ -59,10 +57,11 @@ class DBManagerSetupTests: XCTestCase {
     }
     XCTAssertTrue(path.hasSuffix("Documents/testName.sqlite3"))
   }
-
-  func testGetDBDefFiles() {
-    let paths = TestHelper.getTestSQLPaths()
-    XCTAssertEqual(paths.count, 2)
+  
+  func testLargeDBDefArray_Performance() {
+    self.measure {
+      try! DBManager.open(nil, dbDefs: DBLoadTestDefs.defs, pushOnStack: false)
+    }
   }
 
 }

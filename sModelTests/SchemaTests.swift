@@ -12,8 +12,7 @@ class SchemaTests: XCTestCase {
   }
 
   func testSchemaCreation() {
-    let paths = TestHelper.getTestSQLPaths()
-    try! DBManager.open(nil, dbDefFilePaths: paths)
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
 
     let queue = try! DBManager.getDBQueue()
 

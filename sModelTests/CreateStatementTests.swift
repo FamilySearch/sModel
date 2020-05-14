@@ -13,7 +13,7 @@ class CreateStatementTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
   
   override func tearDown() {
@@ -59,7 +59,7 @@ class CreateStatementTests: XCTestCase {
   }
   
   func testCreateSaveStatement_insert() {
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    let thing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
     
     guard let statement = try? thing.createSaveStatement() else {
       XCTFail()
@@ -74,12 +74,12 @@ class CreateStatementTests: XCTestCase {
     XCTAssertFalse(syncable)
     XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
     XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(updateByPrimaryKey.sql, "UPDATE Thing SET tid = ?,name = ?,other = ?,otherDouble = ? WHERE localId = ?")
+    XCTAssertEqual(updateByPrimaryKey.sql, "UPDATE Thing SET tid = ?,name = ?,place = NULL,other = ?,otherDouble = ? WHERE localId = ?")
     XCTAssertEqual(5, updateByPrimaryKey.values.count)
     XCTAssertEqual(selectPrimary.sql, "SELECT * FROM Thing WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, selectPrimary.values.count)
     XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
+    XCTAssertEqual(updateSecondary!.sql, "UPDATE Thing SET name = ?,place = NULL,other = ?,otherDouble = ? WHERE tid = ?")
     XCTAssertEqual(4, updateSecondary!.values.count)
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
@@ -89,7 +89,7 @@ class CreateStatementTests: XCTestCase {
   }
   
   func testCreateSaveStatement_insert_syncable() {
-    let thing = SyncableThing(tid: "tid1", name: "thing 1")
+    let thing = SyncableThing(tid: "tid1", name: "thing 1", place: nil)
     
     guard let statement = try? thing.createSaveStatement() else {
       XCTFail()
@@ -104,18 +104,18 @@ class CreateStatementTests: XCTestCase {
     XCTAssertTrue(syncable)
     XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO SyncableThing (localId,tid,name,syncStatus,syncInFlightStatus) VALUES (?,?,?,?,?)")
     XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE SyncableThing SET tid = ?,name = ?,syncStatus = ?,syncInFlightStatus = ? WHERE localId = ?")
+    XCTAssertEqual(updatePrimary.sql, "UPDATE SyncableThing SET tid = ?,name = ?,place = NULL,syncStatus = ?,syncInFlightStatus = ? WHERE localId = ?")
     XCTAssertEqual(5, updatePrimary.values.count)
     XCTAssertEqual(selectPrimary.sql, "SELECT * FROM SyncableThing WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, selectPrimary.values.count)
     XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE SyncableThing SET name = ?,syncStatus = ?,syncInFlightStatus = ? WHERE tid = ?")
+    XCTAssertEqual(updateSecondary!.sql, "UPDATE SyncableThing SET name = ?,place = NULL,syncStatus = ?,syncInFlightStatus = ? WHERE tid = ?")
     XCTAssertEqual(4, updateSecondary!.values.count)
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM SyncableThing WHERE tid = ? LIMIT 1")
     XCTAssertEqual(1, selectSecondary!.values.count)
     XCTAssertNotNil(updateSecondarySyncable)
-    XCTAssertEqual(updateSecondarySyncable!.sql, "UPDATE SyncableThing SET name = ? WHERE tid = ?")
+    XCTAssertEqual(updateSecondarySyncable!.sql, "UPDATE SyncableThing SET name = ?,place = NULL WHERE tid = ?")
     XCTAssertEqual(2, updateSecondarySyncable!.values.count)
     XCTAssertNotNil(selectSecondarySyncable)
     XCTAssertEqual(selectSecondarySyncable!.sql, "SELECT * FROM SyncableThing WHERE tid = ? AND syncStatus = ? AND syncInFlightStatus = ? LIMIT 1")
@@ -210,12 +210,12 @@ class CreateStatementTests: XCTestCase {
     XCTAssertFalse(syncable)
     XCTAssertEqual(statement.sql, "INSERT OR IGNORE INTO Thing (localId,tid,name,other,otherDouble) VALUES (?,?,?,?,?)")
     XCTAssertEqual(5, statement.values.count)
-    XCTAssertEqual(updatePrimary.sql, "UPDATE Thing SET tid = ?,name = ?,other = ?,otherDouble = ? WHERE localId = ?")
+    XCTAssertEqual(updatePrimary.sql, "UPDATE Thing SET tid = ?,name = ?,place = NULL,other = ?,otherDouble = ? WHERE localId = ?")
     XCTAssertEqual(5, updatePrimary.values.count)
     XCTAssertEqual(selectPrimary.sql, "SELECT * FROM Thing WHERE localId = ? LIMIT 1")
     XCTAssertEqual(1, selectPrimary.values.count)
     XCTAssertNotNil(updateSecondary)
-    XCTAssertEqual(updateSecondary!.sql, "UPDATE Thing SET name = ?,other = ?,otherDouble = ? WHERE tid = ?")
+    XCTAssertEqual(updateSecondary!.sql, "UPDATE Thing SET name = ?,place = NULL,other = ?,otherDouble = ? WHERE tid = ?")
     XCTAssertEqual(4, updateSecondary!.values.count)
     XCTAssertNotNil(selectSecondary)
     XCTAssertEqual(selectSecondary!.sql, "SELECT * FROM Thing WHERE tid = ? LIMIT 1")
@@ -226,7 +226,7 @@ class CreateStatementTests: XCTestCase {
   
   func testCreateSaveStatement_replaceDuplicates() {
     DBManager.blindlyReplaceDuplicates = true
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    let thing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
     
     guard let statement = try? thing.createSaveStatement() else {
       XCTFail()
@@ -242,7 +242,7 @@ class CreateStatementTests: XCTestCase {
   }
   
   func testCreateDeleteStatements() {
-    let thing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    let thing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
     
     var statement = Thing.createDeleteAllStatement()
     XCTAssertEqual(statement.sql, "DELETE FROM Thing")

@@ -13,17 +13,12 @@ class sModelPublicInterfaceTests: XCTestCase {
   
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
   
   override func tearDown() {
     DBManager.close()
     super.tearDown()
-  }
-  
-  func testGetDBDefFiles() {
-    let paths = TestHelper.getTestSQLPaths()
-    XCTAssertEqual(2, paths.count)
   }
   
   func testGenerateUUID() {
@@ -127,7 +122,7 @@ class sModelPublicInterfaceTests: XCTestCase {
   }
   
   func testDeleteNonDBInstance() {
-    let newThing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    let newThing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
     
     newThing.delete()
     
@@ -191,7 +186,7 @@ class sModelPublicInterfaceTests: XCTestCase {
 
   @discardableResult
   private func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+    let newThing = Thing(tid: tid, name: name, place: nil, other: 0, otherDouble: 0)
     try? newThing.save()
     return newThing
   }
