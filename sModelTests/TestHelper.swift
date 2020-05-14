@@ -12,13 +12,6 @@ import Foundation
 class TestHelper {
   //MARK: Helpers
   
-  class func getTestSQLPaths() -> [String] {
-    let pathBundle = Bundle(for: TestHelper.self)
-    var paths = pathBundle.paths(forResourcesOfType: "sqlTest", inDirectory: nil)
-    paths.sort()
-    return paths
-  }
-  
   class func insertABunchOfThings(_ count: Int) {
     for i in 0..<count {
       insertThing("tid\(i)", name: "thing \(i)")
@@ -26,8 +19,8 @@ class TestHelper {
   }
   
   @discardableResult
-  class func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+  class func insertThing(_ tid: String, name: String, place: String? = nil) -> Thing {
+    let newThing = Thing(tid: tid, name: name, place: nil, other: 0, otherDouble: 0)
     try? newThing.save()
     return newThing
   }

@@ -12,7 +12,7 @@ import XCTest
 class BatchTests: XCTestCase {
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
   
   override func tearDown() {
@@ -46,7 +46,7 @@ class BatchTests: XCTestCase {
         return
       }
       XCTAssertEqual(t1FromDB.name, "tree1Dup")
-      XCTAssertNil(t1Dup.readFromDB())
+      XCTAssertNil(t1Dup.readFromDB(), "Should drop duplicate entry when using batch saves")
       XCTAssertEqual(t3FromDB.name, "tree3")
       
     } catch {
@@ -182,7 +182,7 @@ class BatchTests: XCTestCase {
     var statements = [StatementParts]()
     
     for i in 0..<count {
-      let thing = Thing(tid: "tid\(i)", name: "\(prefix) thing \(i)", other: 0, otherDouble: 0)
+      let thing = Thing(tid: "tid\(i)", name: "\(prefix) thing \(i)", place: nil, other: 0, otherDouble: 0)
       
       if let statement = try? thing.createSaveStatement() {
         statements.append(statement)
@@ -196,7 +196,7 @@ class BatchTests: XCTestCase {
     var statements = [StatementParts]()
     
     for i in 0..<count {
-      let sThing = SyncableThing(tid: "tid\(i)", name: "\(prefix) animal \(i)")
+      let sThing = SyncableThing(tid: "tid\(i)", name: "\(prefix) animal \(i)", place: nil)
 
       if let statement = try? sThing.createSaveStatement() {
         statements.append(statement)

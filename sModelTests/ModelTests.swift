@@ -4,7 +4,7 @@ import XCTest
 class ModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
 
   override func tearDown() {
@@ -16,7 +16,7 @@ class ModelTests: XCTestCase {
   //MARK: Happy path
   
   func testInsertDuplicateRow() {
-    try? Thing(tid: "tid1", name: "thing 1", other: 10, otherDouble: 10.1234).save()
+    try? Thing(tid: "tid1", name: "thing 1", place: nil, other: 10, otherDouble: 10.1234).save()
     guard let thing = Thing.firstInstanceWhere("tid = ?", params: ["tid1"]) else {
       XCTFail()
       return
@@ -25,7 +25,7 @@ class ModelTests: XCTestCase {
     XCTAssertNotNil(thing)
     XCTAssertEqual(thing.other, 10)
     
-    let newThing = Thing(tid: "tid1", name: "thing 1", other: 0, otherDouble: 0)
+    let newThing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
     
     do {
       try newThing.save()
@@ -100,7 +100,7 @@ class ModelTests: XCTestCase {
   }
 
   func testInsertNullProperty() {
-    let newThing = Thing(tid: "tid1", name: nil, other: 0, otherDouble: 0)
+    let newThing = Thing(tid: "tid1", name: nil, place: nil, other: 0, otherDouble: 0)
     
     try? newThing.save()
 
@@ -167,9 +167,9 @@ class ModelTests: XCTestCase {
   //MARK: Edge cases
   
   func testInsertDuplicateObject_overwriteExistingDBRowWithLatest() {
-    let originalThing = TestHelper.insertThing("tid1", name: "thing 1")
+    let originalThing = TestHelper.insertThing("tid1", name: "thing 1", place: "place 1")
     
-    var newThing = Thing(tid: "tid1", name: "otherThing1", other: 0, otherDouble: 0)
+    var newThing = Thing(tid: "tid1", name: "otherThing1", place: nil, other: 0, otherDouble: 0)
     
     XCTAssertNotEqual(originalThing.localId, newThing.localId)
     
@@ -181,9 +181,9 @@ class ModelTests: XCTestCase {
       XCTFail()
     }
     
-    XCTAssertEqual(originalThing.localId, newThing.localId)
+    XCTAssertEqual(originalThing.localId, newThing.localId) //preserve the original localId
     XCTAssertEqual(newThing.name, "otherThing1")
-    XCTAssertEqual(newThing.localId, originalThing.localId)
+    XCTAssertNil(newThing.place)
     
     let thingCount = Thing.numberOfInstancesWhere("tid = ?", params: "tid1")
     XCTAssertEqual(thingCount, 1)
@@ -203,7 +203,7 @@ class ModelTests: XCTestCase {
   }
   
   func testReadFromDB_unsavedInstance() {
-    let thing = Thing(tid: "tidx", name: "thing x", other: 0, otherDouble: 0)
+    let thing = Thing(tid: "tidx", name: "thing x", place: nil, other: 0, otherDouble: 0)
     let otherThing = thing.readFromDB()
     XCTAssertNil(otherThing)
   }

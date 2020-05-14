@@ -84,12 +84,12 @@ public class DBManager: NSObject {
     }
   }
   
-  public class func push(_ dbPath: String?, dbDefFilePaths: Array<String>?) throws {
+  public class func push(_ dbPath: String?, dbDefs: Array<String>) throws {
     guard dbs.count > 0 else {
       throw DBError.pushFailed
     }
     
-    try open(dbPath, dbDefFilePaths: dbDefFilePaths)
+    try open(dbPath, dbDefs: dbDefs)
   }
   
   public class func pop(deleteDB: Bool) throws {
@@ -100,9 +100,9 @@ public class DBManager: NSObject {
     
     close(deleteDB: deleteDB)
   }
-
+  
   @discardableResult
-  public class func open(_ dbPath: String?, dbDefFilePaths: Array<String>?, pushOnStack: Bool = true) throws -> DBMeta? {
+  public class func open(_ dbPath: String?, dbDefs: Array<String>, pushOnStack: Bool = true) throws -> DBMeta? {
     Log.info("Open database queue at: \(dbPath ?? "IN_MEMORY_DB")")
 
     guard let queue = FMDatabaseQueue(path: dbPath) else {
@@ -114,37 +114,34 @@ public class DBManager: NSObject {
       let startSchemaVersion = Int(db.userVersion)
       var currentSchemaVersion = startSchemaVersion
 
-      if let defPaths = dbDefFilePaths {
-        for (fileCount, path) in defPaths.enumerated() {
-          let newVersionNum = fileCount + 1
-          if currentSchemaVersion < newVersionNum { //un-processed def file
-            do {
-              db.beginTransaction()
-              let sql = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
-              let sqlStatements = sql.components(separatedBy: ";")
-              let fileName = NSString(string: path).lastPathComponent
+      for (defCount, def) in dbDefs.enumerated() {
+        let newVersionNum = defCount + 1
+        if currentSchemaVersion < newVersionNum { //unprocessed def string
+          do {
+            db.beginTransaction()
+            let sql = def
+            let sqlStatements = sql.components(separatedBy: ";")
 
-              for (stmtCount, statement) in sqlStatements.enumerated() {
-                let trimmedStatement = statement.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                if trimmedStatement.utf8.count > 0 {
-                  Log.info("\nExecuting SQL Statement (\(fileName) : \(stmtCount))\n\(trimmedStatement)")
-                  try db.executeUpdate(trimmedStatement, values: nil)
-                }
+            for (stmtCount, statement) in sqlStatements.enumerated() {
+              let trimmedStatement = statement.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+              if trimmedStatement.utf8.count > 0 {
+                Log.info("\nExecuting SQL Statement (dbDef[\(newVersionNum)] : \(stmtCount))\n\(trimmedStatement)")
+                try db.executeUpdate(trimmedStatement, values: nil)
               }
-
-              db.commit()
-              currentSchemaVersion = newVersionNum
-              db.userVersion = UInt32(currentSchemaVersion)
-
-            } catch {
-              upgradeFailed = true
-              if isRetry {
-                Log.error("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
-              } else {
-                Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
-              }
-              return
             }
+
+            db.commit()
+            currentSchemaVersion = newVersionNum
+            db.userVersion = UInt32(currentSchemaVersion)
+
+          } catch {
+            upgradeFailed = true
+            if isRetry {
+              Log.error("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
+            } else {
+              Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(newVersionNum)")
+            }
+            return
           }
         }
       }
@@ -174,7 +171,7 @@ public class DBManager: NSObject {
         }
         isRetry = true
         do {
-          dbMeta = try self.open(dbPath, dbDefFilePaths: dbDefFilePaths, pushOnStack: pushOnStack)
+          dbMeta = try self.open(dbPath, dbDefs: dbDefs, pushOnStack: pushOnStack)
         } catch {
           Log.error("Error trying to recreate main db: \(String(describing: dbPath))")
           throw DBError.recreateFailed

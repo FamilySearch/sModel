@@ -14,11 +14,11 @@ class DBManagerMultiDBTests: XCTestCase {
   }
 
   private func openDB() {
-    try! DBManager.open(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
   }
   
   private func pushDB() {
-    try! DBManager.push(nil, dbDefFilePaths: TestHelper.getTestSQLPaths())
+    try! DBManager.push(nil, dbDefs: DBTestDefs.defs)
   }
   
   func testCascadeClose() {
@@ -70,7 +70,7 @@ class DBManagerMultiDBTests: XCTestCase {
 
   @discardableResult
   private func insertThing(_ tid: String, name: String) -> Thing {
-    let newThing = Thing(tid: tid, name: name, other: 0, otherDouble: 0)
+    let newThing = Thing(tid: tid, name: name, place: nil, other: 0, otherDouble: 0)
     try? newThing.save()
     return newThing
   }

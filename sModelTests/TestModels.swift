@@ -21,12 +21,14 @@ class Thing: ModelDef {
   var localId = UUID().uuidString
   var tid: String
   var name: String?
+  var place: String?
   var other: Int
   var otherDouble: Double
   
-  init(tid: String, name: String?, other: Int, otherDouble: Double) {
+  init(tid: String, name: String?, place: String?, other: Int, otherDouble: Double) {
     self.tid = tid
     self.name = name
+    self.place = place
     self.other = other
     self.otherDouble = otherDouble
   }
@@ -41,13 +43,15 @@ class SyncableThing: ModelDef, SyncableModel {
   var localId = UUID().uuidString
   var tid: String?
   var name: String?
+  var place: String?
   
   var syncStatus: DataStatus = .localOnly
   var syncInFlightStatus: DataStatus = .synced
   
-  init(tid: String?, name: String?) {
+  init(tid: String?, name: String?, place: String?) {
     self.tid = tid
     self.name = name
+    self.place = place
   }
   
   typealias ModelType = SyncableThing
