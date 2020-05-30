@@ -149,3 +149,5 @@ xcuserdata
 *.mobileprovision
 
 Carthage
+
+.swiftpm
