@@ -40,6 +40,22 @@ class ModelTests: XCTestCase {
     XCTFail("Test should have gone through the catch")
   }
   
+  func testUpdateSecondaryKey() {
+    let thing = Thing(tid: "tid1", name: "thing 1", place: nil, other: 0, otherDouble: 0)
+    
+    do {
+      try thing.save()
+      
+      thing.tid = "tid2" //change a secondary key value
+      try thing.save() //should not throw an exception
+      
+      let t = Thing.firstInstanceWhere("localId = ?", params: thing.localId)
+      XCTAssertEqual(t?.tid, "tid2")
+      
+    } catch {
+      XCTFail()
+    }
+  }
   
   func testInstancesWhere_arrayOfParams() {
     TestHelper.insertABunchOfThings(10)
