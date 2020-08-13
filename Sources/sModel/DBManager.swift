@@ -349,6 +349,7 @@ public class DBManager: NSObject {
               var update = updateByPrimaryKey // default to primary key
               var select = selectByPrimaryKey
               var usingSecondary = false
+              var resultState = ResultState.duplicateExists
               //Favor an update on a secondary key if those values exist. Common case is we are trying to save an object from a
               //network response that already is in the db but we didn't want to check for it's existence before the save.
               if
@@ -367,6 +368,8 @@ public class DBManager: NSObject {
                 
                 if db.changes == 0 {
                   throw QueryError.insertUpdateFailed
+                } else { //if you are updating using the primary key then there is no duplicate, it's just the same object.
+                  resultState = .success
                 }
               }
               
@@ -376,7 +379,7 @@ public class DBManager: NSObject {
               } else {
                 results.append(nil)
               }
-              resultStates.append(.duplicateExists)
+              resultStates.append(resultState)
             }
           
           //Handle syncable statements
