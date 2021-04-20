@@ -47,6 +47,11 @@ public struct StatementParts {
   }
 }
 
+public protocol DBDef {
+  static var defs: [String] { get }
+  static var namespace: String { get }
+}
+
 public struct DBMeta {
   public var queue: FMDatabaseQueue
   public var path: String?
