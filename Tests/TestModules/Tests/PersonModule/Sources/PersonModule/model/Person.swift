@@ -23,7 +23,7 @@ public struct Person: ModelDef {
   }
   
   public typealias ModelType = Person
-  public static let tableName = "Person"
+  public static let tableName = PersonModuleDBDefs.namespaced(name: "Person")
   public var primaryKeys: Array<CodingKey> { return [CodingKeys.id] }
   public var secondaryKeys: Array<CodingKey> { return [] }
 }

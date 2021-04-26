@@ -11,7 +11,7 @@ users across multiple apps. Compatible with Swift 5.
 
 ## DB Schema Management
 
-sModel will take an array of `sql` strings and execute them against your database.  The order in which these `sql` strings 
+sModel takes an array of `DBDef` objects that each contain an array of `sql` strings needed to setup your database.  The order in which these `sql` strings 
 are executed matters so we recommend storing them in an array.  Each `sql` string is guaranteed to run once and only once for the 
 lifetime of your app's installation on a device.  Simply add a new `sql` string to the end of your array to
 adjust your schema as your app requires and the next time the app runs, sModel will update your db schema.
@@ -24,10 +24,15 @@ let defs: [String] = ["CREATE TABLE \"Thing\" (\"tid\" TEXT PRIMARY KEY, \"name\
 try? DBManager.open(nil, dbDefs: defs)
 ```
 
+### DBDef Module Support
+
+Modules can provide their own DBDef file that defines the `sql` strings needed to support the database needs of the module. Each
+module defines a namespace that can be used to allow it's tables to coexist with tables from other modules/apps.
+
 ### Bad Upgrade Recovery
 
 If a database file is corrupted or can't be updated for some reason, the system will try and recover
-by deleting the existing database and initializing fresh.   
+by deleting the existing database and initializing fresh.
 
 ## Object Mapping
 
@@ -123,14 +128,9 @@ let someThings = Thing.instancesWhere("tid in (?, ?)", "tid1", "tid2") //Return 
 
 ## Full Working Example
 
-To see how all the parts work together, a full working example is available in the `sModelTests/example` folder.  This includes schema
+To see how all the parts work together, a full working example is available in the `tests/sModelTests/example` folder.  This includes schema
 definition files, model examples, and code exercising all of the CRUD operations available in sModel.  The other unit tests can also be
 used to see how each of the public apis can be used.
 
-## Running Locally
-
-To run the tests locally:
- - Install Carthage
- - In the root folder of the project, run `carthage update --platform ios`
- - Run the unit tests from XCode
-
+There is also a setup of tests available in `tests/TestModules` that demonstrate how individual modules can contain their own schema definitions and
+model objects.

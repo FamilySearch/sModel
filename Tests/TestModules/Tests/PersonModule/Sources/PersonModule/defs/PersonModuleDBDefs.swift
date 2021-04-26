@@ -4,12 +4,14 @@
 //
 
 import Foundation
+import sModel
 
-struct PersonModuleDBDefs {
-static let defs: [String] = [
+public struct PersonModuleDBDefs: DBDef {
+  public static let namespace = "PersonModule"
+  public static let defs: [String] = [
     //dbDef 1
     """
-    CREATE TABLE "Person" (
+    CREATE TABLE "\(Person.tableName)" (
       "id" TEXT PRIMARY KEY,
       "name" TEXT,
       "hairColor" TEXT
@@ -18,7 +20,7 @@ static let defs: [String] = [
     
     //dbDef 2
     """
-    ALTER TABLE Person ADD eyeColor TEXT;
+    ALTER TABLE \(Person.tableName) ADD eyeColor TEXT;
     """
   ]
 }

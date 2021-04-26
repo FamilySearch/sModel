@@ -19,7 +19,7 @@ public struct Pet: ModelDef {
   }
   
   public typealias ModelType = Pet
-  public static let tableName = "Pet"
+  public static let tableName = PetModuleDBDefs.namespaced(name: "Pet")
   public var primaryKeys: Array<CodingKey> { return [CodingKeys.id] }
   public var secondaryKeys: Array<CodingKey> { return [] }
 }

@@ -2,7 +2,7 @@ import Foundation
 import FMDB
 
 public enum DBError: Error {
-  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed
+  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed, namespaceConflict
 }
 
 public enum ModelError<T>: Error {
@@ -48,8 +48,14 @@ public struct StatementParts {
 }
 
 public protocol DBDef {
-  static var defs: [String] { get }
   static var namespace: String { get }
+  static var defs: [String] { get }
+}
+
+public extension DBDef {
+  static func namespaced(name: String) -> String {
+    "\(namespace)_\(name)"
+  }
 }
 
 public struct DBMeta {
@@ -89,7 +95,11 @@ public class DBManager: NSObject {
     }
   }
   
-  public class func push(_ dbPath: String?, dbDefs: Array<String>) throws {
+  public class func push(_ dbPath: String?, dbDef: DBDef.Type) throws {
+    try push(dbPath, dbDefs: [dbDef])
+  }
+  
+  public class func push(_ dbPath: String?, dbDefs: [DBDef.Type]) throws {
     guard dbs.count > 0 else {
       throw DBError.pushFailed
     }
@@ -107,19 +117,28 @@ public class DBManager: NSObject {
   }
   
   @discardableResult
-  public class func open(_ dbPath: String?, dbDefs: Array<String>, pushOnStack: Bool = true) throws -> DBMeta? {
+  public class func open(_ dbPath: String?, dbDef: DBDef.Type, pushOnStack: Bool = true) throws -> DBMeta? {
+    try open(dbPath, dbDefs: [dbDef], pushOnStack: pushOnStack)
+  }
+    
+  @discardableResult
+  public class func open(_ dbPath: String?, dbDefs: [DBDef.Type], pushOnStack: Bool = true) throws -> DBMeta? {
     Log.info("Open database queue at: \(dbPath ?? "IN_MEMORY_DB")")
+    
+    try validateNamespaces(dbDefs: dbDefs)
 
     guard let queue = FMDatabaseQueue(path: dbPath) else {
       throw DBError.dbPathInvalid
     }
 
     var upgradeFailed = false
-    queue.inDatabase({ (db) -> Void in
+    
+    //Update sModel scheme
+    queue.inDatabase { (db) -> Void in
       let startSchemaVersion = Int(db.userVersion)
-      let endSchemaVersion = dbDefs.count
+      let endSchemaVersion = sModelDefs.defs.count
       
-      if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: dbDefs) {
+      if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: sModelDefs.defs) {
         let defRange = "\(startSchemaVersion + 1)-\(endSchemaVersion)"
         Log.info("\nExecuting SQL Statements (\(defRange))\n\(unProcessedDefs)")
         
@@ -128,25 +147,80 @@ public class DBManager: NSObject {
           db.commit()
           db.userVersion = UInt32(endSchemaVersion)
 
-          Log.info("Successfully updated db schema to version v\(endSchemaVersion)")
+          Log.info("Successfully updated sModel db schema to version v\(endSchemaVersion)")
 
         } else {
           upgradeFailed = true
-          if isRetry {
-            Log.error("DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
-          } else {
-            Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
-          }
+          Log.error("DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
           return
         }
       
       } else { //already current
-        Log.info("Database is current at version v\(startSchemaVersion)")
+        Log.info("sModel db schema is current at version v\(startSchemaVersion)")
       }
-    })
+    }
 
-    var dbMeta: DBMeta?
+    guard !upgradeFailed else {
+      Log.error("Unable to setup/upgrade the sModel db schema tables that are required for sModel to run correctly.")
+      fatalError()
+    }
+    
+    var dbMeta: DBMeta? = DBMeta(queue: queue, path: dbPath)
+    if let dbMeta = dbMeta, pushOnStack {
+      dbs.append(dbMeta)
+    }
+
+    //Load the details about each dbdef that has been previously loaded
+    var defTrackers = !pushOnStack ? Dictionary<String, DBDefTracker>() : DBDefTracker.allInstances().reduce(Dictionary<String, DBDefTracker>()) { (accumulator, tracker) -> Dictionary<String, DBDefTracker> in
+      accumulator.merging([tracker.namespace: tracker]) { (tracker1, tracker2) -> DBDefTracker in
+        preconditionFailure("Namespace collision: \(tracker1) conflicts with \(tracker2)")
+      }
+    }
+    
+    //Run the sql scripts for each dbDef that hasn't been run yet
+    for dbDef in dbDefs {
+      let tracker = defTrackers[dbDef.namespace] ?? DBDefTracker(namespace: dbDef.namespace)
+      defTrackers[dbDef.namespace] = tracker
+      
+      queue.inDatabase({ (db) -> Void in
+        let startSchemaVersion = tracker.version
+        let endSchemaVersion = dbDef.defs.count
+        
+        if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: dbDef.defs) {
+          let defRange = "\(startSchemaVersion + 1)-\(endSchemaVersion)"
+          Log.info("\n\(dbDef.namespace):: Executing SQL Statements (\(defRange))\n\(unProcessedDefs)")
+          
+          db.beginTransaction()
+          if db.executeStatements(unProcessedDefs) {
+            db.commit()
+            
+            tracker.version = endSchemaVersion
+            tracker.lastUpdated = Date()
+
+            Log.info("\(dbDef.namespace):: Successfully updated db schema to version v\(endSchemaVersion)")
+
+          } else {
+            upgradeFailed = true
+            if isRetry {
+              Log.error("\(dbDef.namespace):: DBSetupFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
+            } else {
+              Log.error("\(dbDef.namespace):: DBUpgradeFailed currentVersion=\(startSchemaVersion) to newVersion=\(endSchemaVersion)")
+            }
+            return
+          }
+        
+        } else { //already current
+          Log.info("\(dbDef.namespace):: Database is current at version v\(startSchemaVersion)")
+        }
+      })
+      guard !upgradeFailed else { break }
+    }
+    
     if upgradeFailed {
+      if pushOnStack {
+        dbs.removeLast()
+      }
+      
       if isRetry { //retry failed so don't retry again
         throw DBError.restoreFailed
 
@@ -165,20 +239,29 @@ public class DBManager: NSObject {
         do {
           dbMeta = try self.open(dbPath, dbDefs: dbDefs, pushOnStack: pushOnStack)
         } catch {
-          Log.error("Error trying to recreate main db: \(String(describing: dbPath))")
+          Log.error("Error trying to recreate db: \(String(describing: dbPath))")
           throw DBError.recreateFailed
         }
         return dbMeta
       }
+      
+    } else if pushOnStack {
+      let trackerSaves = defTrackers.values.compactMap { try? $0.createSaveStatement() }
+      guard trackerSaves.count == defTrackers.values.count else {
+        Log.error("Error creating save statements for all DBDefTracker objects.")
+        fatalError()
+      }
+      
+      do {
+        try DBManager.executeStatements(trackerSaves) { (_, _) in }
+      } catch {
+        Log.error("Error saving db schema versions: \(error)")
+      }
     }
 
-    dbMeta = DBMeta(queue: queue, path: dbPath)
-    if let dbMeta = dbMeta, pushOnStack {
-      dbs.append(dbMeta)
-    }
     return dbMeta
   }
-  
+
   public class func clone(destinationPath: String, callback:(Bool)->()) {
     guard let dbMeta = dbs.last else {
       Log.error("There is no database currently open.")
@@ -218,6 +301,18 @@ public class DBManager: NSObject {
           Log.warn("Can't delete db file (\(path)): \(error)")
         }
       }
+    }
+  }
+  
+  private class func validateNamespaces(dbDefs: [DBDef.Type]) throws {
+    var namespaces = Set<String>()
+    for def in dbDefs {
+      guard !namespaces.contains(def.namespace) else {
+        let msg = dbDefs.map({"\($0)>>\($0.namespace)"}).joined(separator: "\n")
+        Log.error("DBDef namespace conflict: \n\(msg)")
+        throw DBError.namespaceConflict
+      }
+      namespaces.insert(def.namespace)
     }
   }
 

@@ -15,7 +15,7 @@ struct LocalDBDefs: DBDef {
   static let defs: [String] = [
     //dbDef 1
     """
-    CREATE TABLE "\(table: Person.self)" (
+    CREATE TABLE "\(Person.tableName)" (
       "id" TEXT PRIMARY KEY,
       "name" TEXT,
       "email" TEXT,
@@ -25,7 +25,7 @@ struct LocalDBDefs: DBDef {
     
     //dbDef 2
     """
-    ALTER TABLE \(namespace)_Person ADD active INTEGER;
+    ALTER TABLE \(Person.tableName) ADD active INTEGER;
     """
   ]
 }

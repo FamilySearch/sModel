@@ -17,8 +17,7 @@ struct Person: ModelDef {
   var active: Bool
   
   typealias ModelType = Person
-  static let tableName = "Person"
-  static let namespace = "Local"
+  static let tableName = LocalDBDefs.namespaced(name: "Person")
   var primaryKeys: Array<CodingKey> { return [CodingKeys.id] }
   var secondaryKeys: Array<CodingKey> { return [] }
 }

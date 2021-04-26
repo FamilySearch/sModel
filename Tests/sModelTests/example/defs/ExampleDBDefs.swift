@@ -7,12 +7,14 @@
 //
 
 import Foundation
+import sModel
 
-struct ExampleDBDefs {
-static let defs: [String] = [
+struct ExampleDBDefs: DBDef {
+  static let namespace = ""
+  static let defs: [String] = [
     //dbDef 1
     """
-    CREATE TABLE "Person" (
+    CREATE TABLE "\(Person.tableName)" (
       "id" TEXT PRIMARY KEY,
       "name" TEXT,
       "email" TEXT,
@@ -22,9 +24,9 @@ static let defs: [String] = [
     
     //dbDef 2
     """
-    ALTER TABLE Person ADD active INTEGER;
+    ALTER TABLE \(Person.tableName) ADD active INTEGER;
 
-    CREATE TABLE "Message" (
+    CREATE TABLE "\(Message.tableName)" (
       "localId" TEXT PRIMARY KEY,
       "messageId" TEXT,
       "content" TEXT,
@@ -33,7 +35,7 @@ static let defs: [String] = [
       "syncStatus" INTEGER,
       "syncInFlightStatus" INTEGER
     );
-    CREATE UNIQUE INDEX "main"."INDEX_messageId" ON Message ("messageId");
+    CREATE UNIQUE INDEX "main"."INDEX_messageId" ON \(Message.tableName) ("messageId");
     """
   ]
 }

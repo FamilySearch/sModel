@@ -10,10 +10,6 @@ public protocol ModelDef: SQLCodable {
    */
   static var tableName: String { get }
   /**
-   Namespace of this table to avoid tableName conflicts across modules.
-   */
-  static var namespace: String { get }
-  /**
    The `primaryKeys` are required to contain one or more columns that are used to uniquely
    identify an object in the database table and are required to have values.
    */

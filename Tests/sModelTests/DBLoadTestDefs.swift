@@ -7,9 +7,11 @@
 //
 
 import Foundation
+import sModel
 
-struct DBLoadTestDefs {
-static let defs: [String] = [
+struct DBLoadTestDefs: DBDef {
+  static let namespace = "DBLoadTestDefs"
+  static let defs: [String] = [
     """
     CREATE TABLE "Artifact_Associations" (
       "artifact1LocalId" TEXT,

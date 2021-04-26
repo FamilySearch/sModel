@@ -14,11 +14,11 @@ class DBManagerMultiDBTests: XCTestCase {
   }
 
   private func openDB() {
-    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
+    try! DBManager.open(nil, dbDef: DBTestDefs.self)
   }
   
   private func pushDB() {
-    try! DBManager.push(nil, dbDefs: DBTestDefs.defs)
+    try! DBManager.push(nil, dbDef: DBTestDefs.self)
   }
   
   func testCascadeClose() {

@@ -17,7 +17,7 @@ struct Person: ModelDef {
   var active: Bool
   
   typealias ModelType = Person
-  static let tableName = "Person"
+  static let tableName = ExampleDBDefs.namespaced(name: "Person")
   var primaryKeys: Array<CodingKey> { return [CodingKeys.id] }
   var secondaryKeys: Array<CodingKey> { return [] }
 }
@@ -40,7 +40,7 @@ struct Message: ModelDef, SyncableModel {
   }
   
   typealias ModelType = Message
-  static let tableName = "Message"
+  static let tableName = ExampleDBDefs.namespaced(name: "Message")
   var primaryKeys: Array<CodingKey> { return [CodingKeys.localId] }
   var secondaryKeys: Array<CodingKey> { return [CodingKeys.messageId] }
 }

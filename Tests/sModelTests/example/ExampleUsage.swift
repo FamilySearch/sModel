@@ -19,7 +19,7 @@ class ExampleUsage: XCTestCase {
     //custom `Logger`.
     Log.logLevel = .error
     
-    try! DBManager.open(nil, dbDefs: ExampleDBDefs.defs)
+    try! DBManager.open(nil, dbDef: ExampleDBDefs.self)
   }
   
   override func tearDown() {
@@ -120,7 +120,7 @@ class ExampleUsage: XCTestCase {
     //The second approach uses less memory by avoiding creation of the different `Person` instances but requires you
     //to generate the sql statements needed to create the database objects. Using this approach requires you to handle
     //insertion errors and any potential constraint conflicts instead of allowing sModel to handle those things for you.
-    let insertString = "INSERT INTO Person (id,name,email,age,active) VALUES (?,?, NULL,?,?)"
+    let insertString = "INSERT INTO \(Person.tableName) (id,name,email,age,active) VALUES (?,?, NULL,?,?)"
     var statements = [StatementParts]()
     statements.append(StatementParts(sql: insertString, values: ["p1", "Abe", 10, true], type: .insert))
     statements.append(StatementParts(sql: insertString, values: ["p2", "Bob", 20, false], type: .insert))
@@ -135,7 +135,7 @@ class ExampleUsage: XCTestCase {
     XCTAssertEqual(Person.allInstances().count, 3)
     
     //This approach can also be used to submit custom SQL statements to the database
-    let statement = StatementParts(sql: "SELECT * FROM Person WHERE id IN (?, ?) ORDER BY name DESC", values: ["p1", "p3"], type: .query)
+    let statement = StatementParts(sql: "SELECT * FROM \(Person.tableName) WHERE id IN (?, ?) ORDER BY name DESC", values: ["p1", "p3"], type: .query)
     do {
       try DBManager.executeStatement(statement, resultHandler: { (result) in
         guard let result = result else { XCTFail(); return }

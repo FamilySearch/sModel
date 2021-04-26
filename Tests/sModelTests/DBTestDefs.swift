@@ -7,9 +7,11 @@
 //
 
 import Foundation
+import sModel
 
-struct DBTestDefs {
-static let defs: [String] = [
+struct DBTestDefs: DBDef {
+  static let namespace = "DBTestDefs"
+  static let defs: [String] = [
     //dbDef 1
     """
     CREATE TABLE "Thing" (

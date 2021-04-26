@@ -14,9 +14,3 @@ struct Utils {
     return defs.suffix(from: currentVersion).joined(separator: "\n\n")
   }
 }
-
-extension String.StringInterpolation {
-  mutating func appendInterpolation(table value: ModelDef.Type) {
-    appendLiteral("\(value.namespace)_\(value.tableName)")
-  }
-}

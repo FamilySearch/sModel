@@ -12,7 +12,7 @@ import XCTest
 class StickyModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
-    try! DBManager.open(nil, dbDefs: DBTestDefs.defs)
+    try! DBManager.open(nil, dbDef: DBTestDefs.self)
   }
   
   override func tearDown() {
