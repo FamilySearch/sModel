@@ -132,10 +132,25 @@ public class DBManager: NSObject {
     }
 
     var upgradeFailed = false
+    var emptyNamespaceStartVersion: Int? = nil
     
     //Update sModel scheme
     queue.inDatabase { (db) -> Void in
-      let startSchemaVersion = Int(db.userVersion)
+      var startSchemaVersion = Int(db.userVersion)
+      
+      //Need to adjust old use of `userVersion` to track single DBDef file to new use of tracking the internal sModel schema only
+      if startSchemaVersion > 0 && startSchemaVersion < 1_000 {
+        Log.info("Migrating `userVersion` to track sModel internal schema. Capturing version of un-namespaced tables at version: \(startSchemaVersion)")
+        emptyNamespaceStartVersion = startSchemaVersion
+        startSchemaVersion = 0
+        
+      } else if startSchemaVersion != 0 { //Already migrated to internal sModel schema so adjust startSchemaVersion
+        startSchemaVersion -= 1_000
+        
+      } else {
+        Log.debug("Newly created db")
+      }
+      
       let endSchemaVersion = sModelDefs.defs.count
       
       if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: sModelDefs.defs) {
@@ -145,7 +160,7 @@ public class DBManager: NSObject {
         db.beginTransaction()
         if db.executeStatements(unProcessedDefs) {
           db.commit()
-          db.userVersion = UInt32(endSchemaVersion)
+          db.userVersion = UInt32(endSchemaVersion + 1_000)
 
           Log.info("Successfully updated sModel db schema to version v\(endSchemaVersion)")
 
@@ -183,7 +198,12 @@ public class DBManager: NSObject {
       defTrackers[dbDef.namespace] = tracker
       
       queue.inDatabase({ (db) -> Void in
-        let startSchemaVersion = tracker.version
+        var startSchemaVersion = tracker.version
+        if let emptyNamespaceStartVersion = emptyNamespaceStartVersion, dbDef.namespace.isEmpty {
+          startSchemaVersion = emptyNamespaceStartVersion
+          tracker.version = startSchemaVersion
+          tracker.lastUpdated = Date()
+        }
         let endSchemaVersion = dbDef.defs.count
         
         if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: dbDef.defs) {
@@ -322,13 +342,6 @@ public class DBManager: NSObject {
       return dbPath
     }
     return nil
-  }
-
-  public class func getDBDefFiles(bundle: Bundle?) -> Array<String>? {
-    let pathBundle = bundle ?? Bundle.main
-    var paths = pathBundle.paths(forResourcesOfType: "sql", inDirectory: nil)
-    paths.sort()
-    return paths
   }
 
   public class func getDBQueue() throws -> FMDatabaseQueue {
