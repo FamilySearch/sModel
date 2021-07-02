@@ -4,6 +4,7 @@ import XCTest
 class SchemaTests: XCTestCase {
   override func setUp() {
     super.setUp()
+    ChangeableDBDefs.reset()
   }
 
   override func tearDown() {
@@ -20,7 +21,7 @@ class SchemaTests: XCTestCase {
       XCTAssertTrue(db.tableExists("Thing"))
       XCTAssertTrue(db.columnExists("tid", inTableWithName: "Thing"))
 
-      XCTAssertEqual(db.userVersion, 1_001)
+      XCTAssertEqual(db.userVersion, 1_002)
     }
   }
   
@@ -75,7 +76,7 @@ class SchemaTests: XCTestCase {
       XCTAssertTrue(db.tableExists("Person"))
       XCTAssertTrue(db.columnExists("id", inTableWithName: "Person"))
 
-      XCTAssertEqual(db.userVersion, 1_001)
+      XCTAssertEqual(db.userVersion, 1_002)
     }
     
     let tracker = DBDefTracker.firstInstanceWhere("namespace = ?", params: OldDefs.namespace)
@@ -114,7 +115,7 @@ class SchemaTests: XCTestCase {
       XCTAssertTrue(db.columnExists("content", inTableWithName: Message.tableName))
       XCTAssertTrue(db.columnExists("createdOn", inTableWithName: Message.tableName))
 
-      XCTAssertEqual(db.userVersion, 1_001)
+      XCTAssertEqual(db.userVersion, 1_002)
     }
     
     var tracker = DBDefTracker.firstInstanceWhere("namespace = ?", params: DBTestDefs.namespace)
@@ -127,5 +128,159 @@ class SchemaTests: XCTestCase {
   func testDBDef_namespaced() {
     XCTAssertEqual("_table", ExampleDBDefs.namespaced(name: "table"))
     XCTAssertEqual("DBTestDefs_table", DBTestDefs.namespaced(name: "table"))
+  }
+  
+  func testInvalidSchemaUpdate_alterPreviouslyUsedDef() {
+    let dbName = tempDBName()
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      DBManager.close()
+    } catch DBError.invalidDBDefChange {
+      XCTFail("This should have not have thrown the .invalidDBDefChange error")
+    } catch {
+      XCTFail("This should have not have thrown any errors")
+    }
+    
+    //alter ChangeableDBDefs in an invalid way
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 2)
+    var defs = ChangeableDBDefs.defs
+    defs.removeLast()
+    defs.append(ChangeableDBDefs.invalidDBDef2Change)
+    ChangeableDBDefs.defs = defs
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 2)
+    
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      DBManager.close()
+      XCTFail("This should have thrown the .invalidDBDefChange error")
+      
+    } catch DBError.invalidDBDefChange {
+      //this is the error that should have been thrown
+    } catch {
+      XCTFail()
+    }
+  }
+  
+  func testInvalidSchemaUpdate_alterPreviouslyUsedDefWithNewDef() {
+    let dbName = tempDBName()
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      DBManager.close()
+    } catch DBError.invalidDBDefChange {
+      XCTFail("This should have not have thrown the .invalidDBDefChange error")
+    } catch {
+      XCTFail("This should have not have thrown any errors")
+    }
+    
+    //alter ChangeableDBDefs in an invalid way
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 2)
+    var defs = ChangeableDBDefs.defs
+    defs.removeLast()
+    defs.append(ChangeableDBDefs.invalidDBDef2Change)
+    defs.append(ChangeableDBDefs.validDBDef3Addition)
+    ChangeableDBDefs.defs = defs
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 3)
+    
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      DBManager.close()
+      XCTFail("This should have thrown the .invalidDBDefChange error")
+      
+    } catch DBError.invalidDBDefChange {
+      //this is the error that should have been thrown
+    } catch {
+      XCTFail()
+    }
+  }
+  
+  func testValidSchemaUpdate() {
+    let dbName = tempDBName()
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      
+      let tracker = DBDefTracker.firstInstanceWhere("namespace = ?", params: ChangeableDBDefs.namespace)
+      XCTAssertEqual(tracker?.version, 2)
+      
+      try? Pet(id: "p1", name: "pet1", active: true).save()
+      
+      DBManager.close()
+    } catch DBError.invalidDBDefChange {
+      XCTFail("This should have not have thrown the .invalidDBDefChange error")
+    } catch {
+      XCTFail("This should not have thrown any errors")
+    }
+    
+    //alter ChangeableDBDefs in an invalid way
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 2)
+    var defs = ChangeableDBDefs.defs
+    defs.append(ChangeableDBDefs.validDBDef3Addition)
+    ChangeableDBDefs.defs = defs
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 3)
+    
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      
+      let tracker = DBDefTracker.firstInstanceWhere("namespace = ?", params: ChangeableDBDefs.namespace)
+      XCTAssertEqual(tracker?.version, 3)
+      
+      let pets = Pet.allInstances()
+      XCTAssertEqual(pets.count, 1)
+      
+      DBManager.close()
+      
+    } catch DBError.invalidDBDefChange {
+      XCTFail("This should have not have thrown the .invalidDBDefChange error")
+    } catch {
+      XCTFail("This should not have thrown any errors")
+    }
+  }
+  
+  func testValidSchemaUpdate_prehash_tohash() {
+    let dbName = tempDBName()
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      
+      let tracker = DBDefTracker.firstInstanceWhere("namespace = ?", params: ChangeableDBDefs.namespace)
+      XCTAssertEqual(tracker?.version, 2)
+      
+      //clear hash to simulate pre-hash world
+      XCTAssertTrue(tracker?.lastHash.isEmpty == false)
+      tracker?.lastHash = ""
+      try? tracker?.save()
+      
+      DBManager.close()
+    } catch DBError.invalidDBDefChange {
+      XCTFail("This should have not have thrown the .invalidDBDefChange error")
+    } catch {
+      XCTFail("This should not have thrown any errors")
+    }
+    
+    //alter ChangeableDBDefs in an invalid way
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 2)
+    var defs = ChangeableDBDefs.defs
+    defs.append(ChangeableDBDefs.validDBDef3Addition)
+    ChangeableDBDefs.defs = defs
+    XCTAssertEqual(ChangeableDBDefs.defs.count, 3)
+    
+    do {
+      try DBManager.open(dbName, dbDefs: [ChangeableDBDefs.self])
+      
+      let tracker = DBDefTracker.firstInstanceWhere("namespace = ?", params: ChangeableDBDefs.namespace)
+      XCTAssertEqual(tracker?.version, 3)
+      
+      DBManager.close()
+      
+    } catch DBError.invalidDBDefChange {
+      XCTFail("This should have not have thrown the .invalidDBDefChange error")
+    } catch {
+      XCTFail("This should not have thrown any errors")
+    }
+  }
+  
+  private func tempDBName() -> String {
+    let directory = NSTemporaryDirectory()
+    let filename = "\(UUID().uuidString).sqlite"
+    let fileURL = URL(fileURLWithPath: directory).appendingPathComponent(filename)
+    return fileURL.absoluteString
   }
 }

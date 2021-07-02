@@ -10,14 +10,25 @@ import XCTest
 @testable import sModel
 
 class UtilsTests: XCTestCase {
-  func testSelectDefs() throws {
+  func testSelectNewDefs() throws {
     let defs = ["a","b","c","d","e","f"]
-    XCTAssertEqual(Utils.selectDefs(currentVersion: 0, defs: defs), "a\n\nb\n\nc\n\nd\n\ne\n\nf")
-    XCTAssertEqual(Utils.selectDefs(currentVersion: 1, defs: defs), "b\n\nc\n\nd\n\ne\n\nf")
-    XCTAssertEqual(Utils.selectDefs(currentVersion: 2, defs: defs), "c\n\nd\n\ne\n\nf")
-    XCTAssertEqual(Utils.selectDefs(currentVersion: 3, defs: defs), "d\n\ne\n\nf")
-    XCTAssertEqual(Utils.selectDefs(currentVersion: 4, defs: defs), "e\n\nf")
-    XCTAssertEqual(Utils.selectDefs(currentVersion: 5, defs: defs), "f")
-    XCTAssertNil(Utils.selectDefs(currentVersion: 6, defs: defs))
+    XCTAssertEqual(Utils.selectNewDefs(currentVersion: 0, defs: defs), "a\n\nb\n\nc\n\nd\n\ne\n\nf")
+    XCTAssertEqual(Utils.selectNewDefs(currentVersion: 1, defs: defs), "b\n\nc\n\nd\n\ne\n\nf")
+    XCTAssertEqual(Utils.selectNewDefs(currentVersion: 2, defs: defs), "c\n\nd\n\ne\n\nf")
+    XCTAssertEqual(Utils.selectNewDefs(currentVersion: 3, defs: defs), "d\n\ne\n\nf")
+    XCTAssertEqual(Utils.selectNewDefs(currentVersion: 4, defs: defs), "e\n\nf")
+    XCTAssertEqual(Utils.selectNewDefs(currentVersion: 5, defs: defs), "f")
+    XCTAssertNil(Utils.selectNewDefs(currentVersion: 6, defs: defs))
+  }
+  
+  func testSelectProcessedDefs() throws {
+    let defs = ["a","b","c","d","e","f"]
+    XCTAssertEqual(Utils.selectProcessedDefs(currentVersion: 6, defs: defs), "a\n\nb\n\nc\n\nd\n\ne\n\nf")
+    XCTAssertEqual(Utils.selectProcessedDefs(currentVersion: 5, defs: defs), "a\n\nb\n\nc\n\nd\n\ne")
+    XCTAssertEqual(Utils.selectProcessedDefs(currentVersion: 4, defs: defs), "a\n\nb\n\nc\n\nd")
+    XCTAssertEqual(Utils.selectProcessedDefs(currentVersion: 3, defs: defs), "a\n\nb\n\nc")
+    XCTAssertEqual(Utils.selectProcessedDefs(currentVersion: 2, defs: defs), "a\n\nb")
+    XCTAssertEqual(Utils.selectProcessedDefs(currentVersion: 1, defs: defs), "a")
+    XCTAssertNil(Utils.selectProcessedDefs(currentVersion: 0, defs: defs))
   }
 }
