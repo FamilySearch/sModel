@@ -55,7 +55,7 @@ extension DBDefTracker {
     let processedHash = Utils.generateHash(string: processedDefs)
     
     guard processedHash == lastHash else {
-      throw DBError.invalidDBDefChange
+      throw DBError.invalidDBDefChange(namespace: namespace)
     }
   }
   

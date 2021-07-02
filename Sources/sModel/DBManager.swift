@@ -2,7 +2,8 @@ import Foundation
 import FMDB
 
 public enum DBError: Error {
-  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed, namespaceConflict, invalidDBDefChange
+  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed, namespaceConflict,
+       invalidDBDefChange(namespace: String)
 }
 
 public enum ModelError<T>: Error {
