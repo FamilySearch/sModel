@@ -2,7 +2,7 @@ import Foundation
 import FMDB
 
 public enum DBError: Error {
-  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed, namespaceConflict
+  case openFailed, dbPathInvalid, missingDBQueue, restoreFailed, recreateFailed, pushFailed, popFailed, namespaceConflict, invalidDBDefChange
 }
 
 public enum ModelError<T>: Error {
@@ -153,7 +153,7 @@ public class DBManager: NSObject {
       
       let endSchemaVersion = sModelDefs.defs.count
       
-      if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: sModelDefs.defs) {
+      if let unProcessedDefs = Utils.selectNewDefs(currentVersion: startSchemaVersion, defs: sModelDefs.defs) {
         let defRange = "\(startSchemaVersion + 1)-\(endSchemaVersion)"
         Log.info("\nExecuting SQL Statements (\(defRange))\n\(unProcessedDefs)")
         
@@ -197,6 +197,8 @@ public class DBManager: NSObject {
       let tracker = defTrackers[dbDef.namespace] ?? DBDefTracker(namespace: dbDef.namespace)
       defTrackers[dbDef.namespace] = tracker
       
+      try tracker.validate(dbDef: dbDef)
+      
       queue.inDatabase({ (db) -> Void in
         var startSchemaVersion = tracker.version
         if let emptyNamespaceStartVersion = emptyNamespaceStartVersion, dbDef.namespace.isEmpty {
@@ -206,7 +208,7 @@ public class DBManager: NSObject {
         }
         let endSchemaVersion = dbDef.defs.count
         
-        if let unProcessedDefs = Utils.selectDefs(currentVersion: startSchemaVersion, defs: dbDef.defs) {
+        if let unProcessedDefs = Utils.selectNewDefs(currentVersion: startSchemaVersion, defs: dbDef.defs) {
           let defRange = "\(startSchemaVersion + 1)-\(endSchemaVersion)"
           Log.info("\n\(dbDef.namespace):: Executing SQL Statements (\(defRange))\n\(unProcessedDefs)")
           
@@ -215,6 +217,7 @@ public class DBManager: NSObject {
             db.commit()
             
             tracker.version = endSchemaVersion
+            tracker.updateLastHash(dbDef: dbDef)
             tracker.lastUpdated = Date()
 
             Log.info("\(dbDef.namespace):: Successfully updated db schema to version v\(endSchemaVersion)")
