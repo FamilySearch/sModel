@@ -9,6 +9,10 @@ sModel is a Swift framework written on top of FMDB to provide:
 The sModel library has been used for many years on multiple apps found in the AppStore.  This code is production ready and has been battle tested by millions of
 users across multiple apps. Compatible with Swift 5.
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FFamilySearch%2FsModel%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/FamilySearch/sModel)
+
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FFamilySearch%2FsModel%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/FamilySearch/sModel)
+
 ## DB Schema Management
 
 sModel takes an array of `DBDef` objects that each contain an array of `sql` strings needed to setup your database.  The order in which these `sql` strings 
