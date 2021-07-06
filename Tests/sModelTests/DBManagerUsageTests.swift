@@ -27,6 +27,8 @@ class DBManagerUsageTests: XCTestCase {
       XCTFail("dbThing should not have existed in the database")
       return
     }
+    
+    XCTAssertEqual(DBDefTracker.allInstances().count, 1, "DBDefTracker rows should not get deleted by the truncateAllTables method.")
   }
 
   func testTruncateAllTables_excludeTable() {

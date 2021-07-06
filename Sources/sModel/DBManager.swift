@@ -372,7 +372,11 @@ public class DBManager: NSObject {
       }
       while result.next() {
         if let type = result.string(forColumn: "type") , type == "table" {
-          if let tableName = result.string(forColumn: "name"), !excludes.contains(tableName) {
+          if
+            let tableName = result.string(forColumn: "name"),
+            !tableName.hasPrefix(sModelDefs.namespace),
+            !excludes.contains(tableName)
+          {
             do {
               try db.executeUpdate("DELETE FROM \(tableName)", values: nil)
               Log.debug("Truncated data from the '\(tableName)' table.")
